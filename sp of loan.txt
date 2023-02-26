@@ -1,0 +1,78 @@
+USE [UCAS_HRM_EBLSL]
+GO
+/****** Object:  StoredProcedure [dbo].[Get_EmployeeInfo_Details_By_Code_for_loan]    Script Date: 1/29/2023 3:13:57 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+---    EXEC Get_EmployeeInfo_Details_By_Code_for_loan 'U029'
+ALTER Procedure [dbo].[Get_EmployeeInfo_Details_By_Code_for_loan](@EmployeeCode VARCHAR(50),@LoanType INT = 0)
+AS
+BEGIN
+DECLARE @EMP_ID INT ,@LoanDisburseId INT
+SET @EMP_ID = (SELECT P.emp_id FROM EMP_PROFILE P WHERE P.active_inactive_status = 1 AND P.emp_office_code = @EmployeeCode)
+SET @LoanType = 2
+SELECT @LoanDisburseId = ld.Id FROM SalaryLoanDisburse ld WHERE ld.IsActive = 1 AND ld.LoanStatus = 2 AND ld.EmployeeId = @EMP_ID
+
+SELECT E.emp_id,ISNULL(D.emp_personal_details_id,0) AS DetailId ,E.emp_office_code,E.emp_name,E.OfficeEmail,CONVERT(VARCHAR,E.emp_datetimeof_birth,103) AS emp_datetimeof_birth,
+CONVERT(VARCHAR,E.emp_joining_datetime,103)AS emp_joining_datetime,CONVERT(VARCHAR,E.emp_confirmation_datetime,103) AS emp_confirmation_datetime,
+E.emp_status_id,E.emp_job_id,J.job_name,
+E.emp_desg_id,Dg.DesignationName,
+E.emp_branch_id,B.BranchName,
+E.emp_dept_id,Dp.DepartmentName,
+E.emp_desk_id,Ds.desk_name,
+E.emp_increment_flag,E.emp_noof_increment,
+D.blood_group_id,D.religion_id,D.marital_status_id,D.emp_country_id,D.emp_gender,D.emp_father_name,D.emp_mother_name,D.emp_spouse_name,
+CONVERT(VARCHAR,D.emp_spouse_dateofbirth,103) AS emp_spouse_dateofbirth,D.emp_present_address,D.emp_present_district_id,D.emp_permanent_address,
+D.emp_permanent_district_id,D.emp_phone_office,D.emp_phone_residance,D.emp_mobile,D.emp_office_mail_address,D.emp_personal_mail_address,
+D.emp_nation_id_no,D.emp_passport_no,D.remarks,D.emp_present_thana_id,D.emp_permanent_thana_id,D.emp_spouse_contact_no,D.emergency_contact_person_name,
+D.emergency_contact_no,D.relation_emergency_person,(SELECT COUNT(*) FROM SAL_DISBURSEMENT_LOG AS L WHERE L.branch_id = E.emp_branch_id AND L.disbursement_date >  E.emp_joining_datetime ) AS IsSalaryDisburse
+,ISNULL(E.emp_salary_acc_bank_id,0)emp_salary_acc_bank_id
+,ISNULL(E.emp_salary_acc_branch_id,0)emp_salary_acc_branch_id
+,E.emp_salary_acc_no
+,E.SalaryPaymentMode
+,E.id_card_bar_code
+,'N/A' TaxIdentificationNumber
+--,ISNULL(E.IsSpecial,0) IsSpecial
+--,ISNULL(E.MobileNo,'') MobileNo
+--,ISNULL(E.MobileNoConvence,'') MobileNoConvence
+--,ISNULL(D.TaxIdentificationNumber,'') TaxIdentificationNumber
+--,ISNULL(E.CompanyId,0) CompanyId
+--,ISNULL(OMI.status,0) MobileStatus
+
+,ISNULL(SD.LoanDisburseId,0) LoanDisburseId
+,ISNULL(SD.LoanDisburseAmount,0) TotalLoanAmount
+,ISNULL(LC.tCollectionAmountPrincipal,0) PaidAmount
+
+,ISNULL(SD.PrincipalInstallmentAmount,0) InstallmentAmount
+,ISNULL(SD.InterestRate,0) InterestRate
+,(ISNULL(SD.LoanDisburseAmount,0)  - ISNULL(LC.tCollectionAmountPrincipal,0)) DueAmount
+,ISNULL(SD.LoanDurationMonth,0) LoanDurationM
+
+--,ISNULL(sld.LoanDisburseAmount, 0) TotalLoanAmount
+--,ISNULL(sc.CollectionAmountPrincipal, 0) PaidAmount
+--,ISNULL(sld.InstallmentAmount,0) InstallmentAmount
+ FROM EMP_PROFILE AS E 
+ LEFT OUTER JOIN EMP_PERSONAL_DETAILS_PROFILE AS D ON D.emp_id = E.emp_id
+ LEFT OUTER JOIN LookupDesignation AS Dg ON Dg.Id = E.emp_desg_id
+ LEFT OUTER JOIN BrokerDepartment AS Dp ON Dp.Id = E.emp_dept_id
+ LEFT OUTER JOIN HR_JOB_TYPE AS J ON J.job_id = E.emp_job_id
+ LEFT OUTER JOIN OfficeBranch AS B ON B.Id = E.emp_branch_id
+ LEFT OUTER JOIN HR_DESK AS Ds ON Ds.desk_id = E.emp_desk_id
+ 
+ left join( SELECT ld.EmployeeId,ld.Id LoanDisburseId,ld.LoanDisburseAmount, ld.InstallmentAmount,ld.PrincipalInstallmentAmount,ld.LoanDurationMonth,ld.InterestRate FROM SalaryLoanDisburse ld WHERE ld.IsActive = 1 AND ld.LoanStatus = 2 AND ld.EmployeeId = @EMP_ID ) SD on E.emp_id = SD.EmployeeId
+ left join (
+             SELECT LC.LoanDisbuseId,SUM(LC.CollectionAmountPrincipal) tCollectionAmountPrincipal FROM SalaryLoanCollection LC 
+			 WHERE LC.IsActive = 1 AND  LC.LoanDisbuseId = @LoanDisburseId
+			 GROUP BY LC.LoanDisbuseId
+ ) LC on LC.LoanDisbuseId = SD.LoanDisburseId
+
+WHERE E.active_inactive_status = 1
+--AND E.emp_status_id <> 0 
+----AND sld.LoanStatus = 2
+AND (E.release_datetime IS NULL OR MONTH(CONVERT(DATE,E.release_datetime,106)) = MONTH(GETDATE()))
+AND E.Emp_office_code = @EmployeeCode
+
+
+---SELECT * FROM EMP_PERSONAL_DETAILS_PROFILE desg_name Dept_name job_name branch_name desk_name
+END

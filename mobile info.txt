@@ -1,0 +1,134 @@
+@using Accounts.Data.AccountsDataModel
+@using ERP.Web.Helpers
+@using System.Data;
+@{
+    ViewBag.Title = "OfficeMobileInfo";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+
+    var MobileOperatorList = ((DataTable)ViewBag.MobileOperatorList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        OperatorName = x.Field<string>("OperatorName")
+    }).ToList();
+
+    var OfficeMobileList = ((DataTable)ViewBag.OfficeMobileList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        OrganizationName = x.Field<string>("OrganizationName")
+    }).ToList();
+}
+
+<h2>OfficeMobileInfo</h2>
+
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+</style>
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+
+            var MobileOperatorId = $("#MobileOperatorId").val() == "" || null ? "0" : $("#MobileOperatorId").val();
+            var SisterConcernId = $("#SisterConcernId").val() == "" || null ? "0" : $("#SisterConcernId").val();
+            var ReportType = $("#cmbReportType").val();
+            var data = "rptslnx=1&MobileOperatorId=" + MobileOperatorId + "&SisterConcernId=" + SisterConcernId + "&ExportType=" + ReportType;
+            ShowReport('/Hrms/ReportView/ShowMobilOperatorReport', data);
+        });
+    });
+</script>
+<form name="frmEmployeeReport" class="form-horizontal form-label-left" id="frmEmployeeReport" method="post">
+    @Html.AntiForgeryToken()
+
+    <div role="main">
+
+        <div class="">
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+            <div class="page-title">
+                <div class="title_left PageHeader" style="width:90%;">
+                    <h3 style="color: white;padding:2px">&nbsp; Mobile Operator Report</h3>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <ul class="list-unstyled timeline">
+                            <li>
+                                <div class="block">
+                                    <div class="tags">
+                                        <a href="" class="tag">
+                                            <span></span>
+                                        </a>
+                                    </div>
+                                    <div class="block_content">
+                                        <div class="row form-group">
+                                            @Html.Label("Mobile Operator", new { @class = "control-label col-md-2" })
+                                            <div class="col-sm-3">
+                                                <select class="form-control input-sm bordercss" id="MobileOperatorId">
+                                                    <option value="0">Please Select</option>
+                                                                    @foreach (var dt in MobileOperatorList)
+                                                                        {
+                                                                            <option value="@dt.Id">@dt.OperatorName</option>
+                                                                        }
+                                                </select>
+                                            </div>
+                                            @Html.Label("Sister Concern", new { @class = "control-label col-md-2" })
+                                        <div class="col-sm-3">
+                                            <select class="form-control input-sm bordercss" id="SisterConcernId">
+                                                <option value="0">Please Select</option>
+                                                @foreach (var dt in OfficeMobileList)
+                                                    {
+                                                        <option value="@dt.Id">@dt.OrganizationName</option>
+                                                    }
+                                            </select>
+                                        </div>
+                                        </div>
+                                        @*<div class="row form-group">
+                                                @Html.LabelFor(model => model.StartDate, new { @class = "control-label col-md-2 required" })
+                                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                                    @Html.TextBoxFor(model => model.StartDate, new { @class = "form-control DateInput check-date" })
+                                                </div>
+                                                @Html.LabelFor(model => model.EndDate, new { @class = "control-label col-md-2 required" })
+                                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                                    @Html.TextBoxFor(model => model.EndDate, new { @class = "form-control DateInput check-date" })
+                                                </div>
+                                            </div>*@
+                                        <div class="row form-group">
+                                            @Html.Label("Report Type", new { @class = "control-label col-md-2 required" })
+                                            <div class="col-sm-4">
+                                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                                    <option value="Pdf" selected="selected">Pdf</option>
+                                                    <option value="ExcelBook">Microsoft Excel</option>
+                                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                                    <option value="XML">XML</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="form-group">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success" id="btnShow">Show</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>

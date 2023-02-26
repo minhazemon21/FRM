@@ -1,0 +1,67 @@
+==Change Dropdown using cascading==
+function ChangeProjectName() {
+
+        var ddlProjectName = $("#ddlProjectName"); // this is selection div where we can apply chnage
+        var BusunessId = $("#ddlCompanyBuisnesslist").val(); // this is the main div where we can get data to chnage dropdown event
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_BusinesswiseProject", "Followup", "http")',
+            data: { BusunessId: BusunessId }, // this value can help to change dropdown
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                ddlProjectName.html('');
+                ddlProjectName.append($('<option></option>').val("0").html("Please Select"));
+                $.each(data.data, function (id, option) {
+                    ddlProjectName.append($('<option></option>').val(option.ProjectId).html(option.ProjectName));
+
+                });
+                
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+$(document).on("change", "#ddlCompanyBuisnesslist", function () { // when we click on base div to apply cascading
+        ChangeProjectName(); // then function will show the result
+
+    });
+
+===In controller===
+ public JsonResult Get_BusinesswiseProject(int BusunessId = 0) //parameter to apply cascading
+        {
+            try
+            {
+                var data = spService.GetDataWithParameter(new
+                {
+                    BusunessId = BusunessId,
+                }, "USP_Get_BusinesswiseProject").Tables[0].AsEnumerable().Select(x => new
+                {
+                    ProjectId = x.Field<int>("ProjectId"),
+                    BusinessId = x.Field<int?>("BusinessId"),
+                    ProjectName = x.Field<string>("ProjectName"),
+                    ProjectShortName = x.Field<string>("ProjectShortName"),
+                    BusinessName = x.Field<string>("BusinessName"),
+                }).ToList();
+
+                return Json(new { data = data, Status = true, Message = ""}, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+===sp===
+ALTER PROCEDURE [dbo].[USP_Get_BusinesswiseProject](@BusunessId INT = 0)
+AS
+BEGIN
+
+SELECT p.Id ProjectId,p.BusinessId,p.ProjectName,p.ProjectShortName,b.BusinessName FROM ProjectInformation p 
+INNER JOIN CompanyBusiness b ON b.Id= p.BusinessId
+WHERE p.IsActive = 1 AND (p.BusinessId = @BusunessId)
+
+END
