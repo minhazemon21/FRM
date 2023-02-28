@@ -1,0 +1,30 @@
+#region testneed to delete
+        public ActionResult TestbyEk()
+        {
+            var moduleid = spService.GetSecurityModuleByControllerAction("ReportView", "TestbyEk");
+            ViewBag.Reports = spService.GetDataWithParameter(new
+            {
+                USER_ID = SessionHelper.LoggedInUserId,
+                ReportModuleId = moduleid
+            }, "USP_GET_USER_ACCESSED_REPORT").Tables[0].AsEnumerable().Select(x => new ReportInformation()
+            {
+                Id = x.Field<int>(0),
+                ReportName = x.Field<string>(1),
+                SerialNo = x.Field<int>(2)
+            }).ToList();
+
+            ViewBag.Department = spService.GetDataBySqlCommand("SELECT D.Id,D.DepartmentName,D.DepartmentShortName FROM BrokerDepartment AS D WHERE D.IsActive = 1").Tables[0].AsEnumerable().Select(x => new BrokerDepartment()
+            {
+                Id = x.Field<int>(0),
+                DepartmentName = x.Field<string>(1),
+                DepartmentShortName = x.Field<string>(2)
+            }).ToList();
+            var companyList = spService.GetDataWithoutParameter("USP_GET_SisterConcern_List_For_DropdownList").Tables[0];
+            ViewBag.CompanyList = companyList;
+
+            return View();
+        }
+        #endregion
+
+//=============================db of hrm sgopnodhara==========asp security module =================
+//6393	TestbyEk	Test By Emon	ReportView	TestbyEk	2301	3	HRM	NULL	True	True	7	Hrms	NULL	NULL	NULL

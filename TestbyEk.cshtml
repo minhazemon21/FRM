@@ -1,0 +1,495 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "EmployeeSalaryReport";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    var departmentList = (List<BrokerDepartment>)ViewBag.Department;
+    //var employeeList = (List<SalaryController.SalaryAllowance>)ViewBag.EmployeeList;
+    //var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+
+    //
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+
+<style type="text/css">
+    .panel-custom > .panel-heading {
+        /*background: #26B99A !important;*/
+        color: #FFFFFF !important;
+    }
+
+    .panel-custom .panel-body .row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+    .panel-custom .panel-body .radio {
+        margin-top: 0px;
+    }
+
+    .panel-custom .panel-body .radio-text, .panel-custom .panel-body input[type=text] {
+        color: #73879C;
+    }
+
+    .panel-custom .label-container {
+        text-align: right;
+    }
+
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    #error > .panel {
+        margin-bottom: 20px;
+    }
+
+        #error > .panel > .panel-heading {
+            padding: 0px 5px 0px 15px;
+        }
+
+    .radio-container label {
+        cursor: pointer;
+        padding: 5px;
+    }
+
+        .radio-container label.active {
+            background: #0e73a9;
+            border-radius: 4px;
+            /*margin-left: 10px;*/
+        }
+
+            .radio-container label.active span.radio-text {
+                color: #FFFFFF;
+            }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+</style>
+
+<script type="text/javascript">
+
+
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    var AllEmployeeList = [];
+    function GetEmployeeList() {
+
+        $('#txtExceptEmpCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: {},
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+
+        $('#txtExceptEmpCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#txtExceptEmpCode").val(ui.item.value); // display the selected text
+               // $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+               // $("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        alert("Test");
+        console.log("Test");
+        $("#datecheckbox").change(function () {
+            var datecheckStatus = $("#datecheckbox").is(":checked") == true ? 1 : 0;
+            if (datecheckStatus == 1) {
+                $("#startendaction").show();
+            }
+            else {
+                $("#startendaction").hide();
+            }
+
+        });
+
+        GetEmployeeList();
+        $("input[type=radio][name=fileType]").on("change", function () {
+            $(".radio-container label").removeClass("active");
+
+            $("input[type=radio][name=fileType]:checked").parents("label").addClass("active");
+            var reportNo = parseInt($("input[type=radio][name=fileType]:checked").val());
+            if (reportNo == 2) {
+                $(".lblCompany").removeClass("required");
+            } else {
+                $(".lblCompany").addClass("required");
+            }
+
+        });
+        @*$("#ddlSalYear").val(@System.DateTime.Now.Year);
+        $("#ddlSalMonth").val(@System.DateTime.Now.Month);*@
+        $("#ddlCompanyList").change(function () {
+            GetDepartmentList(0);
+        });
+        GetDepartmentList(0);
+
+        $("#btnShow").on("click",function (e) {
+
+            var reportNo = parseInt($("input[type=radio][name=fileType]:checked").val());
+            var employeeCode = $('#txtExceptEmpCode').val().split("-")[0].trim();
+            var salMonth = $("#ddlSalMonth").val();
+            var salMonthTo =$("#ddlSalMonthTo").val();
+            var salYear = $("#ddlSalYear").val();
+            var salYearTo = $("#ddlSalYearTo").val();
+            //var startDate = $("#txtDateFrom").val().trim();
+            var endDate = $("#txtDateTo").val().trim();
+            var departmentId = $("#ddldepartmentList").val();
+            var branchId = 0;
+            var reportType = $("#cmbReportType").val();
+            var processDateFrom = $("#txtProcessDateFrom").val();
+            var processDateTo = $("#txtProcessDateTo").val();
+            var companyList = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+            var datecheckStatus = $("#datecheckbox").is(":checked") == true ? 1 : 0;
+
+
+            //if (reportNo == "1") {
+
+            //    if ((startDate != "" && endDate != "") && companyList != "0")
+            //    {
+            //        var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&StartDate=' + startDate + '&EndDate=' + endDate + '&DepartmentId=' + departmentId + '&BranchId=' + branchId + '&ReportType=' + reportType + '&CompanyId=' + companyList;
+            //        var url = '/ReportView/ShowSalarySheet?' + param;
+            //        window.open(url);
+            //    }
+            //    else
+            //    {
+            //        if (companyList != "0")
+            //            $.alert.open("error", "Please select start date & end date.");
+            //        else
+            //           $.alert.open("error","Please select company.");
+            //    }
+
+            //}
+
+            if (datecheckStatus == 1) {
+                //if (startDate != "" && endDate != "") {
+                if (endDate != "") {
+
+                    var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&EndDate=' + endDate + '&DepartmentId=' + departmentId + '&BranchId=' + branchId + '&ReportType=' + reportType + '&CompanyId=' + companyList + '&datecheckStatus=' + datecheckStatus;
+                    var url = '/ReportView/ShowSalarySheet?' + param;
+                    window.open(url);
+                } else {
+                    $.alert.open("error", "Please select date.");
+                    return false;
+                }
+            }
+            else {
+                var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&EndDate=' + endDate + '&DepartmentId=' + departmentId + '&BranchId=' + branchId + '&ReportType=' + reportType + '&CompanyId=' + companyList + '&datecheckStatus=' + datecheckStatus;
+                var url = '/ReportView/ShowSalarySheet?' + param;
+                window.open(url);
+            }
+            //if (reportNo == "2") {
+
+            //    if (startDate != "" && endDate != "") {
+            //        var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&StartDate=' + startDate + '&EndDate=' + endDate + '&DepartmentId=' + departmentId + '&BranchId=' + branchId + '&ReportType=' + reportType + '&CompanyId=' + companyList;
+            //        var url = '/ReportView/ShowSalarySheet?' + param;
+            //        window.open(url);
+            //    } else {
+            //        $.alert.open("error", "Please select start date & end date.");
+            //        return false;
+            //    }
+            //}
+            //else if (reportNo == "3") {
+            //    var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalMonthTo=' + salMonthTo + '&SalYear=' + salYear + '&SalYearTo=' + salYearTo + '&DepartmentId=' + departmentId + '&BranchId=' + branchId + '&ReportType=' + reportType + '&ProcessDateFrom=' + processDateFrom + '&ProcessDateTo=' + processDateTo + '&CompanyId=' + companyList
+
+            //    var url = '/ReportView/ShowEmployeeSalaryInformation?' + param;
+            //    window.open(url);
+            //}
+            //else {
+            //    //$.alert.open("info", "Please select date.");
+            //}
+
+
+        });
+    });
+
+
+
+</script>
+
+<div role="main">
+    <div class="" style="display:none">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp;Employee Salary Report</h3>
+            </div>
+        </div>
+
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <div class="row">
+                        <div class="col-sm-2 label-container" style="text-align:right">
+                            @Html.Label("Report Name ", new { @class = "control-label" })
+                        </div>
+                        <div class="col-sm-10 radio-container">
+                            <div class="row">
+                                @for (var r = 0; r < reports.Count; r++)
+                                {
+                                    <label class="col-sm-4 @(r==0?"active":"")">
+                                        <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="fileType" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="row form-group" style="display:none">
+                            @Html.Label("Year", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        <option value="0">Select year</option>
+                                        for (var i = 2010; i < DateTime.Now.Year + 5; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Month", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Is Viewed with Released Employee", new { @class = "control-label col-md-2" })
+                            <div class="col-md-4" style="text-align:left">
+                                <input type="checkbox" id="datecheckbox" style="height:22px; width:22px" />
+                                @*<input type="checkbox" id="datecheckbox" />*@
+                            </div>
+                        </div>
+
+                        <div class="row form-group" id="startendaction" style="display:none">
+                            @*@Html.Label("Start Date", new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4">
+                                    <input type="text" id="txtDateFrom" class="form-control DateInput check-date" />
+                                </div>*@
+                            @Html.Label("As on Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtDateTo" class="form-control DateInput check-date" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Company List", htmlAttributes: new { @class = "lblCompany control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group" id="divProcess" style="display:none">
+                            @Html.Label("Process Date From", new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtProcessDateFrom" class="form-control DateInput check-date" />
+                            </div>
+                            @Html.Label("Process Date To", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtProcessDateTo" class="form-control DateInput check-date" />
+                            </div>
+                        </div>
+                        <div class="row form-group" style="display:none">
+                            @Html.Label("Year To", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYearTo">
+                                    @{
+                                        <option value="0">Select year</option>
+                                        for (var i = 2010; i < DateTime.Now.Year + 5; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Month To", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" />
+                            </div>
+                            <div class="col-sm-2 label-container">
+                                @Html.Label("Report Type :", new { @class = "control-label" })
+                            </div>
+                            <div class="col-sm-4">
+                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                    <option value="Pdf" selected="selected">Pdf</option>
+                                    <option value="ExcelBook">Microsoft Excel</option>
+                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                    <option value="XML">XML</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="newObject">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp;Object New</h3>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <div class="row">
+                        <div class="row form-group">
+                            @Html.Label("Year", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        <option value="0">Select year</option>
+                                        for (var i = 2010; i < DateTime.Now.Year + 5; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-2 label-container" style="text-align:right">
+                                <label>Date</label>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control DateInput check-date" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-2 label-container">
+                                @Html.Label("Report Type :", new { @class = "control-label" })
+                            </div>
+                            <div class="col-sm-4">
+                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                    <option value="Pdf" selected="selected">Pdf</option>
+                                    <option value="ExcelBook">Microsoft Excel</option>
+                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                    <option value="XML">XML</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

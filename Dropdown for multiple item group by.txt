@@ -1,0 +1,52 @@
+<div class="col-sm-12">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Leads Status", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-8">
+                        @foreach (var r in leadsStatusList.Select(x => new { GroupId = x.GroupId }).Distinct())
+                        {
+                            <select class="input-sm form-control">
+                                @foreach (var m in leadsStatusList.Where(x => x.GroupId == r.GroupId))//Group1
+                                {
+                                    if (m.GroupId == 1)
+                                    {
+                                        <option value="@m.Id">@m.LeadStatusName</option>
+
+                                    }
+                                }
+                            </select>
+                                }
+
+                            </div>
+
+            <div class="col-sm-8">
+            @foreach (var r in leadsStatusList.Select(x => new { GroupId = x.GroupId }).Distinct())
+            {
+                <div style="float:left">
+                    <ul style="list-style:none">
+                        @foreach (var m in leadsStatusList.Where(x => x.GroupId == r.GroupId))//Group1
+                        {
+                            if (m.GroupId == 1)
+                            {
+                                <li>
+                                    <input type="radio" id="rd-@m.Id" value="@m.Id" name="@m.GroupId" class="csrdstatus1" /><span> &nbsp;@m.LeadStatusName</span>
+                                </li>
+                            }
+                            else if (m.GroupId == 2)
+                            {
+                                <li>
+                                    <input type="radio" id="rd-@m.Id" value="@m.Id" name="@m.GroupId" class="csrdstatus2" /><span> &nbsp;@m.LeadStatusName</span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <input type="radio" id="rd-@m.Id" value="@m.Id" name="@m.GroupId" class="csrdstatus3" /><span> &nbsp;@m.LeadStatusName</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+                </div>
