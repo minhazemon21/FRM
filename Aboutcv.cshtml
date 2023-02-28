@@ -1,0 +1,226 @@
+﻿@using System.Linq;
+@using System.Data;
+@using Common.Data.CommonDataModel
+@{
+    ViewBag.Title = "About";
+    var executive = (OfficeExecutive)ViewBag.Executive;
+
+    var ExecutiveProfileINfo = ((DataTable)ViewBag.ExecutiveProfieInfo)
+    .AsEnumerable().Select(x => new
+    {
+        ExecutiveName = x.Field<string>("ExecutiveName"),
+        ExecutiveCode = x.Field<string>("ExecutiveCode"),
+        FatherName = x.Field<string>("FatherName"),
+        MotherName = x.Field<string>("MotherName"),
+        PresentAddress = x.Field<string>("PresentAddress"),
+        PresentThana = x.Field<string>("PresentThana"),
+        PermanentAddress = x.Field<string>("PermanentAddress"),
+        PermanentThana = x.Field<string>("PermanentThana"),
+        Gender = x.Field<string>("GenderName"),
+        Photograpy = x.Field<byte[]>("Photograph"),
+        CountryName = x.Field<string>("CountryName"),
+        Mobile = x.Field<string>("Mobile"),
+        Email = x.Field<string>("Email"),
+        JoiningDate = x.Field<DateTime>("JoiningDate"),
+        DesignationName = x.Field<string>("DesignationName"),
+        DepartmentName = x.Field<string>("DepartmentName"),
+        BranchName = x.Field<string>("BranchName"),
+        OrganizationName = x.Field<string>("OrganizationName"),
+        
+
+
+
+    }).FirstOrDefault();
+}
+<style>
+    #maintable {
+        border: 1px solid black;
+        height: 100%;
+        width: 100%;
+    }
+
+    .tbllabel {
+        text-align: right;
+    }
+
+    .tdcaption {
+        color: red;
+        border-bottom: 2px solid rgb(38,171,145);
+        display: inline-block;
+        width: 600px;
+    }
+
+    table tr {
+        height: 30px;
+    }
+    /*#content h1 {
+        font-size: 26px;
+        margin: 15px 0px 5px 0px;
+        border-bottom: 5px solid black;
+        display: inline-block;
+    }*/
+    td:nth-child(2):before, td:nth-child(5):before {
+        content: ":" !important;
+    }
+</style>
+<div class="" style="color:black!important">
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="panel-heading PageHeader">
+                    <h3 class="panel-title">Show Information</h3>
+                </div>
+                <div class="x_content">
+                    <div class="col-md-3 col-sm-3 col-xs-12 profile_left">
+                        <div class="profile_img">
+                            <div id="crop-avatar">
+                                <div class="avatar-view" title="Change the avatar">
+                                    <img class="img-responsive" src="@(executive.Id>0 && executive.Photograph!=null?"data:image;base64," + Convert.ToBase64String(executive.Photograph):"")" id="imgPhotograph" alt="Photograph" style="height: 200px; width: 200px; border: 1px solid #DDDDDD; margin-bottom: 10px;" />
+
+                                    @*<img id="thumbnil" src="@ExecutiveProfileINfo.Photograpy" style="width:100px; height:100px;" alt="Image" class="img-responsive" />*@
+                                    @*<img id="thumbnil2" style="width:50px; height:60px;" src="/InvestorDetail/RetrieveSign/@Model.InvestorId" alt="Image" class="img-responsive" />*@
+                                </div>
+                            </div>
+                        </div>
+                        <h4><span style="color: #d93698;">@ExecutiveProfileINfo.ExecutiveName</span><br /><span style="color: darkred; margin-top: 7px; display: inline-block; ">@ExecutiveProfileINfo.ExecutiveCode</span><br /></h4>
+                        <ul class="list-unstyled user_data">
+                            <li>
+                                <i class="fa fa-map-marker user-profile-icon"></i>@ExecutiveProfileINfo.PresentAddress
+                            </li>
+                            <li>
+                                <i class="fa fa-user user-profile-icon"> @ExecutiveProfileINfo.DesignationName 
+                                                <br /> Department: @ExecutiveProfileINfo.DepartmentName
+                                                <br /> Branch: @ExecutiveProfileINfo.BranchName
+                                                <br /> Organization: @ExecutiveProfileINfo.OrganizationName
+                                </i>
+                            </li>
+                            <li class="m-top-xs">
+                                <i class="fa fa-envelope user-profile-icon"></i>
+                                <a href="mailto:@ExecutiveProfileINfo.Email" target="_blank">@ExecutiveProfileINfo.Email</a>
+                            </li>
+                            <li>
+                                <i class="fa fa-phone"></i> @ExecutiveProfileINfo.Mobile
+                            </li>
+                            <li>
+                                <i class="fa fa-calendar"></i> @ExecutiveProfileINfo.JoiningDate.ToString("MM/dd/yyyy")
+                            </li>
+                        </ul>
+                        
+                    </div>
+                    <div class="col-md-9 col-sm-10 col-xs-12">
+                        <div class="" role="tabpanel" data-example-id="togglable-tabs">
+                            <ul id="myTab" class="nav nav-tabs bar_tabs" role="tablist">
+                            </ul>
+                            <div id="myTabContent" class="tab-content">
+                                <div role="tabpanel" class="tab-pane fade active in" id="tab_content1" aria-labelledby="home-tab">
+                                    <!-- start recent activity -->
+                                    <ul class="messages">
+                                        <li>
+                                            <div>
+                                                <blockquote class="message">
+                                                    <table style="font-size:small">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="6" style="text-align:right"><a href="#" title="Print" style="font-size:x-large;" id="btnprint"><i class="fa fa-print"></i></a></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="6">
+                                                                    <h4 class="tdcaption"><i class="fa fa-hand-o-right"></i> Basic Information</h4>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="width:17%;">Executive Code</td>
+                                                                <td style="width:2%"></td>
+                                                                <td style="width:30%"><b>@ExecutiveProfileINfo.ExecutiveCode</b></td>
+                                                                <td style="width:18%">Father Name</td>
+                                                                <td style="width:2%"></td>
+                                                                <td style="width:30%">@ExecutiveProfileINfo.FatherName</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Mother Name</td>
+                                                                <td></td>
+                                                                <td>@ExecutiveProfileINfo.MotherName</td>
+                                                                <td>Gender</td>
+                                                                <td></td>
+                                                                <td>@ExecutiveProfileINfo.Gender</td>
+                                                            </tr>
+
+                                                            
+                                                            <tr>
+                                                                <td colspan="6">
+                                                                    <h4 class="tdcaption"><i class="fa fa-hand-o-right"></i> Contact</h4>
+
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Phone (Resident)</td>
+                                                                <td></td>
+                                                                <td>@ExecutiveProfileINfo.Mobile</td>
+                                                                @*<td>Phone (Office)</td>
+                                                                <td></td>
+                                                                <td></td>*@
+
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Mobile</td>
+                                                                <td></td>
+                                                                <td>@ExecutiveProfileINfo.Mobile</td>
+                                                                @*<td>Eme. Contact No</td>
+                                                                <td></td>
+                                                                <td></td>*@
+                                                            </tr>
+                                                            <tr>
+                                                                <td>System Email</td>
+                                                                <td></td>
+                                                                <td>@ExecutiveProfileINfo.Email</td>
+                                                                @*<td>Fax</td>
+                                                                <td></td>
+                                                                <td></td>*@
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="6">
+                                                                    <h4 class="tdcaption"><i class="fa fa-hand-o-right"></i> Address</h4>
+
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Present Address</td>
+                                                                <td></td>
+                                                                <td colspan="4"><p style="margin-left:2px">@ExecutiveProfileINfo.PresentAddress &nbsp;&nbsp; Thana :@ExecutiveProfileINfo.PresentThana &nbsp;&nbsp; Country : @ExecutiveProfileINfo.CountryName </p></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td colspan="6"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Permanent Address</td>
+                                                                <td></td>
+                                                                <td colspan="4"><p style="margin-left:2px">@ExecutiveProfileINfo.PermanentAddress &nbsp;&nbsp; Thana :@ExecutiveProfileINfo.PermanentThana &nbsp;&nbsp; Country : @ExecutiveProfileINfo.CountryName </p></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </blockquote>
+                                                <br />
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#btnprint").on("click", function () {
+            var UserId = @executive.Id;
+            window.open('/Home/ShowExecutiveDetails?reportNo=1&UserId=' + UserId);
+            return true;
+        });
+    });
+</script>
