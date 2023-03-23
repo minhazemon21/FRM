@@ -1,0 +1,19 @@
+ public void ShowNoticeReport(int reportNo, int meetingId, string ReportType = "pdf")
+        {
+            var param = new
+            {
+                MEETING_ID = meetingId
+            };
+
+            var data = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE");
+            var MainReport = data.Tables[0];
+
+            var subReport = new Dictionary<int, DataTable>();
+            subReport.Add(0, data.Tables[1]);
+            subReport.Add(1, data.Tables[2]);
+           
+                ReportHelper.ShowReport(MainReport, ReportType, "rptMeetingNotice.rpt", "rptMeetingNotice",null,subReport);
+            
+           
+
+        }

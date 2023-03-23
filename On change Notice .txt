@@ -1,0 +1,354 @@
+@using System.Data
+@{
+    ViewBag.Title = "Index";
+    var MeetingType = ((DataTable)ViewBag.MeetingType).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        TypeName = x.Field<string>("TypeName"),
+    }).ToList();
+}
+@section style{
+    <style type="text/css">
+        .tbody .td:nth-child(1) {
+            flex-basis: 7%;
+            justify-content: center;
+        }
+
+        .tbody .second_row .td {
+            flex-basis: 100%;
+            justify-content: center;
+        }
+
+        /*.table .tr .thSm, .table .tr .thsm + hr {
+            display: flex;
+        }*/
+
+        .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 60%;
+            justify-content: center;
+            /*height:200px;*/
+        }
+
+        .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 30%;
+            justify-content: right;
+        }
+
+        /* .tbody .td:nth-child(4), .th .td:nth-child(4) {
+            flex-basis: 3%;
+            justify-content: center;
+        }*/
+
+        /*.tbody .td:nth-child(5), .th .td:nth-child(5) {
+            flex-basis: 8%;
+            justify-content: center;
+        }*/
+        .agendalist {
+            height: 80px;
+            overflow: hidden;
+        }
+
+            .agendalist.full {
+                height: auto;
+            }
+
+        .more, .small {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .tbody .td:nth-child(2) {
+            position: relative;
+        }
+
+        .table .tbody {
+            padding: 0px;
+        }
+
+            .table .tbody .tr {
+                position: relative;
+                padding-bottom: 60px;
+                cursor: pointer;
+            }
+
+                .table .tbody .tr:not(.tr:last-child) {
+                    border-bottom: 1px solid #0066B3;
+                }
+
+                .table .tbody .tr .actions {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    text-align: center;
+                    width: 100%;
+                }
+
+                .table .tbody .tr.selected {
+                    background-color: lightblue;
+                }
+
+        .up-down {
+            cursor: pointer;
+        }
+
+        .meetingTiltle {
+            border-bottom: 1px solid #0066B3;
+        }
+
+        #divDocTable .tbody .td:nth-child(1), .th .td:nth-child(1) {
+            flex-basis: 10%;
+        }
+
+        #divDocTable .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 70%;
+        }
+
+        #divDocTable .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 10%;
+        }
+
+        #divDocTable .tbody .td:nth-child(4), .th .td:nth-child(4) {
+            flex-basis: 10%;
+        }
+    </style>
+}
+<div class="cust-card">
+    <div class="title">
+        সভার নোটিশ দেখুন
+    </div>
+    <div class="body">
+        <div class="px-3">
+            <div class="row" id="divEntryUpdate">
+                <div class="form-group col-lg-6 my-2">
+                    <label class="required" for="spnMeetingType">সভার ধরণ</label>
+                    <hr>
+                    @*<span id="spnMeetingType" class="form-control">&nbsp;</span>*@
+                <select class="form-control" id="dllMeetingType">
+                    <option class="first-option" value="0">সভার ধরণ নির্বাচন করুন</option>
+                    @foreach (var m in MeetingType)
+                    {
+                        {
+                            <option value="@m.Id">@m.TypeName</option>
+                        }
+                    }
+                </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label class="required" for="spnMeetingNo">
+                        সভা নং
+                    </label>
+                    <hr>
+                    @*<span id="spnMeetingNo" class="form-control">&nbsp;</span>*@
+                    <select class="form-control" id="dllMettingNumber">
+                        <option class="first-option" value="0">সভা নং নির্বাচন করুন</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2 d-none meeting-container">
+                    <label for="spnMeetingTitle">সভার শিরোনাম</label>
+                    <hr>
+                    <span id="spnMeetingTitle" class="form-control">&nbsp;</span>
+                </div>
+                <div class="form-group col-lg-6 my-2 d-none meeting-container">
+                    <label for="spnMeetingDateAndTime">সভার তারিখ ও সময়</label>
+                    <hr>
+                    <span id="spnMeetingDateAndTime" class="form-control">&nbsp;</span>
+                </div>
+            </div>
+            @*<div class="row" id="divEntryUpdate">
+                    <div class="form-group col-lg-6 my-2">
+                        <label class="required" for="dllAgendaNumber">আলোচ্যসূচি নং</label>
+                        <hr>
+                        <select class="form-control" id="dllAgendaNumber">
+                            <option class="first-option" value="0">আলোচ্যসূচি নং নির্বাচন করুন</option>
+                            @foreach (var m in MeetingType)
+                            {
+                                <option value="@m.Id">@m.TypeName</option>
+                            }
+                        </select>
+                    </div>
+                </div>*@
+        </div>
+
+
+        <div class="px-3 py-3">
+            <div class="text-center w-100">
+                <button class="btn btn-primary my-2" id="btnDocumentView" data-id="0" data-toggle="tooltip" data-placement="top" title="নোটিশ দেখুন">নোটিশ দেখুন</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section script{
+    <script type="text/javascript">
+        function GetMeetingListByMeetingTypeId(meetintTypeId = MeetingTypeId) {
+            var MeetingNumber = $("#dllMettingNumber").focus();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetMeetingNumber", "MeetingAgendaActionPlan", "http")',
+                data: JSON.stringify({ Id: meetintTypeId }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    MeetingNumber.html('');
+                    MeetingNumber.append($('<option></option>').val("0").html("সভা নং নির্বাচন করুন"));
+                    $.each(data.Data, function (id, option) {
+                      MeetingNumber.append($('<option></option>').val(option.Id).html(option.MeetingNo));
+                    });
+                },
+                error: function (request, status, error) {
+                    swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                }
+            });
+        }
+        function GetMeetingWiseTitleandDate(meetingId) {
+            $.ajax({
+                url: "@Url.Action("GetMeetingidWiseTitleandDate", "NoticeView")",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ meetingId: meetingId }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.Status == true) {
+                        $("#btnSave").prop("disabled", true);
+                        if (data.Result != null) {
+                            var res = data.Result;
+
+                            $("#spnMeetingTitle").html(res.MeetingTitle);
+                            $("#spnMeetingDateAndTime").html(formatNumberToBengali(res.MeetingDate) + ' ' + res.MeetingTime);
+
+                        }
+                        $("#btnSave").prop("disabled", false);
+
+                    }
+                }
+            });
+        }
+        $(document).ready(function () {
+
+           $(document).on("change", "#dllMeetingType", function () {
+               var meetingTypeId = $("#dllMeetingType option:selected").val();
+               GetMeetingListByMeetingTypeId(meetintTypeId = meetingTypeId);
+
+
+           });
+           $(document).on("change", "#dllMettingNumber", function () {
+               var meetingId = $("#dllMettingNumber option:selected").val();
+
+               if (meetingId == "0") return false;
+               GetMeetingWiseTitleandDate(meetingId = meetingId);
+               @*window.location.href = '@Url.Action("Index","WorkingPaper")?meetingId=' + meetingId + '&agendaId=' + agendaId + '&meetingTypeId=' + meetingTypeId;*@
+               if (meetingId <= 0) {
+                    $(".meeting-container").addClass("d-none");
+               }
+               else {
+                   $(".meeting-container").removeClass("d-none");
+               }
+
+           });
+            $("#btnDocumentView").on("click", function () {
+                var meetingId = $("#dllMettingNumber option:selected").val();
+                if (meetingId == "0") {
+                    swal({
+                        title: "সতর্কতা!",
+                        text: "সভা নং নির্বাচন করুন ",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    });
+                    return false;
+                }
+                window.open('/NoticeView/ShowNoticeReport?reportNo=1&meetingId=' + meetingId);
+                return true;
+            });
+
+
+
+        });
+
+    </script>
+}
+////////////////controller////
+using Common.Service.StoredProcedure;
+using Common.Web.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Services.Description;
+
+namespace MMS.Web.Controllers
+{
+    public class NoticeViewController : Controller
+    {
+        private readonly ISPService sPService;
+        public NoticeViewController(ISPService sPService)
+        {
+            this.sPService = sPService;
+        }
+
+        // GET: NoticeView
+        public ActionResult Index()
+        {
+            ViewBag.MeetingType = sPService.GetDataWithoutParameter("USP_GET_MEETING_TYPE_FOR_DROPDOWNLIST").Tables[0];
+            
+            return View();
+        }
+        public JsonResult GetMeetingidWiseTitleandDate(int meetingId)
+        {
+            try
+            {
+                var param = new
+                {
+                    MEETING_ID = meetingId
+                   
+                };
+                string storedProcedureName = "USP_GET_MEETING_WISE_Title_Date_Time_For_Report";
+
+                var data = sPService.GetDataWithParameter(param, storedProcedureName).Tables[0];
+                var GMWAFD = data.AsEnumerable().Select(r => new
+                {
+                    MeetingNo = r.Field<string>("MeetingNo"),
+                    MeetingId = r.Field<int>("MeetingId"),
+                    MeetingTitle = r.Field<string>("MeetingTitle"),
+                    MeetingDate = r.Field<string>("MeetingDate"),
+                    MeetingTime = r.Field<string>("MeetingTime")
+                }).FirstOrDefault();
+                return Json(new { Status = true, Result = GMWAFD }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public void ShowNoticeReport(int reportNo, int meetingId, string ReportType = "pdf")
+        {
+            var param = new
+            {
+                MEETING_ID = meetingId
+            };
+
+            var data = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE");
+            //var data1 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportOne");
+            //var data2 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportTwo");
+            var MainReport = data.Tables[0];
+         
+
+            //var subReport = new Dictionary<int, DataTable>
+            //{
+            //    { 0, data.Tables[0] },
+            //    { 1, data.Tables[0] }
+            //};
+
+            ReportHelper.ShowReport(MainReport, ReportType, "rptMeetingNotice.rpt", "rptMeetingNotice",null, null);
+            
+           
+
+        }
+
+    }
+}

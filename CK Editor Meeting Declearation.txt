@@ -1,0 +1,638 @@
+@using System.Data
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+    var MeetingTypeDD = ((DataTable)ViewBag.MeetingTypeDD).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        TypeName = x.Field<string>("TypeName"),
+    }).ToList();
+    var MeetingVenueDD = ((DataTable)ViewBag.MeetingVenueDD).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        VenueName = x.Field<string>("VenueName"),
+    }).ToList();
+}
+@section style{
+    <style type="text/css" rel="stylesheet">
+        #divMeetingDescription .ck-content {
+            min-height: 250px;
+        }
+        .tbody .td:nth-child(1), .th .td:nth-child(1) {
+            flex-basis: 10%;
+        }
+
+        .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 20%;
+        }
+        .tbody .td:nth-child(4), .th .td:nth-child(4) {
+            flex-basis: 30%;
+        }
+        .tbody .td:nth-child(5), .th .td:nth-child(5) {
+            flex-basis: 15%;
+        }
+        .tbody .td:nth-child(6), .th .td:nth-child(6) {
+            flex-basis: 10%;
+        }
+        
+           
+    </style>
+}
+
+<div class="cust-card">
+    <div class="title">
+        সভা ঘোষণা
+    </div>
+    <div class="body">
+        <div class="px-3">
+            <div class="row">
+                <div class="form-group col-md-6 my-2">
+                    <label for="txtMeetingNo" class="required">সভা নং</label>
+                    <hr>
+                    <input id="txtMeetingNo" type="text" class="form-control" placeholder="সভা নং" value="">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label id="lblMeetingTypeDD" class="required" for="">সভার ধরণ নির্বাচন</label>
+                    <hr>
+                    <select class="form-control" id="MeetingTypeDD">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                        @foreach (var m in MeetingTypeDD)
+                        {
+                            <option value="@m.Id">@m.TypeName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="" class="required">সভার তারিখ</label>
+                    <hr>
+                    <input class="form-control DateInput check-date" id="txtStartingDate">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সভার সময়</label>
+                    <hr>
+                    <input class="form-control" id="txtMeetingTime">
+                </div>
+                @*<div class="form-group col-lg-6 my-2">
+                    <label id="lblMeetingTypeDD" for="">সভার ধরণ নির্বাচন</label>
+                    <hr>
+                    <select class="form-control" id="MeetingTypeDD">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                        @foreach (var m in MeetingTypeDD)
+                        {
+                            <option value="@m.Id">@m.TypeName</option>
+                        }
+                    </select>
+                </div>*@
+                <div class="form-group col-lg-6 my-2">
+                    <label id="lblMeetingVenueDD" class="required" for="">সভার ভেন্যু নির্বাচন</label>
+                    <hr>
+                    <select class="form-control" id="MeetingVenueDD">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                        @foreach (var m in MeetingVenueDD)
+                        {
+                            <option value="@m.Id">@m.VenueName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-12 my-2">
+                    <label for="" class="required">সভার শিরোনাম</label>
+                    <hr>
+                    <div class="editorAddres" id="MeetingTitle"></div>
+                </div>
+
+                <div class="form-group col-lg-12 my-2" id="divMeetingDescription">
+                    <label for="" class="required">সভার বর্ণনা</label>
+                    <hr>
+                    <div class="editorAddres" id="MeetingDescription"></div>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সভার জুম আইডি</label>
+                    <hr>
+                    <input id="txtZoomId" type="text" class="form-control" placeholder="সভার জুম আইডি" value="">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সভার জুম পাসকোড</label>
+                    <hr>
+                    <input id="txtPassCode" type="text" class="form-control" placeholder="সভার জুম পাসকোড" value="">
+                </div>
+                <div class="form-group col-lg-12 my-2">
+                    <label for="">সভার জুম লিংক</label>
+                    <hr>
+                    <input id="txtZoomLink" type="text" class="form-control" placeholder="সভার জুম লিংক" value="">
+                </div>
+                <div class="text-center w-100">
+                    <button class="btn btn-primary my-2" id="btnSave" data-id="0">সংরক্ষণ করুন</button>
+                    <button class="btn btn-primary my-2 ms-sm-2 " id="btnReload">নতুন করে লিখুন</button>
+                </div>
+            </div>
+        </div>
+        <div class="px-3 py-3">
+            <label class="title-secondary">সভা ঘোষণার তালিকা</label>
+            <hr class="title-divider">
+            <div id="divMeetingDeclarationList" class="table activedivMeetingDeclarationList">
+                <div class="th">
+                    <div class="td">সভা নং</div>
+                    <div class="td">সভার ধরণ</div>
+                    <div class="td">সভার শিরোনাম</div>
+                    <div class="td">সভার বর্ণনা</div>
+                    <div class="td">সভার সময়</div>
+                    <div class="td">কার্যক্রম</div>
+                </div>
+                <div class="tbody">
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@section script{
+    <script type="text/javascript">
+        var ID = 0;
+        var theMeetingDescription;
+        var theMeetingTitle;
+
+        ClassicEditor
+            .create(document.querySelector('#MeetingDescription'), {
+                removePlugins: ['Title', 'Style'],
+                placeholder: "সভার বর্ণনা.."
+            })
+            .then(editor => {
+                theMeetingDescription = editor; // Save for later use.
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        function getDataFromTheMeetingDescription() {
+            return theMeetingDescription.getData();
+        }
+        function setDataIntoMeetingDescription(detail) {
+            return theMeetingDescription.data.set(detail);
+        }
+
+        ClassicEditor
+            .create(document.querySelector('#MeetingTitle'), {
+                removePlugins: ['Title', 'Style'],
+                placeholder: "সভার শিরোনাম .."
+            })
+            .then(editor => {
+                theMeetingTitle = editor; // Save for later use.
+            })
+            .catch(error => {
+                console.error(error);
+            });
+        function getDataFromTheMeetingTitle() {
+            return theMeetingTitle.getData();
+        }
+        function setDataIntoMeetingTitle(detail) {
+            return theMeetingTitle.data.set(detail);
+        }
+        function GetMeetingDeclarationList() {
+            $("#divLoader").show();
+            //$("body").css("pointer-events", "none");
+
+            $.ajax({
+                url: "@Url.Action("GetMeetingDeclarationList", "MeetingDeclaration")",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: "",
+                dataType: "json",
+                success: function (data) {
+                    var tRow = ``;
+                    if (data.Status == true) {
+                        $("#divMeetingDeclarationList .tbody").html("");
+                        $.each(data.MeetingDeclarationList, function (id, d) {
+                            var sl = formatNumberToBengali((id + 1) + "");
+                            tRow = `<div class="tr">
+                                    
+                                     <div class="td">
+                                     <label class="thSm">সভা নং</label>
+                                     <hr>
+                                     <span class="form-control" >${d.MeetingNo}</span>
+                                     </div>
+                                      <div class="td">
+                                     <label class="thSm">সভার ধরণ</label>
+                                     <hr>
+                                     <span class="form-control" >${d.TypeName}</span>
+                                     </div>
+                                    <div class="td">
+                                     <label class="thSm">সভার শিরোনাম</label>
+                                     <hr>
+                                     <span class="form-control" >${d.MeetingTitle}</span>
+                                     </div>
+                                     <div class="td">
+                                     <label class="thSm">সভার বর্ণনা</label>
+                                     <hr>
+                                     <span class="form-control">${d.MeetingDescription}</span>
+                                     </div>
+                                     <div class="td">
+                                     <label class="thSm">সভার সময়</label>
+                                     <hr>
+                                     <span class="form-control">${formatNumberToBengali(d.MeetingDate)}<br />${d.MeetingTime}</span>
+                                     </div>
+
+
+                                    <div class="td">
+                                        <label class="thSm">একশন</label>
+                                        <hr>
+                                        <button class="btn btn-primary my-2 my-lg-0 btn-edit" data-toggle="tooltip" data-placement="top" title="পরিবর্তন করুন" data-id="${d.Id}"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button class="btn btn-danger my-2 my-lg-0 ms-lg-2 btn-delete" data-toggle="tooltip" data-placement="top" title="মুছে ফেলুন" data-id="${d.Id}"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </div>`;
+                            $("#divMeetingDeclarationList .tbody").append(tRow);
+                        });
+
+                        //$(".tbody .tr .td input").last().focus();
+                    } else {
+                        $.alert.open("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                }
+            });
+        }
+        $(document).ready(function () {
+            GetMeetingDeclarationList();
+            $(document).on("click", "#btnReload", function () {
+                setDataIntoMeetingDescription("");
+                setDataIntoMeetingTitle("");
+                $("#txtMeetingNo").val("").focus();
+                $("#txtStartingDate").val("");
+                $("#txtMeetingTime").val("");
+                $("#MeetingTypeDD").val("0");
+                $("#MeetingVenueDD").val("0");
+                $("#txtZoomId").val("");
+                $("#txtPassCode").val("");
+                $("#txtZoomLink").val("");
+                $("#btnSave").attr("data-id", 0);
+
+            });
+            $(document).on("click", "#btnSave", function () {
+                var MeetingNo = $("#txtMeetingNo").val();
+                var StartingDate = $("#txtStartingDate").attr("data-value");
+                var MeetingType = $("#MeetingTypeDD").val();
+                var MeetingTitle = getDataFromTheMeetingTitle();
+                var MeetingDescription = getDataFromTheMeetingDescription();
+                var MeetingVenue = $("#MeetingVenueDD").val();
+                var ID = $(this).attr("data-id");
+                var MeetingTime = $("#txtMeetingTime").val();
+                var ZoomId = $("#txtZoomId").val();
+                var PassCode = $("#txtPassCode").val();
+                var ZoomLink = $("#txtZoomLink").val();
+                
+                
+                if (MeetingNo == "") {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভা নং লিখুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (MeetingType == "0" || MeetingType == 0) {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভার ধরণ নির্বাচন করুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (StartingDate == "" || StartingDate == undefined) {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভার তারিখ নির্বাচন করুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (MeetingVenue == "0" || MeetingVenue == 0) {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভার সভার ভেন্যু নির্বাচন করুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (MeetingTitle == "") {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভার শিরোনাম লিখুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (MeetingDescription == "") {
+                    swal({
+                        title: "ভুল!",
+                        text: "সভার বর্ণনা লিখুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveMeetingDeclaration", "MeetingDeclaration")',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ MeetingNo: MeetingNo, StartingDate: StartingDate, MeetingType, MeetingType, MeetingTitle: MeetingTitle, MeetingDescription: MeetingDescription, MeetingVenue: MeetingVenue, MeetingTime: MeetingTime, ID: ID, ZoomId: ZoomId,PassCode:PassCode,ZoomLink:ZoomLink }),
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.Status) {
+                            swal({
+                                title: "সফল",
+                                text: data.Message,
+                                type: "success",
+                                confirmButtonText: "ঠিক আছে"
+                            },
+                            function (isConfirm) {
+                                GetMeetingDeclarationList();
+                                $("#btnReload").click();
+                            });
+                        }
+                        else {
+                            swal({
+                                title: "ভুল!",
+                                text: "একটি ত্রুটি ঘটেছে",
+                                type: "error",
+                                confirmButtonText: "ঠিক আছে"
+                            })
+                        }
+                    },
+                    error: function (request, status, error) {
+                        swal({
+                            title: "ভুল!",
+                            text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                            type: "error",
+                            confirmButtonText: "ঠিক আছে"
+                        })
+                    }
+                });
+            });
+            $(document).on("click", ".btn-delete", function () {
+                var Id = $(this).attr("data-id");
+                swal({
+                    title:"নিশ্চিতকরণ",
+                    text: "আপনি কি নিশ্চিত, আপনি এটি মুছে দিতে চান?",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "হ্যাঁ",
+                    cancelButtonText: "না",
+                    showCancelButton: true,
+                    closeOnConfirm: true
+                },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        var jsonData = { id: Id };
+                        $.ajax({
+                            url: "@Url.Action("DeleteMeetingDeclearationbyID", "MeetingDeclaration")",
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify(jsonData),
+                            dataType: "json",
+                            success: function (data) {
+                                if (data.Status == true) {
+                                    setTimeout(function () {
+                                        swal({
+                                            title: "সঠিক",
+                                            text: data.Message,
+                                            type: "success",
+                                            confirmButtonText: "ঠিক আছে"
+                                        }, function () {
+                                            GetMeetingDeclarationList();
+                                        });
+                                    }, 100)
+                                } else {
+                                    swal({
+                                        title: "ভুল!",
+                                        text: data.Message,
+                                        type: "error",
+                                        confirmButtonText: "ঠিক আছে"
+                                    })
+                                }
+                            },
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                swal({
+                                    title: "ভুল!",
+                                    text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                                    type: "error",
+                                    confirmButtonText: "ঠিক আছে"
+                                })
+                            }
+                        });
+                    }
+                });
+            });
+            $(document).on("click", ".btn-edit", function () {
+                var Id = $(this).attr("data-id");
+                $("#divLoader").show();
+                //$("body").css("pointer-events", "none");
+
+                $.ajax({
+                    url: "@Url.Action("GetMeetingDeclarationId", "MeetingDeclaration")",
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ Id: Id }),
+                    dataType: "json",
+                    success: function (data) {
+                        $("body").css("pointer-events", "");
+                        $("#divLoader").hide();
+                        if (data.Status == true) {
+                            if (data.agendaList.length > 0) {
+                                $.each(data.agendaList, function (i, d) {
+                                    /*Id = d.Id;*/
+                                    setDataIntoMeetingTitle(d.MeetingTitle);
+                                    setDataIntoMeetingDescription(d.MeetingDescription);
+                                    $("#txtStartingDate").val(formatNumberToBengali(d.MeetingDate));
+                                    $("#MeetingTypeDD").val((d.MeetingTypeId));
+                                    $("#MeetingVenueDD").val(d.MeetingVenueId);
+                                    $("#txtMeetingNo").val(d.MeetingNo);
+                                    $("#txtMeetingTime").val(d.MeetingTime);
+                                    $("#txtZoomId").val(d.ZoomMeetingId);
+                                    $("#txtPassCode").val(d.ZoomMeetingPassCode);
+                                    $("#txtZoomLink").val(d.ZoomMeetingLink);
+                                    $("#txtStartingDate").attr("data-value", d.MeetingDate);
+                                    $("#btnSave").attr("data-id", d.Id);
+                                    $("#txtMeetingNo").focus();
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+
+
+    </script>
+
+}
+
+
+
+
+
+
+
+
+
+///////////////////////CONTROLER/////////////
+using Common.Service.StoredProcedure;
+using Common.Web.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace MMS.Web.Controllers
+{
+    public class MeetingDeclarationController : Controller
+    {
+        private readonly ISPService spService;
+        public MeetingDeclarationController(ISPService spService)
+        {
+            this.spService = spService;
+        }
+        // GET: MeetingDeclaration
+        public ActionResult Index()
+        {
+            ViewBag.MeetingTypeDD = spService.GetDataWithoutParameter("USP_GET_MEETING_TYPE_FOR_DROPDOWNLIST").Tables[0];
+            ViewBag.MeetingVenueDD = spService.GetDataWithoutParameter("USP_GET_MettingVenue").Tables[0];
+            return View();
+        }
+
+        public JsonResult SaveMeetingDeclaration(string MeetingNo, string StartingDate, int MeetingType, string MeetingTitle, string MeetingDescription, int MeetingVenue, string MeetingTime, string ZoomId, string PassCode, string ZoomLink, int ID = 0)
+        {
+            try
+            {
+                var param = new
+                {
+
+                    ID = ID,
+                    MeetingNo = MeetingNo,
+                    TakeActionWithinDate = StartingDate == "" ? "" : ReportHelper.FormatDateToString(StartingDate),
+                    MeetingType = MeetingType,
+                    MeetingTitle = MeetingTitle,
+                    MeetingDescription = MeetingDescription,
+                    MeetingVenue = MeetingVenue,
+                    MeetingTime = MeetingTime,
+                    USER_ID = SessionHelper.LoggedInUserId,
+                    ZoomId = ZoomId,
+                    PassCode = PassCode,
+                    ZoomLink = ZoomLink
+                };
+                string storedProcedureName = "USP_SAVE_MeetingDeclaration";
+
+                var response = spService.GetDataWithParameter(param, storedProcedureName).Tables[0].AsEnumerable().Select(R => new
+                {
+                    msg = R.Field<string>("Message")
+                }).FirstOrDefault();
+                return Json(new { Message = response.msg, Status = true }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public JsonResult GetMeetingDeclarationList()
+        {
+            try
+            {
+                var dt = spService.GetDataWithoutParameter("USP_GET_MeetingDeclaration_LIST");
+                var data = dt.Tables[0].AsEnumerable().Select(x => new
+                {
+                    Id = x.Field<int>("Id"),
+                    MeetingNo = x.Field<string>("MeetingNo"),
+                    MeetingTitle = x.Field<string>("MeetingTitle"),
+                    MeetingDescription = x.Field<string>("MeetingDescription"),
+                    MeetingDate = x.Field<string>("MeetingDate"),
+                    TypeName = x.Field<string>("TypeName"),
+                    ZoomMeetingId = x.Field<string>("ZoomMeetingId"),
+                    ZoomMeetingPassCode = x.Field<string>("ZoomMeetingPassCode"),
+                    ZoomMeetingLink = x.Field<string>("ZoomMeetingLink"),
+                    MeetingTime = x.Field<string>("MeetingTime")
+                }).ToList();
+
+                return Json(new { Status = true, MeetingDeclarationList = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public JsonResult DeleteMeetingDeclearationbyID(int id = 0)
+        {
+            try
+            {
+                var param = new
+                {
+                    Id = id,
+                    EntryUser = SessionHelper.LoggedInUserId
+                };
+                var procName = "USP_DELETE_MeetingDeclearationById";
+                spService.ExecuteStoredProcedure(param, procName);
+                return Json(new { Status = true, Message = "আপনি সভার তথ্য সফলভাবে মুছে ফেলেছেন ।" }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public JsonResult GetMeetingDeclarationId(int Id)
+        {
+            try
+            {
+                var dt = spService.GetDataWithParameter(new { Id = Id }, "USP_GET_MeetingDeclaration_BY_ID");
+                var data = dt.Tables[0].AsEnumerable().Select(x => new
+                {
+                    Id = x.Field<int>("Id"),
+                    MeetingNo = x.Field<string>("MeetingNo"),
+                    MeetingDate = x.Field<string>("MeetingDate"),
+                    MeetingTime = x.Field<string>("MeetingTime"),
+                    MeetingTypeId = x.Field<int>("MeetingTypeId"),
+                    TypeName = x.Field<string>("TypeName"),
+                    MeetingTitle = x.Field<string>("MeetingTitle"),
+                    MeetingDescription = x.Field<string>("MeetingDescription"),
+                    MeetingVenueId = x.Field<int>("MeetingVenueId"),
+                    ZoomMeetingId = x.Field<string>("ZoomMeetingId"),
+                    ZoomMeetingPassCode = x.Field<string>("ZoomMeetingPassCode"),
+                    ZoomMeetingLink = x.Field<string>("ZoomMeetingLink")
+                }).ToList();
+
+                return Json(new { Status = true, agendaList = data }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult Edit(int meetingId = 0)
+        {
+            Uri myReferrer = Request.UrlReferrer;
+            ViewBag.url = myReferrer!=null?myReferrer.ToString():"";
+            ViewBag.MeetingId = meetingId;
+            ViewBag.MeetingTypeDD = spService.GetDataWithoutParameter("USP_GET_MEETING_TYPE").Tables[0];
+            ViewBag.MeetingVenueDD = spService.GetDataWithoutParameter("USP_GET_MettingVenue").Tables[0];
+            return View();
+        }
+    }
+}
