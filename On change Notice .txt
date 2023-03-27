@@ -349,6 +349,29 @@ namespace MMS.Web.Controllers
            
 
         }
+	public void ShowNoticeReport(int reportNo, int meetingId, string ReportType = "pdf")
+        {
+            var param = new
+            {
+                MEETING_ID = meetingId
+            };
+
+            var data = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE");
+            //var data1 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportOne");
+            //var data2 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportTwo");
+            var MainReport = data.Tables[0];
+            var qrPath = GeneratorQRCode.GenerateMeetingNoticeQRImage(meetingId);
+
+
+            var reportParam = new Dictionary<string, object>
+            {
+                { "qrPath", Server.MapPath(qrPath) }
+            };
+            ReportHelper.ShowReport(MainReport, ReportType, "rptMeetingNotice.rpt", "rptMeetingNotice", reportParam, null);
+            
+           
+
+        }
 
     }
 }
