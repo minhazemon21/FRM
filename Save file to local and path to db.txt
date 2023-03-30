@@ -1,0 +1,876 @@
+ ============controller=====
+if (NIDFront != null)
+            {
+                var extension1 = NIDFront.FileName.Split('.')[NIDFront.FileName.Split('.').Length - 1];
+                var pathFront = Server.MapPath("~/Content/MMSWeb/Files/NID/nidFront_" + executive.ExecutiveCode + "." + extension1);
+                if (System.IO.File.Exists(pathFront))
+                {
+                    System.IO.File.Delete(pathFront);
+                }
+                NIDFront.SaveAs(pathFront);
+                executive.NIDFront = "/Content/MMSWeb/Files/NID/nidFront_" + executive.ExecutiveCode + "." + extension1;
+            }
+
+
+
+======================================view page================
+@using Common.Data.CommonDataModel
+@using Common.Web.Helpers
+@{
+    ViewBag.Title = "কর্মকর্তা বিন্যাস";
+    var organizations = (List<Organization>)ViewBag.Organizations;
+    var designations = (List<Designation>)ViewBag.Designations;
+    var departments = (List<Department>)ViewBag.Departments;
+    var genders = (List<Gender>)ViewBag.Genders;
+    var divisions = (List<Division>)ViewBag.Divisions;
+    var districts = (List<District>)ViewBag.Districts;
+    var thanas = (List<Thana>)ViewBag.Thanas;
+    var countries = (List<Country>)ViewBag.Countries;
+    var allExecutive = (List<OfficeExecutive>)ViewBag.ExecutiveList;
+    var executiveList = allExecutive.Where(x => x.ActiveStatus == 1).OrderBy(x => x.ExecutiveName).ToList();
+    var closedExecutive = allExecutive.Where(x => x.ActiveStatus == 0).OrderBy(x => x.ExecutiveName).ToList();
+    var executive = (OfficeExecutive)ViewBag.Executive;
+    var oSerializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+    var districtList = oSerializer.Serialize(districts);
+    var thanaList = oSerializer.Serialize(thanas);
+    var dvsId = 0;
+    var distId = 0;
+    var code = allExecutive.Max(x => int.Parse(x.ExecutiveCode)) + 1;
+    if (executive.Id == 0)
+    {
+        executive.JoiningDate = DateTime.Now;
+        executive.ActiveStatus = 1;
+        executive.ExecutiveCode = code.ToString();
+    }
+}
+@section style{
+    <style type="text/css" rel="stylesheet">
+       
+
+        .tbody .td:nth-child(1), .th .td:nth-child(1) {
+            flex-basis: 5%;
+        }
+
+        .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 10%;
+        }
+
+        .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 20%;
+        }
+
+        .tbody .td:nth-child(4), .th .td:nth-child(4) {
+            flex-basis: 20%;
+        }
+
+        .tbody .td:nth-child(5), .th .td:nth-child(5) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(6), .th .td:nth-child(6) {
+            flex-basis: 15%;
+        }
+        .tbody .td:nth-child(7), .th .td:nth-child(7) {
+            flex-basis: 10%;
+        }
+        .tbody .td:nth-child(8), .th .td:nth-child(8) {
+            flex-basis: 5%;
+        }
+        .th .td, .tbody .td {
+            justify-content: center;
+        }
+
+            .tbody .td:first-child input {
+                text-align: center;
+            }
+    </style>
+}
+<div class="cust-card">
+    <div class="title">
+        কর্মকর্তা তৈরি/পরিবর্তন
+    </div>
+    <div class="body">
+        <div class="px-3">
+            <div class="row">
+                <div class="form-group col-lg-12 my-2">
+                    <label for="">বিভাগ</label>
+                    <hr>
+                    <select class="form-control" id="cmbDepartment">
+                        <option class="first-option">নির্বাচন করুন</option>
+                        @foreach (var dpt in departments.OrderBy(x => x.DepartmentName).ToList())
+                        {
+                            <option value="@dpt.Id" @(dpt.Id == executive.DepartmentId ? "selected='selected'" : "")>@dpt.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">কর্মকর্তার নাম</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.ExecutiveName" id="txtExecutiveName">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">কর্মকর্তার আইডি</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.ExecutiveCode" id="txtExecutiveCode">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">পদবী</label>
+                    <hr>
+                    <select class="form-control" id="cmbDesignation">
+                        <option class="first-option">নির্বাচন করুন</option>
+                        @foreach (var dsg in designations.OrderBy(x => x.DesignationName).ToList())
+                        {
+                            <option value="@dsg.Id" @(dsg.Id == executive.DesignationId ? "selected='selected'" : "")>@dsg.DesignationName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">লিঙ্গ</label>
+                    <hr>
+                    <select class="form-control" id="cmbGender">
+                        <option class="first-option">নির্বাচন করুন</option>
+                        @foreach (var gnd in genders)
+                        {
+                            <option value="@gnd.Id" @(gnd.Id == executive.GenderId ? "selected='selected'" : "")>@gnd.GenderName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">যোগদান তারিখ</label>
+                    <hr>
+                    <input class="form-control DateInput check-date" type="text" id="txtJoiningDate" value="@executive.JoiningDate.ToString("dd/MM/yyyy")">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">রেসিডেন্স</label>
+                    <hr>
+                    <select class="form-control" id="cmbCountry">
+                        <option class="first-option">নির্বাচন করুন</option>
+                        @foreach (var cnt in countries)
+                        {
+                            <option value="@cnt.Id" @(cnt.Id == executive.CountryId ? "selected='selected'" : "")>@cnt.CountryName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">পিতার নাম</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.FatherName" id="txtFatherName" />
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">মাতার নাম</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.MotherName" id="txtMotherName">
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">মোবাইল নং</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.Mobile" id="txtMobile">
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">হোয়াটস অ্যাপ</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.WhatsupNumber" id="txtWhatsapp">
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">ই-মেইল</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.Email" id="txtEmail">
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">জাতীয় পরিচয়পত্র নং</label>
+                    <hr>
+                    <input type="text" class="form-control" value="@executive.NID" id="txtNID">
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">পরিচয়পত্রের সামনের অংশ</label>
+                    <hr>
+                    @if (executive.NIDFront != null)
+                    {
+                        <a href="@executive.NIDFront" target="_blank"><i class="fa-solid fa-file"></i></a>
+
+                    }
+                    <input type="file" data-ref="imgNIDFront" id="fileNIDFront" class="btn btn-sm btn-success" style="width:80%" />
+                </div>
+                <div class="form-group col-lg-4 my-2">
+                    <label for="">পরিচয়পত্রের পিছনের অংশ</label>
+                    <hr>
+                    @if (executive.NIDBack != null)
+                    {
+                        <a href="@executive.NIDBack" target="_blank"><i class="fa-solid fa-file"></i></a>
+
+                    }
+                    <input type="file" data-ref="imgNIDBack" id="fileNIDBack" class="btn btn-sm btn-success" style="width:80%" />
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">বর্তমান ঠিকানা</label>
+                    <hr>
+                    <textarea class="form-control" rows="2" id="txtPresentAddress">@executive.PresentAddress</textarea>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">স্থায়ী ঠিকানা</label>
+                    <hr>
+                    <textarea class="form-control" rows="2" id="txtPermanentAddress">@executive.PermanentAddress</textarea>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">ছবি</label>
+                    <hr>
+                    <img class="img-responsive" src="@(executive.Id > 0 && executive.Photograph != null ? "data:image;base64," + Convert.ToBase64String(executive.Photograph) : "")" id="imgPhotograph" alt="ছবি" style="height: 80px; width: 100px; border: 1px solid #DDDDDD; margin-bottom: 10px; margin-right:4px" />
+                    <input type="file" data-ref="imgPhotograph" id="filePhotograph" class="btn btn-sm btn-success" />
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সাক্ষর</label>
+                    <hr>
+                    <img class="img-responsive" src="@(executive.Id > 0 && executive.Signature != null ? "data:image;base64," + Convert.ToBase64String(executive.Signature) : "")" id="imgSignature" alt="সাক্ষর" style="height: 80px; width: 100px; border: 1px solid #DDDDDD; margin-bottom: 10px; " />
+                    <input type="file" data-ref="imgSignature" id="fileSignature" class="btn btn-sm btn-success" />
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">স্ট্যাটাস</label>
+                    <hr>
+                    <select class="form-control" id="cmbStatus">
+                        <option value="1" @(executive.ActiveStatus == 1 ? "selected='selected'" : "")>সক্রিয়</option>
+                        <option value="0" @(executive.ActiveStatus == 0 ? "selected='selected'" : "")>অপসারিত</option>
+                    </select>
+                </div>
+                <div class="text-center w-100">
+                    <button type="button" class="btn btn-primary my-2" name="btnSubmit" id="btnSubmit">সংরক্ষণ করুন</button>
+                    <button type="button" class="btn btn-primary my-2 ms-sm-2" name="btnReset" id="btnReset">নতুন করে লিখুন</button>
+                </div>
+            </div>
+        </div>
+        <div class="px-3 py-3">
+            <div class="table activeExecutives" id="tblProjects">
+                <div class="th">
+                    <div class="td">ক্রমিক নং</div>
+                    <div class="td">কর্মকর্তার আইডি</div>
+                    <div class="td">কর্মকর্তার নাম</div>
+                    <div class="td">পদবী</div>
+                    <div class="td">জাতীয় পরিচয়পত্র</div>
+                    <div class="td">ছবি <br /> সাক্ষর</div>
+                    <div class="td">কর্মকর্তার স্ট্যাটাস</div>
+                    <div class="td">কার্যক্রম</div>
+                </div>
+                <div class="tbody">
+                    @if (executiveList != null)
+                    {
+                        <label class="title-secondary">সক্রিয় কর্মকর্তার তালিকা</label>
+                        <hr class="title-divider">
+                        for (var i = 0; i < executiveList.Count; i++)
+                        {
+                            <div class="tr">
+                                <div class="td">
+                                    <label class="thSm">ক্রমিক নং</label>
+                                    <hr>
+                                    <span class="form-control">@((i + 1).ToBangla())</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার আইডি</label>
+                                    <hr>
+                                    <span class="form-control">@executiveList[i].ExecutiveCode</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার নাম</label>
+                                    <hr>
+                                    <span class="form-control">@executiveList[i].ExecutiveName</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">পদবী</label>
+                                    <hr>
+                                    <span class="form-control">@executiveList[i].DesignationName</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">জাতীয় পরিচয়পত্র</label>
+                                    <hr>
+                                    @if (@executiveList[i].NID != null) { 
+                                         <span class="form-control">
+
+
+                                            @executiveList[i].NID
+
+
+                                            @if (executiveList[i].NIDFront != null)
+                                            {
+                                                <a href="@executiveList[i].NIDFront" target="_blank">সামনের অংশ</a><br />
+                                            }
+                                            @if (executiveList[i].NIDBack != null)
+                                            {
+                                                <a href="@executiveList[i].NIDBack" target="_blank">পিছনের অংশ</a>
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">ছবি ও সাক্ষর</label>
+                                    <hr>
+                                    @if (executiveList[i].Photograph != null || executiveList[i].Signature != null)
+                                    {
+                                        <span class="form-control">
+                                            @if (executiveList[i].Photograph != null)
+                                            {
+                                                <img class="img-responsive" src="data:image;base64,@(Convert.ToBase64String(executiveList[i].Photograph))" alt="ছবি" style="height: 50px; width: 100%; border: 1px solid #DDDDDD; margin-bottom: 10px;" />
+                                            }
+                                            @if (executiveList[i].Signature != null)
+                                            {
+                                                <img class="img-responsive" src="data:image;base64,@(Convert.ToBase64String(executiveList[i].Signature))" alt="সাক্ষর" style="height: 50px; width: 100%; border: 1px solid #DDDDDD; margin-bottom: 10px; " />
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার স্ট্যাটাস</label>
+                                    <hr>
+                                    <span class="form-control">সক্রিয়</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কার্যক্রম</label>
+                                    <hr>
+                                    <button data-executiveid="@executiveList[i].Id" class="btn btn-primary my-2 my-lg-0 btn-edit" data-toggle="tooltip" data-placement="top" title="পরিবর্তন করুন"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    @*<button class="btn btn-primary my-2 my-lg-0 ms-lg-2" data-toggle="tooltip" data-placement="top" title="মুছে ফেলুন"><i class="fa-solid fa-trash-can"></i></button>*@
+                                </div>
+                            </div>
+                        }
+                    }
+                    @if (closedExecutive != null)
+                    {
+                        <label class="title-secondary">অপসারিত কর্মকর্তার তালিকা</label>
+                        <hr class="title-divider">
+                        for (var i = 0; i < closedExecutive.Count; i++)
+                        {
+                            <div class="tr">
+                                <div class="td">
+                                    <label class="thSm">ক্রমিক নং</label>
+                                    <hr>
+                                    <span class="form-control" >@((i + 1).ToBangla())</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার আইডি</label>
+                                    <hr>
+                                    <span class="form-control" >@closedExecutive[i].ExecutiveCode</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার নাম</label>
+                                    <hr>
+                                    <span class="form-control" >@closedExecutive[i].ExecutiveName</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">পদবী</label>
+                                    <hr>
+                                    <span class="form-control" >@closedExecutive[i].DesignationName</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">জাতীয় পরিচয়পত্র</label>
+                                    <hr>
+                                    @if (closedExecutive[i].NID != null)
+                                    {
+                                        <span class="form-control">
+
+
+                                            @closedExecutive[i].NID
+
+
+                                            @if (closedExecutive[i].NIDFront != null)
+                                            {
+                                                <a href="@closedExecutive[i].NIDFront" target="_blank">সামনের অংশ</a><br />
+                                            }
+                                            @if (closedExecutive[i].NIDBack != null)
+                                            {
+                                                <a href="@closedExecutive[i].NIDBack" target="_blank">পিছনের অংশ</a>
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">ছবি ও সাক্ষর</label>
+                                    <hr>
+                                    @if (closedExecutive[i].Photograph != null || closedExecutive[i].Signature != null)
+                                    {
+                                        <span class="form-control">
+                                            @if (closedExecutive[i].Photograph != null)
+                                            {
+                                                <img class="img-responsive" src="data:image;base64,@(Convert.ToBase64String(closedExecutive[i].Photograph))" alt="ছবি" style="height: 50px; width: 100%; border: 1px solid #DDDDDD; margin-bottom: 10px;" />
+                                            }
+                                            @if (closedExecutive[i].Signature != null)
+                                            {
+                                                <img class="img-responsive" src="data:image;base64,@(Convert.ToBase64String(closedExecutive[i].Signature))" alt="সাক্ষর" style="height: 50px; width: 100%; border: 1px solid #DDDDDD; margin-bottom: 10px; " />
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কর্মকর্তার স্ট্যাটাস</label>
+                                    <hr>
+                                    <span class="form-control" >অপসারিত</span>
+                                </div>
+                                <div class="td">
+                                    <label class="thSm">কার্যক্রম</label>
+                                    <hr>
+                                    <button data-executiveid="@closedExecutive[i].Id" class="btn btn-primary my-2 my-lg-0 btn-edit" data-toggle="tooltip" data-placement="top" title="পরিবর্তন করুন"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    @*<button data-executiveid="@executiveList[i].Id" class="btn btn-primary my-2 my-lg-0 ms-lg-2 btn-view" data-toggle="tooltip" data-placement="top" title="মুছে ফেলুন"><i class="fa-solid fa-trash-can"></i></button>*@
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section script{
+    <script type="text/javascript">
+         $(document).ready(function () {
+        var executiveId = @executive.Id;
+        var districts=@Html.Raw(districtList);
+        var thanas=@Html.Raw(thanaList);
+        function clearAll() {
+            $("input[type=text],input[type=number],textarea").val("");
+            $("select").val("0");
+            executiveId = 0;
+        }
+
+        $("[type=file]").on("change", function() {
+            showImage(this);
+        });
+        function showImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#'+$(input).attr("data-ref")).attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        $("#btnSubmit").on("click", function () {
+            var executiveName = $("#txtExecutiveName").val().trim();
+            var executiveCode = $("#txtExecutiveCode").val().trim();
+            //var organizationId = $("#cmbOrganization option:selected").val();
+            var designationId = $("#cmbDesignation option:selected").val();
+            var departmentId = $("#cmbDepartment option:selected").val();
+            var joiningDate = $("#txtJoiningDate").attr("data-value");
+            var fatherName = $("#txtFatherName").val().trim();
+            var motherName = $("#txtMotherName").val().trim();
+            var genderId = $("#cmbGender option:selected").val();
+            var presentAddress = $("#txtPresentAddress").val().trim();
+            var presentThanaId = 0;
+            var permanentAddress = $("#txtPermanentAddress").val().trim();
+            var permanentThanaId = 0;
+            var countryId = $("#cmbCountry option:selected").val();
+            var mobile = $("#txtMobile").val().trim();
+            var email = $("#txtEmail").val();
+            var hasPhotograph = document.getElementById('filePhotograph').files.length>0?1:0;
+            var hasSignature = document.getElementById('fileSignature').files.length>0?1:0;
+            var hasNidFront = document.getElementById('fileNIDFront').files.length>0?1:0;
+            var hasNidBack = document.getElementById('fileNIDBack').files.length>0?1:0;
+            var status = $("#cmbStatus option:selected").val();
+            var WhatsupNumber = $("#txtWhatsapp").val().trim();
+            var NID = $("#txtNID").val().trim();
+
+            if (departmentId == "0") {
+                swal("ভুল!!", "কর্মকর্তার বিভাগ নির্বাচন করুন ।", "error");
+                return false;
+            }
+            if (executiveName == "") {
+                swal("ভুল!!", "কর্মকর্তার নাম লিখুন ।", "error");
+                return false;
+            }
+            if (executiveCode == "") {
+                $.alert.open("Warning!", "Please enter executive code.");
+                swal("ভুল!!", "কর্মকর্তার আইডি লিখুন ।", "error");
+                return false;
+            }
+            if (designationId == "0") {
+                swal("ভুল!!", "কর্মকর্তার পদবী নির্বাচন করুন ।", "error");
+                return false;
+            }
+            if (genderId == "0") {
+                swal("ভুল!!", "কর্মকর্তার লিঙ্গ নির্বাচন করুন ।", "error");
+                return false;
+            }
+
+            if (joiningDate == "" || joiningDate == undefined) {
+                swal("ভুল!!", "কর্মকর্তার যোগদানের তারিখ নির্বাচন করুন ।", "error");
+                return false;
+            }
+
+            if (countryId == "0") {
+                swal("ভুল!!", "কর্মকর্তার রেসিডেন্স নির্বাচন করুন ।", "error");
+                return false;
+            }
+
+            if (mobile == "") {
+                swal("ভুল!!", "কর্মকর্তার মোবাইল নং লিখুন ।", "error");
+                return false;
+            }
+
+            if (email == "") {
+                swal("ভুল!!", "কর্মকর্তার ই-মেইল লিখুন ।", "error");
+                return false;
+            }
+
+            if (NID == "") {
+                swal("ভুল!!", "কর্মকর্তার জাতীয় পরিচয়পত্র নং লিখুন ।", "error");
+                return false;
+            }
+
+            //if (presentThanaId == "0") {
+            //    $.alert.open("Warning!", "Please select present thana.");
+            //    return false;
+            //}
+
+            //if (permanentThanaId == "0") {
+            //    $.alert.open("Warning!", "Please select permanent thana.");
+            //    return false;
+            //}
+            var formdata = new FormData();
+            formdata.append("Id", executiveId);
+            formdata.append("ExecutiveName", executiveName);
+            formdata.append("ExecutiveCode", executiveCode);
+            formdata.append("DesignationId", designationId);
+            formdata.append("Departmentid", departmentId);
+            formdata.append("JoiningDate", joiningDate);
+            formdata.append("FatherName", fatherName);
+            formdata.append("MotherName", motherName);
+            formdata.append("GenderId", genderId);
+            formdata.append("PresentAddress", presentAddress);
+            formdata.append("PresentThanaId", presentThanaId);
+            formdata.append("PermanentAddress", permanentAddress);
+            formdata.append("PermanentThanaId", permanentThanaId);
+            formdata.append("CountryId", countryId);
+            formdata.append("Mobile", mobile);
+            formdata.append("WhatsupNumber", WhatsupNumber);
+            formdata.append("NID", NID);
+            formdata.append("Email", email);
+            formdata.append("ActiveStatus", status);
+            formdata.append("photo", document.getElementById('filePhotograph').files[0]);
+            formdata.append("sign", document.getElementById('fileSignature').files[0]);
+            formdata.append("NIDFront", document.getElementById('fileNIDFront').files[0]);
+            formdata.append("NIDBack", document.getElementById('fileNIDBack').files[0]);
+            $.ajax({
+                type: "Post",
+                url: '@Url.Action("ExecutiveSetup", "OfficeExecutive")',
+                contentType: false,
+                processData: false,
+                data: formdata,
+                //dataType: "json",
+
+                success: function (data) {
+                    if (data.Status == true) {
+                        setTimeout(function () {
+                            swal({
+                                title: "সঠিক",
+                                text: data.Message,
+                                type: "success",
+                                confirmButtonText: "ঠিক আছে"
+                            }, function () {
+                                 window.location = "@Url.Action("Index", "OfficeExecutive")";
+                            });
+                        }, 100)
+                    } else {
+                        swal({
+                            title: "ভুল!",
+                            text: data.Message,
+                            type: "error",
+                            confirmButtonText: "ঠিক আছে"
+                        })
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                }
+            });
+            return true;
+        });
+        $(document).on("click", ".btn-edit", function () {
+            var id = $(this).attr("data-executiveId");
+            window.location = "@Url.Action("Index","OfficeExecutive")?id=" + id + "&view=0";
+        });
+        $(document).on("click", ".btn-view", function () {
+            var id = $(this).attr("data-executiveId");
+            window.location = "@Url.Action("Index","OfficeExecutive")?id=" + id + "&view=1";
+        });
+        $("#btnReset").on("click", function () {
+            clearAll();
+        });
+        $(".division").on("change", function() {
+            var id = $(this).val();
+            var ref = $(this).attr("data-ref");
+            var html = "<option value='0'>Select District</option>";
+            for (var i = 0; i < districts.length; i++) {
+                if(districts[i].DivisionId==id) {
+                    html += "<option value='"+districts[i].Id+"'>"+districts[i].DistrictName+"</option>";
+                }
+            }
+            $("#"+ref).html(html);
+            $("#" + $("#" + ref).attr("data-ref")).html("<option value='0'>Select Thana</option>");
+        });
+        $(".district").on("change", function() {
+            var id = $(this).val();
+            var ref = $(this).attr("data-ref");
+            var html = "<option value='0'>Select Thana</option>";
+            for (var i = 0; i < thanas.length; i++) {
+                if(thanas[i].DistrictId==id) {
+                    html += "<option value='"+thanas[i].Id+"'>"+thanas[i].ThanaName+"</option>";
+                }
+            }
+            $("#"+ref).html(html);
+        });
+    });
+    $("#cmbDepartment").focus();
+    </script>
+}
+
+
+==========================controller================================
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Xml.Linq;
+using Common.Data.CommonDataModel;
+using Common.Service;
+using Common.Service.StoredProcedure;
+using Common.Web.Helpers;
+using Microsoft.Ajax.Utilities;
+
+namespace Common.Web.Controllers
+{
+    public class OfficeExecutiveController : Controller
+    {
+        private readonly IOfficeExecutiveService officeExecutiveService;
+        private readonly IOrganizationService organizationService;
+        private readonly IDesignationService designationService;
+        private readonly IDepartmentService departmentService;
+        private readonly IGenderService genderService;
+        private readonly IDivisionService divisionService;
+        private readonly IDistrictService districtService;
+        private readonly IThanaService thanaService;
+        private readonly ICountryService countryService;
+        private readonly IProfessionService professionService;
+        private readonly IExecutiveTargetSetupService executiveTargetSetupService;
+        private readonly ISPService spService;
+
+        public OfficeExecutiveController(IOfficeExecutiveService officeExecutiveService, IOrganizationService organizationService
+            , IDesignationService designationService, IDepartmentService departmentService
+            , IGenderService genderService, IDivisionService divisionService, IDistrictService districtService
+            , IThanaService thanaService, ICountryService countryService
+            , IProfessionService professionService, ISPService spService, IExecutiveTargetSetupService executiveTargetSetupService)
+        {
+            this.officeExecutiveService = officeExecutiveService;
+            this.organizationService = organizationService;
+            this.designationService = designationService;
+            this.departmentService = departmentService;
+            this.genderService = genderService;
+            this.divisionService = divisionService;
+            this.districtService = districtService;
+            this.thanaService = thanaService;
+            this.countryService = countryService;
+            this.professionService = professionService;
+            this.spService = spService;
+            this.executiveTargetSetupService = executiveTargetSetupService;
+        }
+        public ActionResult Index(int? id)
+        {
+            ViewBag.Organizations = organizationService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Designations = designationService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Departments = departmentService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Genders = genderService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Divisions = divisionService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Districts = districtService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Thanas = thanaService.GetAll().Where(x => x.IsActive).ToList();
+            ViewBag.Countries = countryService.GetAll().Where(x => x.IsActive).ToList();
+            //var executives = officeExecutiveService.GetAll().Where(x => x.IsActive).ToList();
+            var executives =
+                spService.GetDataWithoutParameter("USP_GET_OFFICE_EXECUTIVE_LIST").Tables[0].ToList<OfficeExecutive>();
+            ViewBag.ExecutiveList = executives;
+            var executive = new OfficeExecutive() { Id = 0 };
+            if (id.HasValue)
+            {
+                executive = executives.FirstOrDefault(x => x.Id == id);
+            }
+            ViewBag.Executive = executive;
+            return View();
+        }
+        public JsonResult ExecutiveSetup(OfficeExecutive executive, HttpPostedFileBase photo, HttpPostedFileBase sign, HttpPostedFileBase NIDFront, HttpPostedFileBase NIDBack, string joiningDate)
+        {
+            executive.IsDirector = false;
+            executive.PresentThanaId = executive.PresentThanaId == 0 ? null : executive.PresentThanaId;
+            executive.PermanentThanaId = executive.PermanentThanaId == 0 ? null : executive.PermanentThanaId;
+
+            var joining = ReportHelper.FormatDate(joiningDate);
+            executive.JoiningDate = joining;
+            var org = organizationService.GetAll().FirstOrDefault();
+            executive.OrganizationId = org.Id;
+
+            if (NIDFront != null)
+            {
+                var extension1 = NIDFront.FileName.Split('.')[NIDFront.FileName.Split('.').Length - 1];
+                var pathFront = Server.MapPath("~/Content/MMSWeb/Files/NID/nidFront_" + executive.ExecutiveCode + "." + extension1);
+                if (System.IO.File.Exists(pathFront))
+                {
+                    System.IO.File.Delete(pathFront);
+                }
+                NIDFront.SaveAs(pathFront);
+                executive.NIDFront = "/Content/MMSWeb/Files/NID/nidFront_" + executive.ExecutiveCode + "." + extension1;
+            }
+            if (NIDBack != null)
+            {
+
+                var extension2 = NIDBack.FileName.Split('.')[NIDBack.FileName.Split('.').Length - 1];
+                var pathBack = Server.MapPath("~/Content/MMSWeb/Files/NID/nidBack_" + executive.ExecutiveCode + "." + extension2);
+                if (System.IO.File.Exists(pathBack))
+                {
+                    System.IO.File.Delete(pathBack);
+                }
+                NIDBack.SaveAs(pathBack);
+                executive.NIDBack = "/Content/MMSWeb/Files/NID/nidBack_" + executive.ExecutiveCode + "." + extension2;
+            }
+            if (executive.Id == 0)
+            {   
+                executive.EntryUserId = SessionHelper.LoggedInUserId;
+                executive.EntryDate = DateTime.Now;
+                executive.IsActive = true;
+                if (photo != null)
+                    executive.Photograph = ReportHelper.ConvertStreamToByte(photo.InputStream);
+                if (sign != null)
+                    executive.Signature = ReportHelper.ConvertStreamToByte(sign.InputStream);
+
+                if (
+                    officeExecutiveService.GetAll()
+                        .FirstOrDefault(x => x.ExecutiveCode.ToLower() == executive.ExecutiveCode.ToLower()) != null)
+                    return Json(new { Status = false, Message = "ইতিপূর্বে এই আইডি নং ব্যাবহৃত হয়েছে ।" }, JsonRequestBehavior.AllowGet);
+
+                officeExecutiveService.Create(executive);
+                return Json(new { Status = true, Message = "নতুন কর্মকর্তার তথ্য সফলভাবে সংরক্ষণ করা হয়েছে ।" },
+                        JsonRequestBehavior.AllowGet);
+            }
+            var existExecutive = officeExecutiveService.GetById(executive.Id);
+
+            existExecutive.ExecutiveName = executive.ExecutiveName;
+            existExecutive.ExecutiveCode = executive.ExecutiveCode;
+            existExecutive.OrganizationId = executive.OrganizationId;
+            existExecutive.DesignationId = executive.DesignationId;
+            existExecutive.DepartmentId = executive.DepartmentId;
+            existExecutive.JoiningDate = executive.JoiningDate;
+            existExecutive.FatherName = executive.FatherName;
+            existExecutive.MotherName = executive.MotherName;
+            existExecutive.GenderId = executive.GenderId;
+            existExecutive.PresentAddress = executive.PresentAddress;
+            existExecutive.PresentThanaId = executive.PresentThanaId;
+            existExecutive.PermanentAddress = executive.PermanentAddress;
+            existExecutive.PermanentThanaId = executive.PermanentThanaId;
+            existExecutive.CountryId = executive.CountryId;
+            existExecutive.Email = executive.Email;
+            existExecutive.Mobile = executive.Mobile;
+            existExecutive.WhatsupNumber = executive.WhatsupNumber;
+            existExecutive.NID = executive.NID;
+            if (NIDFront != null)
+            {
+                existExecutive.NIDFront = executive.NIDFront;
+            }
+            if(NIDBack!= null)
+            {
+                existExecutive.NIDBack = executive.NIDBack;
+            }
+            existExecutive.ActiveStatus = executive.ActiveStatus;
+            if (photo != null)
+                existExecutive.Photograph = ReportHelper.ConvertStreamToByte(photo.InputStream);
+            if (sign != null)
+                existExecutive.Signature = ReportHelper.ConvertStreamToByte(sign.InputStream);
+            existExecutive.UpdateUserId = SessionHelper.LoggedInUserId;
+            existExecutive.UpdateDate = DateTime.Now;
+
+            if (
+                officeExecutiveService.GetAll()
+                    .FirstOrDefault(x => x.ExecutiveCode.ToLower() == executive.ExecutiveCode.ToLower() && x.Id != executive.Id) !=
+                null)
+                return Json(new { Status = false, Message = "ইতিপূর্বে এই আইডি নং ব্যাবহৃত হয়েছে ।" }, JsonRequestBehavior.AllowGet);
+
+            officeExecutiveService.Update(existExecutive);
+            return Json(new { Status = true, Message = "কর্মকর্তার তথ্য সফলভাবে পরিবর্তন করা হয়েছে ।" },
+                JsonRequestBehavior.AllowGet);
+        }
+
+        public ActionResult Profession(int id = 0)
+        {
+            var profession = new Profession() { Id = 0 };
+            if (id > 0)
+                profession = professionService.GetById(id);
+            ViewBag.Profession = profession;
+            return View();
+        }
+        public JsonResult ProfessionSetup(Profession profession)
+        {
+            try
+            {
+                var msg = "";
+                if (profession.Id == 0)
+                {
+                    if (
+                        professionService.GetAll()
+                            .FirstOrDefault(x => x.ProfessionName == profession.ProfessionName) != null)
+                    {
+                        return Json(new { Message = "This profession already exists.", Status = false },
+                            JsonRequestBehavior.AllowGet);
+                    }
+                    profession.IsActive = true;
+                    professionService.Create(profession);
+                    msg = "New profession created successfully.";
+                }
+                else
+                {
+                    if (
+                        professionService.GetAll()
+                            .FirstOrDefault(x => x.ProfessionName == profession.ProfessionName && x.Id != profession.Id) != null)
+                    {
+                        return Json(new { Message = "This profession already exists.", Status = false },
+                            JsonRequestBehavior.AllowGet);
+                    }
+                    var existProfession = professionService.GetById(profession.Id);
+                    existProfession.ProfessionName = profession.ProfessionName;
+                    existProfession.IsActive = true;
+                    professionService.Update(existProfession);
+                    msg = "Profession updated successfully.";
+                }
+                return Json(new { Message = msg, Status = true },
+                    JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Message = ex.GetErrorMessage(), Status = false }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public JsonResult GetProfessionList()
+        {
+            return Json(professionService.GetAll().ToList(), JsonRequestBehavior.AllowGet);
+        }
+        public JsonResult DeleteProfession(int id)
+        {
+            try
+            {
+                var client = spService.GetDataWithParameter(new { ID = id }, "USP_CHECK_PROFESSION_USE").Tables[0].AsEnumerable();
+                if (!client.Any())
+                {
+                    var profession = professionService.GetById(id);
+                    profession.IsActive = false;
+                    professionService.Update(profession);
+                    return Json(new { Status = true, Message = "Profession delete successfull." }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { Status = false, Message = "Delete deny.There are client/joint client/nominee with this profession." }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+    }
+}
