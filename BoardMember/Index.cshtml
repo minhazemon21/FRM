@@ -1,0 +1,682 @@
+﻿@using Common.Web.Helpers
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutCommon.cshtml";
+}
+@section style{
+    <style type="text/css" rel="stylesheet">
+
+
+        .tbody .td:nth-child(1), .th .td:nth-child(1) {
+            flex-basis: 10%;
+        }
+
+        .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 20%;
+        }
+
+        .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(4), .th .td:nth-child(4) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(5), .th .td:nth-child(5) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(6), .th .td:nth-child(6) {
+            flex-basis: 15%;
+        }
+
+        .tbody .td:nth-child(7), .th .td:nth-child(7) {
+            flex-basis: 10%;
+        }
+
+        /*th .td, .tbody .td {
+            justify-content: center;
+        }*/
+
+            .tbody .td:first-child input {
+                text-align: center;
+            }
+    </style>
+}
+
+
+<div class="cust-card">
+    <div class="title">
+        সভায় অংশগ্রহনকারীর তথ্য
+    </div>
+    <div class="body">
+        <div class="px-3">
+            <div class="row forEntry">
+                <div class="form-group col-lg-6 my-2">
+                    <label for="isOrgMember">এই প্রতিষ্ঠানের কর্মকর্তা</label>
+                    <input type="checkbox" class="checkbox checkbox-inline" id="isOrgMember" value="0">
+                    @*<div class="form-check form-switch">
+                            <label class="form-check-label" for="isOrgMember">এই প্রতিষ্ঠানের কর্মকর্তা</label>
+                            <input class="form-check-input" type="checkbox" role="switch" id="isOrgMember" value="0">
+                        </div>*@
+                </div>
+                <div class="form-group col-lg-6 my-2" id="forOrgMember" style="display:none">
+                    <label for="">কর্মকর্তা</label>
+                    <hr>
+                    <select class="form-control" id="cmbExecutiveId">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="forEntry" />
+            <div class="row">
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">অংশগ্রহনকারীর নাম</label>
+                    <hr>
+                    <input type="text" id="txtMemberName" class="form-control" value="">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">পদবী</label>
+                    <hr>
+                    <select class="form-control" id="cmbDesignationId">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">অংশগ্রহনকারীর মোবাইল নাম্বার</label>
+                    <hr>
+                    <input type="text" id="txtMobile" class="form-control" value="">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">অংশগ্রহনকারীর ইমেইল</label>
+                    <hr>
+                    <input type="email" id="txtEmail" class="form-control" value="">
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">প্রতিনিধিত্বকারী প্রতিষ্ঠান</label>
+                    <hr>
+                    <select class="form-control" id="cmbRepresOrgId">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সভায় অংশগ্রহনকারীর ধরন</label>
+                    <hr>
+                    <select class="form-control" id="cmbParticipantId">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">ছবি</label>
+                    <hr>
+                    <img class="img-responsive" src="" id="imgPhotograph" alt="ছবি" style="height: 80px; width: 100px; border: 1px solid #DDDDDD; margin-bottom: 10px;" />
+                    <input type="file" data-ref="imgPhotograph" id="filePhotograph" class="btn btn-sm btn-success" />
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">সাক্ষর</label>
+                    <hr>
+                    <img class="img-responsive" src="" id="imgSignature" alt="সাক্ষর" style="height: 80px; width: 100px; border: 1px solid #DDDDDD; margin-bottom: 5px; " />
+                    <input type="file" data-ref="imgSignature" id="fileSignature" class="btn btn-sm btn-success" />
+                </div>
+
+                <div class="form-group col-lg-6 my-2">
+                    <label for="">মন্তব্য</label>
+                    <hr>
+                    <textarea id="txtRemarks" name="Remarks" rows="4" cols="50"></textarea>
+                </div>
+                <div class="text-center w-100">
+                    <button class="btn btn-primary my-2" id="btnSave" data-id="0">সংরক্ষণ করুন</button>
+                    <button class="btn btn-primary my-2 ms-sm-2 " id="btnReload">নতুন করে লিখুন</button>
+                </div>
+            </div>
+        </div>
+        <div class="px-3 py-3">
+            <label class="title-secondary">সভায় অংশগ্রহনকারীদের তালিকা</label>
+            <hr class="title-divider">
+            <div class="table activeExecutives">
+                <div class="th">
+                    <div class="td">ক্রমিক</div>
+                    <div class="td">অংশগ্রহনকারীর নাম</div>
+                    <div class="td">পদবী</div>
+                    <div class="td">প্রতিনিধিত্বকারী প্রতিষ্ঠান</div>
+                    <div class="td">সভায় অংশগ্রহনকারীর ধরন</div>
+                    <div class="td">ছবি ও সাক্ষর</div>
+                    <div class="td">কার্যক্রম</div>
+                </div>
+                <div class="tbody" id="tblBoard">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section script{
+    <script type="text/javascript">
+        var Id = 0;
+        var boardList = [];
+        var boardMemberList = [];
+
+        function ResetForm() {
+            $(".forEntry").show();
+            $("#txtMemberName").val("").focus();
+            $("#cmbRepresOrgId").val(0);
+            $("#cmbDesignationId").val(0);
+            $("#cmbParticipantId").val(0);
+            $("#txtRemarks").val("");
+            $("#cmbExecutiveId").val(0);
+            $("#txtMobile").val("");
+            $("#txtEmail").val("");
+            $("#filePhotograph").show();
+            $("#fileSignature").show();
+            $("#imgPhotograph").attr("src", "");
+            $("#imgSignature").attr("src", "");
+            $("#btnSave").attr("data-id", 0);
+            $("#isOrgMember").prop('checked', false).change();
+            
+
+
+        }
+
+        function GetDesignationList() {
+            $("#cmbDesignationId").html("");
+            $("#cmbExecutiveId").html("");
+
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetDesignationList", "BoardMember")',
+                data: '',
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+
+                    if (data.exeList.length != 1) {
+                        $("#cmbExecutiveId").html("<option value='0'>নির্বাচন করুন</option>");
+                    }
+                    $.each(data.exeList, function (id, option) {
+                        boardMemberList.push(option);
+                        $("#cmbExecutiveId").append($('<option data-desigId=' + option.DesignationId+' data-Name='+option.ExecutiveName+'></option>').val(option.Id).html(option.ExecutiveName));
+                    });
+
+                    if (data.desigList.length != 1) {
+                        $("#cmbDesignationId").html("<option value='0'>নির্বাচন করুন</option>");
+                    }
+                    $.each(data.desigList, function (id, option) {
+                        $("#cmbDesignationId").append($('<option></option>').val(option.Id).html(option.DesignationName));
+                    });
+                },
+                error: function (request, status, error) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                }
+            });
+
+            return true;
+        }
+
+        function GetOtherOrganizationList() {
+            $("#cmbRepresOrgId").html("");
+
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetOtherOrganizationList", "BoardMember")',
+                data: '',
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.othrOrgList.length != 1) {
+                        $("#cmbRepresOrgId").html("<option value='0'>নির্বাচন করুন</option>");
+                    }
+                    $.each(data.othrOrgList, function (id, option) {
+                        $("#cmbRepresOrgId").append($('<option></option>').val(option.Id).html(option.OrganizationName));
+                    });
+                },
+                error: function (request, status, error) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                }
+            });
+
+            return true;
+        }
+
+        function GetParticipantTypeList() {
+            $("#cmbParticipantId").html("");
+
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetParticipantTypeList", "BoardMember")',
+                data: '',
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.typeList.length != 1) {
+                        $("#cmbParticipantId").html("<option value='0'>নির্বাচন করুন</option>");
+                    }
+                    $.each(data.typeList, function (id, option) {
+                        $("#cmbParticipantId").append($('<option></option>').val(option.Id).html(option.TypeName));
+                    });
+                },
+                error: function (request, status, error) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                }
+            });
+
+            return true;
+        }
+
+        function GetBoardMemberList() {
+            $("#divLoader").show();
+            $("body").css("pointer-events", "none");
+
+            $.ajax({
+                url: "@Url.Action("GetBoardMemberList", "BoardMember")",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: "",
+                dataType: "json",
+                success: function (data) {
+                    $("body").css("pointer-events", "");
+                    $("#divLoader").hide();
+                    if (data.Status == true) {
+                        if (data.memberList.length > 0) {
+                            var html = ``;
+                            boardList = data.memberList;
+                            $.each(data.memberList, function (i, d) {
+                                boardMemberList.push(d);
+                                html += `<div class="tr">
+                                            <div class="td">
+                                                <label class="thSm">ক্রমিক</label>
+                                                <hr>
+                                                <input type="text"  class="form-control" style="text-align:center" value="${i+1}">
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">বোর্ড মেম্বারের নাম</label>
+                                                <hr>
+                                                <span class="form-control" value="">${d.Name}</span>
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">পদবী</label>
+                                                <hr>
+                                                <span class="form-control" value="">${d.DesignationName}</span>
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">প্রতিনিধিত্বকারী প্রতিষ্ঠান</label>
+                                                <hr>
+                                                <span class="form-control" value="">${d.RepresentedOrganizationName}</span>
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">সভায় অংশগ্রহনকারীর ধরন</label>
+                                                <hr>
+                                                <span class="form-control" value="">${d.TypeName}</span>
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">সভায় অংশগ্রহনকারীর ধরন</label>
+                                                <hr>
+
+                                                <span class="form-control">
+                                                <img class="img-responsive" src="${d.Photograph}" alt="" style="height: 50px; width: 40px; border: 1px solid #DDDDDD;" />
+                                                <img class="img-responsive" src="${d.Signature}" alt="" style="height: 50px; width: 40px; border: 1px solid #DDDDDD " />
+                                                </span>
+                                            </div>
+                                            <div class="td">
+                                                <label class="thSm">কার্যক্রম</label>
+                                                <hr>
+                                                <button class="btn btn-primary my-2 my-lg-0 btn-boardEdit" data-id="${d.Id}" data-photo="${d.Photograph}" data-sign="${d.Signature}" data-toggle="tooltip" data-placement="top" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                                                <button class="btn btn-danger my-2 my-lg-0 ms-lg-2 btn-boardDelete" data-id="${d.Id}" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+                                            </div>
+                                        </div>`;
+                            });
+                            $("#tblBoard").html(html);
+                        }
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+                    swal({
+                        title: "ভুল!",
+                        text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    });
+                }
+            });
+
+
+        }
+
+        $("[type=file]").on("change", function () {
+            showImage(this);
+        });
+        function showImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#' + $(input).attr("data-ref")).attr('src', e.target.result);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function Getofcexecutive(Id) {
+            $.ajax({
+                url: "@Url.Action("GetOfficeExecutiveForBoardMember", "BoardMember")",
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ Id: Id }),
+                dataType: "json",
+                success: function (data) {
+                    if (data.Status == true) {
+                        if (data.Result != null) {
+                            var res = data.Result;
+
+                            $("#txtMemberName").val(res.ExecutiveName);
+                            $("#cmbDesignationId").val(res.DesignationId);
+                            $("#txtMobile").val(res.Mobile);
+                            $("#txtEmail").val(res.Email);
+                            $("#cmbRepresOrgId").val(res.RepresentedOrganizationId);
+                            $("#cmbParticipantId").val(res.ParticipantTypeId);
+                            $("#txtRemarks").val(res.Remarks);
+                            $("#imgPhotograph").attr("src", "@Url.Action("GetExecutivePhoto", "ImageandSiganture")?id=" + Id);
+                            $("#imgSignature").attr("src", "@Url.Action("GetExecutiveSign", "ImageandSiganture")?id=" + Id);
+                            $("#filePhotograph").hide();
+                            $("#fileSignature").hide();
+                            
+
+                        }
+
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $(".forEntry").show();
+            GetDesignationList();
+            GetOtherOrganizationList();
+            GetParticipantTypeList();
+            GetBoardMemberList();
+
+            $("#isOrgMember").on("change", function () {
+                if ($(this).is(":checked")) {
+                    $("#forOrgMember").show();
+                    $("#filePhotograph").hide();
+                    $("#fileSignature").hide();
+
+                } else {
+                    $("#forOrgMember").hide();
+                   // $("#cmbDesignationId").val(0);
+                    Id == 0 ? $("#txtMemberName").val("") : '';
+                    ResetForm();
+                }
+            });
+            $("#cmbExecutiveId").on("change", function () {
+
+                var Id = $("#cmbExecutiveId option:selected").val();
+                Getofcexecutive(Id = Id);
+                //var boardMemberId = $("#cmbExecutiveId option:selected").val();
+                //var memberinfo;
+                //boardMemberList.find(function (obj) {
+
+                //    if (obj.Id == boardMemberId) {
+                //        if (obj.Name && obj.Name != "") {
+                //            $("#txtMemberName").val(obj.Name);
+                //        }
+                //        else if (obj.ExecutiveName && obj.ExecutiveName != "") {
+                //            $("#txtMemberName").val(obj.ExecutiveName);
+                //        }
+                //        if (obj.Mobile) {
+                //            $("#txtMobile").val(obj.Mobile);
+                //        }
+                //        if (obj.Email) {
+                //            $("#txtEmail").val(obj.Email);
+                //        }
+                //        if (obj.DesignationId) {
+                //            $("#cmbDesignationId").val(obj.DesignationId);
+                //        }
+                //        if (obj.RepresentedOrganizationId) {
+                //            $("#cmbRepresOrgId").val(obj.RepresentedOrganizationId);
+                //        }
+                //        if (obj.ParticipantTypeId) {
+                //            $("#cmbParticipantId").val(obj.ParticipantTypeId);
+                //        }
+                //        if (obj.Photograph) {
+                //            $("#imgPhotograph").attr("src", obj.Photograph);
+                //        }
+                //        if (obj.Signature) {
+                //            $("#imgSignature").attr("src", obj.Signature);
+                //        }
+                //        if (obj.Remarks) {
+                //            $("#txtRemarks").val(obj.Remarks);
+                //        }
+                //    }
+                //});
+
+            });
+
+            $(document).on("click", ".btn-boardEdit", function () {
+                var b_Id = $(this).attr("data-id");
+                Id = b_Id;
+                var d = boardList.find(function (obj) {
+                    return obj.Id == b_Id;
+                });
+
+                $(".forEntry").hide();
+                $("#txtMemberName").val(d.Name).focus();
+                $("#cmbRepresOrgId").val(d.RepresentedOrganizationId);
+                $("#cmbDesignationId").val(d.DesignationId);
+                $("#cmbParticipantId").val(d.ParticipantTypeId);
+                $("#txtRemarks").val(d.Remarks);
+                $("#txtMobile").val(d.MobileNo);
+                $("#txtEmail").val(d.EmailAddress);
+                $("#cmbExecutiveId").val(d.ExecutiveId);
+                if (d.ExecutiveId != 0) {
+                    $("#filePhotograph").hide();
+                    $("#fileSignature").hide();
+
+                }
+                $("#imgPhotograph").attr("src", $(this).attr("data-photo"));
+                $("#imgSignature").attr("src", $(this).attr("data-sign"));
+                $("#btnSave").attr("data-id", d.Id);
+
+                d.ExecutiveId > 0 ? $("#cmbExecutiveId").val(d.ExecutiveId) : '';
+                //d.ExecutiveId > 0 ? $("#isOrgMember").prop('checked', true).change() : $("#isOrgMember").prop('checked', false).change();
+
+            })
+
+            $(document).on("click", "#btnSave", function () {
+                var Id = $(this).attr("data-id");
+                var executiveId = 0;
+                if ($("#isOrgMember").is(":checked")) {
+                    executiveId = $("#cmbExecutiveId").val();
+                    if (executiveId == "0") {
+                        swal({
+                            title: "ভুল!",
+                            text: "কর্মকর্তা নির্বাচন করুন",
+                            type: "error",
+                            confirmButtonText: "ঠিক আছে"
+                        })
+                        return false;
+                    }
+
+                }
+                executiveId = $("#cmbExecutiveId").val();
+                var memberName = $("#txtMemberName").val();
+                var designationId = $("#cmbDesignationId").val();
+                var representedOrgId = $("#cmbRepresOrgId").val();
+                var participantTypeId = $("#cmbParticipantId").val();
+                var remarks = $("#txtRemarks").val();
+                var mobile = $("#txtMobile").val();
+                var email = $("#txtEmail").val();
+                var photoGraph = document.getElementById('filePhotograph').files.length > 0 ? 1 : 0;
+                var signature = document.getElementById('fileSignature').files.length > 0 ? 1 : 0;
+
+
+                if (memberName == "") {
+                    swal({
+                        title: "ভুল!",
+                        text: "অংশগ্রহনকারীর নাম লিখুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (designationId == "0") {
+                    swal({
+                        title: "ভুল!",
+                        text: "পদবী নির্বাচন করুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (representedOrgId == "0") {
+                    swal({
+                        title: "ভুল!",
+                        text: "প্রতিনিধিত্বকারী প্রতিষ্ঠান নির্বাচন করুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                if (participantTypeId == "0") {
+                    swal({
+                        title: "ভুল!",
+                        text: "অংশগ্রহনকারীর ধরন নির্বাচন করুন",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    })
+                    return false;
+                }
+                var formdata = new FormData();
+                formdata.append("Id", Id);
+                formdata.append("executiveId", executiveId);
+                formdata.append("memberName", memberName);
+                formdata.append("designationId", designationId);
+                formdata.append("representedOrgId", representedOrgId);
+                formdata.append("participantTypeId", participantTypeId);
+                formdata.append("remarks", remarks);
+                formdata.append("mobile", mobile);
+                formdata.append("email", email);
+                formdata.append("photoGraph", document.getElementById('filePhotograph').files[0]);
+
+                formdata.append("signature", document.getElementById('fileSignature').files[0]);
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveBoardMember", "BoardMember")',
+                    contentType: false,
+                    processData: false,
+                    data: formdata,
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.Status) {
+                            swal({
+                                title: "সফল",
+                                text: data.Message,
+                                type: "success",
+                                confirmButtonText: "ঠিক আছে"
+                            },
+                                function (isConfirm) {
+                                    window.location.reload();
+                            });
+                        }
+                        else {
+                            swal({
+                                title: "ভুল!",
+                                text: data.Message,
+                                type: "error",
+                                confirmButtonText: "ঠিক আছে"
+                            })
+                        }
+                    },
+                    error: function (request, status, error) {
+                        swal({
+                            title: "ভুল!",
+                            text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                            type: "error",
+                            confirmButtonText: "ঠিক আছে"
+                        })
+                    }
+                });
+            });
+
+            $(document).on("click", ".btn-boardDelete", function () {
+                var boardMember_Id = $(this).attr("data-id");
+                swal({
+                    title:"সতর্কতা",
+                    text: "আপনি কি নিশ্চিত, আপনি এটি মুছে দিতে চান?",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "ঠিক আছে",
+                    cancelButtonText: "না",
+                    showCancelButton: true,
+                    closeOnConfirm: true
+                },
+                function (isConfirm) {
+                    if (isConfirm) {
+                        var jsonData = { id: boardMember_Id };
+                        $.ajax({
+                            url: "@Url.Action("RemoveBoardMemberById", "BoardMember")",
+                            type: "POST",
+                            contentType: "application/json; charset=utf-8",
+                            data: JSON.stringify(jsonData),
+                            dataType: "json",
+                            success: function (data) {
+                                if (data.Status == true) {
+                                    setTimeout(function () {
+                                        swal({
+                                            title: "সঠিক",
+                                            text: data.Message,
+                                            type: "success",
+                                            confirmButtonText: "ঠিক আছে"
+                                        }, function () {
+                                            window.location.reload();
+                                        });
+                                    }, 100)
+                                } else {
+                                    swal({
+                                        title: "ভুল!",
+                                        text: data.Message,
+                                        type: "error",
+                                        confirmButtonText: "ঠিক আছে"
+                                    })
+                                }
+                            },
+                            error: function (xhr, ajaxOptions, thrownError) {
+                                swal({
+                                    title: "ভুল!",
+                                    text: "একটি ত্রুটি ঘটেছে, আপনার ভেন্ডরের সাথে যোগাযোগ করুন ।",
+                                    type: "error",
+                                    confirmButtonText: "ঠিক আছে"
+                                })
+                            }
+                        });
+                    }
+                });
+            });
+            $(document).on("click", "#btnReload", function () {
+                ResetForm();
+            });
+            $("#txtMemberName").focus();
+        });
+
+    </script>
+
+}
