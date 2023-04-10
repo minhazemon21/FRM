@@ -1,0 +1,920 @@
+﻿@using System.Data;
+@{
+    ViewBag.Title = "নোটিশ বিতরণ এবং অনুলিপি";
+    var MeetingType = ((DataTable)ViewBag.MeetingType).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        TypeName = x.Field<string>("TypeName"),
+    }).ToList();
+}
+@section style{
+    <style type="text/css">
+        .nav-link {
+            font-weight: bold;
+        }
+
+
+        .tbody .td:first-child, .th .td:first-child {
+            flex-basis: 10%;
+        }
+
+        .tbody .td:nth-child(2), .th .td:nth-child(2) {
+            flex-basis: 30%;
+        }
+
+        .tbody .td:nth-child(3), .th .td:nth-child(3) {
+            flex-basis: 40%;
+        }
+
+        .tbody .td:last-child, .th .td:last-child {
+            flex-basis: 20%;
+        }
+
+        .tbody .th .td, .tbody .td {
+            justify-content: center;
+        }
+
+            .tbody .td:first-child input {
+                text-align: center;
+            }
+
+
+        .table .tbody .tr.selected {
+            background-color: lightblue;
+        }
+
+        .up-down {
+            cursor: pointer;
+        }
+    </style>
+}
+
+<div class="cust-card">
+    <div class="title">
+        সভার নোটিশ বিতরণ এবং অনুলিপি নির্ধারণ
+    </div>
+    <div class="body">
+        <div class="px-3">
+            <div class="row" id="divEntryUpdate">
+                <div class="form-group col-lg-6 my-2">
+                    <label id="lblBoardMember" data-preboardmemberid="0" for="" class="required">সভার ধরন</label>
+                    <hr>
+                    <select class="form-control" id="dllMeetingType">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                        @foreach (var m in MeetingType)
+                        {
+                            <option value="@m.Id">@m.TypeName</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-lg-6 my-2">
+                    <label id="lblBMDesignation" for="" class="required">সভা নং</label>
+                    <hr>
+                    <select class="form-control" id="dllMettingNumber">
+                        <option class="first-option" value="0">নির্বাচন করুন</option>
+                    </select>
+                </div>
+                <div class="text-center w-100">
+                    <button class="btn btn-primary my-2" id="btnSearch">অনুসন্ধান করুন</button>
+                </div>
+                <div class="row d-none" id="meetingTiltle">
+                    <div class="col-lg-8 my-2"><b><u>সভার শিরোনাম</u></b> <span id="lblMeetingTitle"></span></div>
+                    <div class="col-lg-4 my-2"><b><u>সভার সময় </u></b><br> <span id="lblMeetingDate"></span></div>
+                </div>
+            </div>
+            <div class="row d-none" id="list">
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="javascript: void(0);" id="btnDistribution">নোটিশ বিতরণের তালিকা</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript: void(0);" id="btnCopyTo">অনুলিপির তালিকা</a>
+                    </li>
+                </ul>
+
+                @*<div class="col-lg-12 col-12">
+                            <button class="btn btn-sm btn-primary my-2" id="btnDistribution">নোটিশ বিতরণের তালিকা</button>
+                            <button class="btn btn-sm btn-success my-2" id="btnCopyTo">অনুলিপির তালিকা</button>
+                    </div>*@
+                @*<div class="col-lg-12 col-12 pt-3">
+                        <iframe class="w-100 d-none" id="iframe"></iframe>
+                    </div>*@
+
+                <div class="col-lg-12 col-12 pt-3">
+                    <div class="cust-card" id="fornoticeDistribution" style="display:none">
+                        <div class="title">
+                            নোটিশ বিতরন নির্ধারণ
+                        </div>
+                        <div class="body">
+
+                            <div class="px-3 py-3" id="forCheckyesno">
+                                <label class="title-secondary">নোটিশ বিতরণ নির্বাচন করুন</label>
+                                <hr class="title-divider">
+                                <div class="row">
+                                    <div class="form-group col-lg-6 my-2 offset-lg-3">
+                                        <label for="ddlNoticeDD">নোটিশ বিতরণ</label>
+                                        <hr>
+                                        <select id="ddlNoticeDD" class="form-control">
+                                            <option class="first-option" value="">নির্বাচন করুন</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="text-center w-100">
+                                        <button id="btnNBsave" class="btn btn-primary mb-2" data-id="0" data-toggle="tooltip" data-placement="top" title="সভায় স্যুক্ত করুন "><i class="fa-regular fa-clone"></i>&nbsp সভায় স্যুক্ত করুন</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-3 py-3">
+                                <label class="title-secondary">বিতরণের তালিকা</label>
+                                <hr class="title-divider">
+                                <div id="divMeetingDistrubution" class="table activeExecutives">
+                                    <div class="th">
+                                        <div class="td">ক্রমিক নং</div>
+                                        <div class="td">নাম</div>
+                                        <div class="td">পদবী</div>
+                                        <div class="td" id="updND"><i class="fa fa-arrow-up up-downnD" aria-hidden="true" data-value="1"></i><i class="fa fa-arrow-down up-downnD" data-value="0" aria-hidden="true"></i></div>
+
+                                    </div>
+                                    <div class="tbody">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cust-card" id="formeetingCopyto" style="display:none">
+                        <div class="title">
+                            সভার নোটিশের অনুলিপির তালিকা
+                        </div>
+                        <div class="body">
+
+                            <div class="px-3 py-3" id="forCheckyesnoforCopy">
+                                <label class="title-secondary">অনুলিপি নির্বাচন করুন</label>
+                                <hr class="title-divider">
+                                <div class="row">
+                                    <div class="form-group col-lg-6 my-2 offset-lg-3">
+                                        <label for="ddlCopyTo">অনুলিপি</label>
+                                        <hr>
+                                        <select id="ddlCopyTo" class="form-control">
+                                            <option class="first-option" value="">নির্বাচন করুন</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="text-center w-100">
+                                        <button id="btnCopy" class="btn btn-primary mb-2" data-id="0" data-toggle="tooltip" data-placement="top" title="সভায় স্যুক্ত করুন"><i class="fa-regular fa-floppy-disk"></i>&nbsp;সভায় স্যুক্ত করুন</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-3 py-3">
+                                <label class="title-secondary">অনুলিপির তালিকা</label>
+                                <hr class="title-divider">
+                                <div id="divMeetingCopyToTable" class="table activeExecutives">
+                                    <div class="th">
+                                        <div class="td">ক্রমিক নং</div>
+                                        <div class="td">অনুলিপির নাম</div>
+                                        <div class="td">মন্তব্য</div>
+                                        <div class="td" id="updCOPY"><i class="fa fa-arrow-up up-downcopy" aria-hidden="true" data-value="1"></i><i class="fa fa-arrow-down up-downcopy" data-value="0" aria-hidden="true"></i></div>
+
+                                    </div>
+                                    <div class="tbody">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section script{
+    <script type="text/javascript">
+        var selectedData = {};
+        var meetingList = [];
+        //function iframeLoaded() {
+        //    $("#iframe")[0].style.height = $("#iframe")[0].contentWindow.document.documentElement.scrollHeight + 'px';
+        //}
+        function OkAlert(title = "সফল!!", text = "সফলভাবে করা হয়েছে।", pageReload = false) {
+            swal({
+                title: title,
+                text: text,
+                type: "success",
+                confirmButtonClass: "btn-primary",
+                confirmButtonText: "ঠিক আছে",
+                showCancelButton: false,
+                closeOnConfirm: true
+            },
+                function (isConfirm) {
+                    if (pageReload) window.location.reload;
+                    else return true;
+                }
+            );
+        }
+
+        function CustomSwalAlert(title = "সফল!!", text = "সফলভাবে করা হয়েছে।", type = "success", buttonText = "ঠিক আছে") {
+            swal({
+                title: title,
+                text: text,
+                type: type,
+                confirmButtonClass: "btn-primary",
+                confirmButtonText: buttonText,
+                showCancelButton: false,
+                closeOnConfirm: true
+            },
+                function (isConfirm) {
+                    return true;
+                }
+            );
+        }
+
+        $(document).ready(function () {
+            populateCopyTo();
+
+            populateNoticeistrubution();
+
+            $(document).on("click", "#btnCopyTo", function (i, d) {
+                $("#formeetingCopyto").show();
+                $("#fornoticeDistribution").hide();
+                GetDataFromMeetingCopyTo();
+                GetforCheckyesnoforCopy();
+            });
+            $(document).on("click", "#btnDistribution", function (i, d) {
+                //    $("#iframe").attr("src", "/MMS/MeetingNoticeDistribution?meetingId=" + $(this).attr("data-id")).removeClass("d-none");
+
+                $("#fornoticeDistribution").show();
+                $("#formeetingCopyto").hide();
+
+                GetDataFromMeetingNoticeDistribution();
+                GetMeetingWiseAgendaList()
+
+
+            });
+
+            $(document).on("change", "#dllMeetingType", function () {
+                var MeetingTypeId = $("#dllMeetingType").val();
+                GetMeetingListByMeetingTypeId(meetTypeId = MeetingTypeId, meetId = 0);
+            });
+            $(document).on("click", "#btnSearch", function () {
+                if ($("#dllMettingNumber").val() == "0") {
+                    swal('ভুল!', "মিটিং নং নির্বাচন করুন।", "error");
+                    return false;
+                }
+                $("#lblMeetingTitle").html(selectedData.MeetingTitle);
+                $("#lblMeetingDate").html(formatNumberToBengali(selectedData.MeetingDate) + ', ' + selectedData.MeetingTime);;
+
+                $("#meetingTiltle").removeClass("d-none");
+                $("#btnDistribution,#btnCopyTo").attr("data-id", $("#dllMettingNumber").val().trim());
+                $("#list").removeClass("d-none");
+                $("#btnDistribution").click();
+
+
+                //if (selectedData.isdlessToday == "No") {
+                //    alert(selectedData.isdlessToday);
+                //    $("#forCheckyesno").show(); // Show the div
+                //} else {
+                //    alert(selectedData.isdlessToday);
+                //    $("#forCheckyesno").hide(); // Hide the div
+                //}
+
+            });
+            $("#dllMettingNumber").on("change", function () {
+                if ($("#dllMettingNumber option:selected").attr("data-index") == "-1") {
+                    selectedData = { MeetingTitle: "", MeetingTime: "", MeetingDate:"", isdlessToday: "" };
+                } else {
+                    selectedData = meetingList[$("#dllMettingNumber option:selected").attr("data-index")];
+                }
+            });
+            $("#list .nav-item .nav-link").on("click", function () {
+                $("#list .nav-item .nav-link").removeClass("active");
+                $(this).addClass("active");
+            });
+        });
+
+    function GetMeetingListByMeetingTypeId(meetTypeId,meetId) {
+        var MeetingNumber = $("#dllMettingNumber");
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetMeetingNumber", "Meeting", "http")',
+            data: JSON.stringify({ Id: meetTypeId }),
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                MeetingNumber.html('');
+                MeetingNumber.append($('<option data-index="-1"></option>').val("0").html("নির্বাচন করুন"));
+                $.each(data.Data, function (id, option) {
+                    MeetingNumber.append($('<option data-index="'+id+'"></option>').val(option.Id).html(option.MeetingNo));
+                });
+                meetingList = data.Data;
+                if (meetId != 0) {
+                    $("#dllMettingNumber").val(meetId);
+                }
+            },
+            error: function (request, status, error) {
+                swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+            }
+        });
+        }
+        //New work
+        function populateCopyTo() {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCopyTo", "CopyTo")',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.Status == true) {
+                        var opt = `<option class="first-option" value="0">নির্বাচন করুন</option>`;
+                        $("#ddlCopyTo").html(opt);
+                        $.each(data.Data, function (i, d) {
+                            opt = `<option value="${d.Id}">${d.CopyToName}</option>`;
+                            $("#ddlCopyTo").append(opt);
+                        });
+                    } else {
+                        //$.alert.open("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                        CustomSwalAlert("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                    }
+                },
+            });
+        }
+        function GetDataFromMeetingCopyTo() {
+            var meetingId = $("#dllMettingNumber").val();
+            var param = {
+                meetingId: meetingId
+            };
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetDataFromMeetingCopyTo", "MeetingCopyTo")',
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    var tRow = ``;
+                    var sl = formatNumberToBengali("0");
+                    if (data.Status == true) {
+                        $("#divMeetingCopyToTable .tbody").html(tRow);
+                        $.each(data.Result, function (i, d) {
+                            sl = formatNumberToBengali((i + 1) + "");
+                            $("#ddlCopyTo[Value=" + d.CopyToId + "]").attr("disabled", "disabled");
+                            let dltHtml = '';
+                            if (d.isdlessToday == "Yes") {
+                                dltHtml = ''; // hide the element
+                            } else {
+                                dltHtml = `<div class="td" id="dlt">
+                                <label class="thSm">কার্যক্রম</label>
+                                <hr>
+                                <button class="btn btn-danger my-2 my-lg-0 btn-deleteCopy" data-toggle="tooltip" data-id="${d.Id}" data-placement="top" title="মুছে ফেলুন"><i class="fa-regular fa-trash-can"></i>&nbsp;মুছে ফেলুন</button>
+                            </div>`;
+                            }
+
+                            const tRow = `<div class="tr" data-mwameetingid=${d.MeetingId} data-CopyToId=${d.CopyToId} data-RowNo="${i + 1}">
+                                        <div class="td">
+                                            <label class="thSm">ক্রমিক নং</label>
+                                            <hr>
+                                            <span class="form-control text-center sl">${sl}</span>
+                                        </div>
+                                        <div class="td">
+                                            <label class="thSm">অনুলিপির নাম</label>
+                                            <hr>
+                                            <span class="form-control">${d.CopyToName}</span>
+                                        </div>
+                                        <div class="td">
+                                            <label class="thSm">মন্তব্য</label>
+                                            <hr>
+                                            <span class="form-control">${d.CopyToText}</span>
+                                        </div>
+
+                                        ${dltHtml}
+                                    </div>`;
+                            $("#divMeetingCopyToTable .tbody").append(tRow);
+                        });
+                        /*parent.iframeLoaded();*/
+                    } else {
+                        //$.alert.open("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                        CustomSwalAlert("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। \n" + data.Message, "error", undefined);
+                    }
+                },
+            });
+        }
+
+
+        function populateNoticeistrubution() {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetNoticeDistribution", "NoticeDistribution")',
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    if (data.Status == true) {
+                        var opt = `<option class="first-option" value="0">নির্বাচন করুন</option>`;
+                        $("#ddlNoticeDD").html(opt);
+                        $.each(data.Data, function (i, d) {
+                            opt = `<option value="${d.Id}">${d.NoticeDistributionDD}</option>`;
+                            $("#ddlNoticeDD").append(opt);
+                        });
+                    } else {
+                        //$.alert.open("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                        CustomSwalAlert("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                    }
+                },
+            });
+        }
+        function GetDataFromMeetingNoticeDistribution() {
+            var meetingId = $("#dllMettingNumber").val();
+            var param = {
+                meetingId: meetingId
+            };
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetDataFromMeetingNoticeDistribution", "MeetingNoticeDistribution")',
+                data: JSON.stringify(param),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    $("#divMeetingDistrubution .tbody").html('');
+                    var tRow = ``;
+                    var sl = formatNumberToBengali("0");
+                    if (data.Status == true) {
+                        $("#divMeetingDistrubution .tbody").append(tRow);
+                        $.each(data.Result, function (i, d) {
+                            sl = formatNumberToBengali((i + 1) + "");
+                            $("#ddlNoticeDD[Value=" + d.NoticeDistributionId + "]").attr("disabled", "disabled");
+                            let dltHtml = '';
+                            if (d.isdlessToday == "Yes") {
+                                dltHtml = ''; // hide the element
+                            } else {
+                                dltHtml = `<div class="td" id="dlt">
+                                <label class="thSm">কার্যক্রম</label>
+                                <hr>
+                                <button class="btn btn-danger my-2 my-lg-0 btn-deleteND" data-toggle="tooltip" data-id="${d.Id}" data-placement="top" title="মুছে ফেলুন"><i class="fa-regular fa-trash-can"></i>&nbsp;মুছে ফেলুন</button>
+                            </div>`;
+                            }
+                            const tRow = `<div class="tr" data-mwameetingid=${d.MeetingId} data-noticeDistrId=${d.NoticeDistributionId} data-RowNo="${i + 1}">
+                            <div class="td">
+                                <label class="thSm">ক্রমিক নং</label>
+                                <hr>
+                                <span class="form-control text-center sl">${sl}</span>
+                            </div>
+                            <div class="td">
+                                <label class="thSm">নাম</label>
+                                <hr>
+                                <span class="form-control">${d.DistributionName}</span>
+                            </div>
+                            <div class="td">
+                                <label class="thSm">পদবী </label>
+                                <hr>
+                                <span class="form-control">${d.DistributionDesignation}</span>
+                            </div>
+                            ${dltHtml}
+                        </div>`;
+
+                            $("#divMeetingDistrubution .tbody").append(tRow);
+                        });
+                      /*  parent.iframeLoaded();*/
+                    } else {
+                        //$.alert.open("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                        CustomSwalAlert("ভুল!!", "একটি ত্রুটি পাওয়া গিয়েছে। \n" + data.Message, "error", undefined);
+                    }
+                },
+            });
+        }
+
+        function GetMeetingWiseAgendaList(meetingId) {
+            var meetingId = $("#dllMettingNumber").val();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetMeetingWiseAgendaListByMeetingId", "MeetingWiseAgenda")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ meetingId: meetingId }),
+            dataType: "json",
+            success: function (data) {
+                if (data.Status == true) {
+                    if (data.MeetingData.isdlessToday == 'No') {
+                        $("#forCheckyesno").show();
+                        $("#updND").show();
+                    }
+                    else{
+                        $("#forCheckyesno").hide();
+                        $("#updND").hide();
+                    }
+
+                } else {
+                    //$("#AjaxLoader").hide();
+                    swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                }
+            },
+            error: function (request, status, error) {
+                swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+            }
+        });
+    }
+        function GetforCheckyesnoforCopy(meetingId) {
+            var meetingId = $("#dllMettingNumber").val();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetMeetingWiseAgendaListByMeetingId", "MeetingWiseAgenda")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ meetingId: meetingId }),
+            dataType: "json",
+            success: function (data) {
+                if (data.Status == true) {
+                    if (data.MeetingData.isdlessToday == 'No') {
+                        $("#forCheckyesnoforCopy").show();
+                        $("#updCOPY").show();
+                    }
+                    else{
+                        $("#forCheckyesnoforCopy").hide();
+                        $("#updCOPY").hide();
+                    }
+
+                } else {
+                    //$("#AjaxLoader").hide();
+                    swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+                }
+            },
+            error: function (request, status, error) {
+                swal('ভুল!', "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error");
+            }
+        });
+        }
+
+        $(document).on("click", "#btnNBsave", function () {
+                var ddlNoticeDDId = $("#ddlNoticeDD option:selected").val();
+                var meetingId = $("#dllMettingNumber").val();
+
+                if (ddlNoticeDDId == "0") {
+                    CustomSwalAlert("ভুল!!", "নোটিশ বিতরণকারী নির্বাচন করুন।", "error", undefined);
+                    return false;
+                }
+
+                if (meetingId == 0) {
+                    CustomSwalAlert("ভুল!!", "একটি অজানা ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                    return false;
+                }
+
+                var param = {
+                    meetingId: meetingId,
+                    ddlNoticeDDId: ddlNoticeDDId
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveToMeetingNoticeDistribution", "MeetingNoticeDistribution")',
+                    data: JSON.stringify(param),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.Status == true) {
+                            setTimeout(function () {
+                                swal({ title: 'সফল!!', text: data.Message, type: 'success', confirmButtonText: 'ঠিক আছে' }, function () {
+                                    /*GetLITab(0);*/
+                                    GetDataFromMeetingNoticeDistribution();
+                                });
+                            }, 100)
+
+                        }
+                        else {
+                            setTimeout(function () {
+
+                                CustomSwalAlert(title = "ভুল!!!", text = data.Message, type = "error", buttonText = "ঠিক আছে")
+                            }, 100);
+
+                        }
+
+
+                    },
+                });
+        });
+
+        $(document).on("click", "#btnCopy", function () {
+                var copyToId = $("#ddlCopyTo option:selected").val();
+                var meetingId = $("#dllMettingNumber").val();
+
+                if (copyToId == "0") {
+                    CustomSwalAlert("ভুল!!", "একটি অনুলিপি নির্বাচন করুন।", "error", undefined);
+                    return false;
+                }
+
+                if (meetingId == 0) {
+                    CustomSwalAlert("ভুল!!", "একটি অজানা ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                    return false;
+                }
+
+                var param = {
+                    meetingId: meetingId,
+                    copyToId: copyToId
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("SaveToMeetingCopyTo", "MeetingCopyTo")',
+                    data: JSON.stringify(param),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.Status == true) {
+                            setTimeout(function () {
+                                swal({ title: 'সফল!!', text: data.Message, type: 'success', confirmButtonText: 'ঠিক আছে' }, function () {
+                                    /*GetLITab(0);*/
+                                    GetDataFromMeetingCopyTo();
+                                });
+                            }, 100)
+
+                        }
+                        else {
+                            setTimeout(function () {
+
+                                CustomSwalAlert(title = "ভুল!!!", text = data.Message, type = "error", buttonText = "ঠিক আছে")
+                            }, 100);
+
+                        }
+                    },
+                });
+        });
+
+        $(document).on("click", ".btn-deleteCopy", function () {
+
+                var meetingCopyToId = $(this).attr("data-id");
+
+                swal({
+                    title: "আপনি কি এই অনুলিপিটিকে তালিকা থেকে মুছে ফেলতে চান?",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "হ্যাঁ",
+                    cancelButtonText: "না",
+                    showCancelButton: true,
+                    closeOnConfirm: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '@Url.Action("RemoveFromMeetingCopyTo", "MeetingCopyTo")',
+                                contentType: 'application/json; charset=utf-8',
+                                data: JSON.stringify({ meetingCopyToId: meetingCopyToId }),
+                                dataType: 'json',
+                                success: function (data) {
+                                    if (data.Status == true) {
+                                        setTimeout(function () {
+                                            swal({ title: 'মুছে ফেলা হয়েছে!!!', text: data.Message, type: 'success', confirmButtonText: 'ঠিক আছে' }, function () {
+                                                GetDataFromMeetingCopyTo();
+                                            });
+                                        }, 100);
+                                    }
+                                    else {
+                                        setTimeout(function () {
+                                            CustomSwalAlert('ভুল!!!', data.Message, 'error', undefined);
+                                        }, 100);
+                                    }
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    //console.log(xhr)
+                                    //console.log(ajaxOptions)
+                                    //console.log(thrownError)
+                                    CustomSwalAlert("মুছে ফেলার সময়ে কিছু সমস্যা হয়েছে।", "\nআবার চেষ্টা করুন অথবা আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                                }
+                            });
+                        }
+                        else {
+                            setTimeout(function () {
+                                CustomSwalAlert('বাতিল!!!', 'আপনি এই মুছে ফেলার নির্দেশ বাতিল করেছেন৷', 'info', undefined);
+                            }, 100);
+
+                        }
+                    }
+                );
+                $("body").css("pointer-events", "");
+                $("#divLoader").hide();
+        });
+        $(document).on("click", ".btn-deleteND", function () {
+
+                var id = $(this).attr("data-id");
+
+                swal({
+                    title: "আপনি কি এই প্রতিনিধিকে তালিকা থেকে মুছে ফেলতে চান?",
+                    type: "warning",
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "হ্যাঁ",
+                    cancelButtonText: "না",
+                    showCancelButton: true,
+                    closeOnConfirm: true
+                },
+                    function (isConfirm) {
+                        if (isConfirm) {
+
+                            $.ajax({
+                                type: 'POST',
+                                url: '@Url.Action("RemoveMeetingNoticeDistribution", "MeetingNoticeDistribution")',
+                                contentType: 'application/json; charset=utf-8',
+                                data: JSON.stringify({ id: id }),
+                                dataType: 'json',
+                                success: function (data) {
+                                    if (data.Status == true) {
+                                        //swal({ title: 'Deleted!!!', text: 'Deleted successfully.', type: 'success' }, function () {
+                                        //    GetLITab(0);
+                                        //});
+                                        setTimeout(function () {
+                                            swal({ title: 'মুছে ফেলা হয়েছে!!!', text: data.Message, type: 'success', confirmButtonText: 'ঠিক আছে'}, function () {
+                                                GetDataFromMeetingNoticeDistribution();
+                                            });
+                                        },100)
+                                        //swal("Deleted!!!", "Deleted successfully.", "success");
+                                    }
+                                    else {
+                                        setTimeout(function () {
+                                            CustomSwalAlert('ভুল!!!', data.Message, 'error', undefined);
+                                        }, 100);
+
+                                    }
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                    CustomSwalAlert("মুছে ফেলার সময়ে কিছু সমস্যা হয়েছে।", "আবার চেষ্টা করুন অথবা আপনার ভেন্ডরের সাথে যোগাযোগ করুন।", "error", undefined);
+                                }
+                            });
+                        }
+                        else {
+                            setTimeout(function () {
+                                CustomSwalAlert('বাতিল!!!', 'আপনি এই মুছে ফেলার নির্দেশ বাতিল করেছেন৷', 'info', undefined);
+                            }, 100);
+
+                        }
+                    }
+                );
+                $("body").css("pointer-events", "");
+                $("#divLoader").hide();
+         });
+
+        $(document).on("click", ".tbody .tr", function () {
+            if ($(this).hasClass("selected")) {
+                $(this).removeClass("selected");
+            } else {
+                $(".tbody .tr.selected").removeClass("selected");
+                $(this).addClass("selected");
+            }
+        });
+        $(document).on("click", ".table .th .td .up-downcopy", function () {
+            if ($(".tbody .tr.selected").length == 0) {
+                swal({
+                    title: "সতর্কতা",
+                    text: "একটি নোটিশ নির্বাচন করুন।",
+                    type: "error",
+                    confirmButtonText: "ঠিক আছে"
+                });
+                return false;
+            }
+            var copyToId = $(".tbody .tr.selected").attr("data-CopyToId");
+            var meetingId = $(".tbody .tr.selected").attr("data-mwameetingid");
+            var type = parseInt($(this).attr("data-value"));
+            var serial = parseInt($(".tbody .tr.selected").attr("data-RowNo"));
+            if (serial == 1 && type == 1)
+                return false;
+            if (serial == parseInt($(".tbody .tr:last-child").attr("data-RowNo")) && type == 0)
+                return false;
+            CopyToUpDown(copyToId, type, meetingId);
+        });
+
+        function CopyToUpDown(copyToId, type, meetingId) {
+            var allAgenda = new Object();
+            allAgenda.copyToId = copyToId;
+            allAgenda.type = type;
+            allAgenda.meetingId = meetingId;
+            var json = JSON.stringify(allAgenda)
+            $.ajax({
+                type: 'PSOT',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("ChangeCopyToOrder", "MeetingCopyTo", "http")',
+                data: json,
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.Status == true) {
+                        var selected = $(".tbody .tr.selected");
+                        var serial = parseInt(selected.attr("data-RowNo"));
+                        var newHtml = "";
+                        if (type == 1) {
+                            var prev = selected.prev(".tr");
+                            var sl = parseInt(prev.attr("data-RowNo"));
+                            prev.find(".sl").html(formatNumberToBengali((sl + 1)));
+                            prev.attr("data-RowNo", (sl + 1));
+
+                            selected.find(".sl").html(formatNumberToBengali((serial - 1)));
+                            selected.attr("data-RowNo", (serial - 1));
+
+                            var html = prev[0].outerHTML;
+                            newHtml = selected[0].outerHTML + html;
+                            prev.remove();
+
+                        } else {
+                            var next = selected.next(".tr");
+                            var sl = parseInt(next.attr("data-RowNo"));
+                            next.find(".sl").html(formatNumberToBengali((sl - 1)));
+                            next.attr("data-RowNo", (sl - 1));
+
+                            selected.find(".sl").html(formatNumberToBengali((serial + 1)));
+                            selected.attr("data-RowNo", (serial + 1));
+
+                            var html = next[0].outerHTML;
+                            newHtml = html + selected[0].outerHTML;
+                            next.remove();
+                        }
+                        console.log(newHtml);
+                        selected[0].outerHTML = newHtml;
+
+                    }
+                },
+                error: function (request, status, error) {
+                    swal({
+                        title: "ভুল",
+                        text: "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    });
+                }
+            });
+        }
+        $(document).on("click", ".table .th .td .up-downnD", function () {
+            if ($(".tbody .tr.selected").length == 0) {
+                swal({
+                    title: "সতর্কতা",
+                    text: "একটি নোটিশ নির্বাচন করুন।",
+                    type: "error",
+                    confirmButtonText: "ঠিক আছে"
+                });
+                return false;
+            }
+            var noticeDistributionId = $(".tbody .tr.selected").attr("data-noticeDistrId");
+            var meetingId = $(".tbody .tr.selected").attr("data-mwameetingid");
+            var type = parseInt($(this).attr("data-value"));
+            var serial = parseInt($(".tbody .tr.selected").attr("data-RowNo"));
+            if (serial == 1 && type == 1)
+                return false;
+            if (serial == parseInt($(".tbody .tr:last-child").attr("data-RowNo")) && type == 0)
+                return false;
+            NoticeUpDown(noticeDistributionId, type, meetingId);
+        });
+
+         function NoticeUpDown(noticeDistributionId, type, meetingId) {
+            var allAgenda = new Object();
+            allAgenda.noticeDistributionId = noticeDistributionId;
+            allAgenda.type = type;
+            allAgenda.meetingId = meetingId;
+            var json = JSON.stringify(allAgenda)
+            $.ajax({
+                type: 'PSOT',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("ChangeMeetingNoticeDistribution", "MeetingNoticeDistribution", "http")',
+                data: json,
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.Status == true) {
+                        var selected = $(".tbody .tr.selected");
+                        var serial = parseInt(selected.attr("data-RowNo"));
+                        var newHtml = "";
+                        if (type == 1) {
+                            var prev = selected.prev(".tr");
+                            var sl = parseInt(prev.attr("data-RowNo"));
+                            prev.find(".sl").html(formatNumberToBengali((sl + 1)));
+                            prev.attr("data-RowNo", (sl + 1));
+
+                            selected.find(".sl").html(formatNumberToBengali((serial - 1)));
+                            selected.attr("data-RowNo", (serial - 1));
+
+                            var html = prev[0].outerHTML;
+                            newHtml = selected[0].outerHTML + html;
+                            prev.remove();
+
+                        } else {
+                            var next = selected.next(".tr");
+                            var sl = parseInt(next.attr("data-RowNo"));
+                            next.find(".sl").html(formatNumberToBengali((sl - 1)));
+                            next.attr("data-RowNo", (sl - 1));
+
+                            selected.find(".sl").html(formatNumberToBengali((serial + 1)));
+                            selected.attr("data-RowNo", (serial + 1));
+
+                            var html = next[0].outerHTML;
+                            newHtml = html + selected[0].outerHTML;
+                            next.remove();
+                        }
+                        console.log(newHtml);
+                        selected[0].outerHTML = newHtml;
+
+                    }
+                },
+                error: function (request, status, error) {
+                    swal({
+                        title: "ভুল",
+                        text: "একটি ত্রুটি পাওয়া গিয়েছে। আপনার ভেন্ডরের সাথে যোগাযোগ করুন।",
+                        type: "error",
+                        confirmButtonText: "ঠিক আছে"
+                    });
+                }
+            });
+        }
+
+    </script>
+}
