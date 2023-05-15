@@ -1,0 +1,132 @@
+USE [UBroker_EBLSL_2023]
+GO
+/****** Object:  StoredProcedure [dbo].[USP_Insert_Acc_Chart_Master]    Script Date: 15-May-23 1:13:20 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[USP_Insert_Acc_Chart_Master](
+     @MasterID INT = 0
+	,@NewAccCode VARCHAR(20)
+	,@AccName VARCHAR(500)
+	,@AccLevel INT = 0
+	,@ParentCode VARCHAR(20)
+	,@CategoryID INT = 0
+	,@IsTransaction INT = 0
+	,@Nature VARCHAR(10)
+	,@UserId INT
+	,@Branchids VARCHAR(50) = ''
+)
+AS
+DECLARE @FirstLevel VARCHAR(20) = ''
+,@SecondLevel VARCHAR(20) = ''
+,@ThirdLevel VARCHAR(20) = ''
+,@NewMasterId INT = 0
+
+SELECT @FirstLevel = c.FirstLevel,@SecondLevel = c.SecondLevel,@ThirdLevel = c.ThirdLevel FROM AccChartMaster c WHERE c.AccCode = @ParentCode
+
+IF @MasterID = 0
+BEGIN
+
+   INSERT INTO AccChartMaster(
+                       AccCode
+					 , AccName
+					 , ParentAccCode
+					 , AccLevel
+					 , FirstLevel
+					 , SecondLevel
+					 , ThirdLevel
+					 , FourthLevel
+					 , CategoryID
+					 , OfficeLevel
+					 , IsTransaction
+					 , Nature
+					 , IsActive
+					 , CreateUser
+					 , CreateDate)
+	                  VALUES(
+					   @NewAccCode
+					  ,@AccName
+					  ,@ParentCode
+					  ,@AccLevel
+					  ,CASE WHEN @AccLevel = 2 THEN @ParentCode ELSE  @FirstLevel END
+					  ,CASE WHEN @AccLevel = 2 THEN @NewAccCode WHEN @AccLevel = 3 THEN @ParentCode ELSE @SecondLevel END
+					  ,CASE WHEN @AccLevel = 2 THEN NULL WHEN @AccLevel = 3 THEN @NewAccCode ELSE @ParentCode END
+					  ,CASE WHEN @AccLevel = 2 THEN NULL WHEN @AccLevel = 3 THEN NULL ELSE @NewAccCode END
+					  ,@CategoryID
+					  ,1
+					  ,@IsTransaction
+					  ,@Nature
+					  ,1
+					  ,@UserId
+					  ,GETDATE())
+
+	SET @NewMasterId = SCOPE_IDENTITY();
+
+ INSERT INTO AccChart(BrokerBranchId,AccMasterID,AccCode,AccName,ParentAccCode,AccLevel,FirstLevel,SecondLevel,ThirdLevel,FourthLevel,FifthLevel,CategoryID,OfficeLevel,IsTransaction,Nature,IsActive,CreateUser,CreateDate)
+                 SELECT b.Id,z.AccMasterID,z.AccCode,z.AccName,z.ParentAccCode,z.AccLevel,z.FirstLevel,z.SecondLevel,z.ThirdLevel,z.FourthLevel,z.FifthLevel,z.CategoryID,z.OfficeLevel,z.IsTransaction,z.Nature,z.IsActive,z.CreateUser,z.CreateDate FROM BrokerBranch b 
+CROSS JOIN (SELECT * FROM AccChartMaster m WHERE m.AccMasterID = @NewMasterId) z
+WHERE b.Id IN (SELECT s.CODE FROM Split(@Branchids,'~') s WHERE ISNULL(s.CODE,'') <> '')
+
+END
+ELSE
+BEGIN
+
+  UPDATE AccChartMaster SET AccCode = @NewAccCode
+                         ,AccName = @AccName
+						 ,ParentAccCode = @ParentCode
+						 ,AccLevel = @AccLevel
+						 ,FirstLevel = CASE WHEN @AccLevel = 2 THEN @ParentCode ELSE  @FirstLevel END
+						 ,SecondLevel = CASE WHEN @AccLevel = 2 THEN @NewAccCode WHEN @AccLevel = 3 THEN @ParentCode ELSE @SecondLevel END
+						 ,ThirdLevel = CASE WHEN @AccLevel = 2 THEN NULL WHEN @AccLevel = 3 THEN @NewAccCode ELSE @ParentCode END
+						 ,FourthLevel = CASE WHEN @AccLevel = 2 THEN NULL WHEN @AccLevel = 3 THEN NULL ELSE @NewAccCode END
+						 ,CategoryID = @CategoryID
+						 ,OfficeLevel = 1
+						 ,IsTransaction = @IsTransaction
+						 ,Nature = @Nature
+						 ,UpdateDate = GETDATE()
+						 ,UpdateUserId = @UserId
+  WHERE AccMasterID = @MasterID
+
+
+  UPDATE AccChart SET IsActive = 0,UpdateDate = GETDATE(),UpdateUserId = @UserId WHERE AccMasterId = @MasterID AND BrokerBranchId NOT IN (SELECT s.CODE FROM Split(@Branchids,'~') s WHERE ISNULL(s.CODE,'') <> '')
+
+  UPDATE AccChart SET AccChart.AccCode = s.AccCode
+                     ,AccChart.AccName = s.AccName
+					 ,AccChart.ParentAccCode = s.ParentAccCode
+					 ,AccChart.AccLevel = s.AccLevel
+					 ,AccChart.FirstLevel = s.FirstLevel
+					 ,AccChart.SecondLevel = s.SecondLevel
+					 ,AccChart.ThirdLevel = s.ThirdLevel
+					 ,AccChart.FourthLevel = s.FourthLevel
+					 ,AccChart.CategoryID= s.CategoryID
+					 ,AccChart.OfficeLevel = s.OfficeLevel
+					 ,AccChart.IsTransaction = s.IsTransaction
+					 ,AccChart.Nature = s.Nature
+					 ,AccChart.UpdateDate = GETDATE()
+					 ,AccChart.UpdateUserId = @UserId
+
+
+  FROM AccChart t
+  INNER JOIN AccChartMaster s ON s.AccMasterID = t.AccMasterID 
+  WHERE s.AccMasterID = @MasterID AND t.BrokerBranchId IN (SELECT s.CODE FROM Split(@Branchids,'~') s WHERE ISNULL(s.CODE,'') <> '')
+
+
+  -- New Create  for branch When Edit  ---  1~2~3~4~
+  DECLARE @EditnewCreate TABLE(BranchId INT)
+
+  INSERT INTO @EditnewCreate
+  SELECT a.CODE FROM Split(@Branchids,'~') a
+  WHERE ISNULL(a.CODE,'') <> '' 
+  AND a.CODE NOT IN (SELECT ch.BrokerBranchId FROM AccChart ch WHERE ch.IsActive = 1 AND ch.AccMasterId = @MasterID) 
+
+
+   INSERT INTO AccChart(BrokerBranchId,AccMasterID,AccCode,AccName,ParentAccCode,AccLevel,FirstLevel,SecondLevel,ThirdLevel,FourthLevel,FifthLevel,CategoryID,OfficeLevel,IsTransaction,Nature,IsActive,CreateUser,CreateDate)
+                 SELECT b.BranchId,z.AccMasterID,z.AccCode,z.AccName,z.ParentAccCode,z.AccLevel,z.FirstLevel,z.SecondLevel,z.ThirdLevel,z.FourthLevel,z.FifthLevel,z.CategoryID,z.OfficeLevel,z.IsTransaction,z.Nature,z.IsActive,z.CreateUser,z.CreateDate 
+				 FROM @EditnewCreate b 
+ CROSS JOIN (SELECT * FROM AccChartMaster m WHERE m.AccMasterID = @MasterID) z
+--WHERE b.Id IN (SELECT s.CODE FROM Split(@Branchids,'~') s WHERE ISNULL(s.CODE,'') <> '')
+
+
+END

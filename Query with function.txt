@@ -1,0 +1,29 @@
+select 
+O.Name, 
+V.Title, 
+C.ContactNumber, 
+V.Price, 
+D.Address +'-'+ S.CurrentLocation as Address , 
+s.CurrentLocation,
+O.Income,
+S.Expense,
+[dbo].[FN_ExBLNC](O.Income, S.Expense)AS CrntBlnc
+from OBroInfo O
+inner join Movie_watch M ON O.ID = M.Id
+left join Movies V ON M.MiD = V.Id
+left join ContactInfo C ON O.ID = C.Id
+left join DetailsAddress D ON O.ID = D.Id
+left join Status S ON O.Status = S.Id
+--where O.ID <> 1
+
+
+ALTER FUNCTION [dbo].[FN_ExBLNC](  
+
+    @income INT,  
+    @expanse INT  
+)  
+RETURNS INT
+AS   
+BEGIN  
+    RETURN @income - @expanse;  
+END;
