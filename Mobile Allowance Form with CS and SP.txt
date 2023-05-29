@@ -939,3 +939,128 @@ namespace Hrms.Controllers
         }
     }
 }
+==============================================================================
+USE [UCAS_HRM_Regent]
+GO
+/****** Object:  StoredProcedure [dbo].[USP_Save_Mobile_Allowance]    Script Date: 29-May-23 10:20:51 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[USP_Save_Mobile_Allowance](          
+					 @AllEmployeeCodes VARCHAR(MAX) = ''
+					 ,@SalYear int = 2023
+					 ,@SalMonth int = 1
+					,@ProcessDate VARCHAR(20)= ''--- 28 May 2023
+					,@UserId INT = 213
+					)
+AS
+BEGIN
+
+DECLARE @IntErrorCode	int
+			,	@Msg		varchar(250);
+SET NOCOUNT ON;
+begin transaction
+
+
+
+
+
+DECLARE @MasterTbl TABLE(RawData VARCHAR(1000),EmpCode Varchar(50),  PayableAmount DECIMAL(18,4),PaidAmount DECIMAL(18,4)
+		,Remarks VARCHAR(500),EmployeeId int, MobileAllowancePaymentModeId int,
+		MobileAllowanceYear int,MobileAllowanceMonth int)
+
+
+INSERT INTO @MasterTbl
+SELECT c.CODE RawData, 
+ ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=1),'') EmpCode
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=2),0) PayableAmount
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=3),0) PaidAmount
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=4),'') Remarks
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=5),0) EmployeeId
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=6),0) MobileAllowancePaymentModeId
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=7),0) MobileAllowanceYear
+,ISNULL((select x.Data from  dbo.Split2(c.CODE,'~') AS x where id=8),0) MobileAllowanceMonth
+
+FROM Split(@AllEmployeeCodes,'|') AS c WHERE C.CODE <> ''
+
+
+
+INSERT INTO MobileBillAllowance(
+        EmployeeId, 
+		CompanyId, 
+		DesignationId, 
+		DepartmentId, 
+		BranchId, 
+		MobileAllowanceYear, 
+		MobileAllowanceMonth, 
+		ProcessDate, 
+		MobileAllowancePaymentModeId, 
+		PayableAmount, 
+		PaidAmount, 
+		DueAmount, 
+		Remarks, 
+		CreateDate, 
+		UpdateDate, 
+		CreateUserId, 
+		UpdateUserId, 
+		IsActive
+		 )
+
+SELECT E.emp_id
+	  --,CASE WHEN @CompanyId = 0 THEN  NULL ELSE @CompanyId END
+	  ,E.CompanyId
+      ,E.emp_desg_id
+	  ,E.emp_dept_id
+	  ,E.emp_branch_id
+	  ,@SalYear
+	  ,@SalMonth
+	  ,@ProcessDate ProcessDate
+	  ,M.MobileAllowancePaymentModeId
+	  ,M.PayableAmount
+	  ,M.PaidAmount
+	  ,M.PayableAmount - M.PaidAmount as DueAmount
+	  ,M.Remarks
+	  ,GETDATE() CreateDate
+	  ,null UpdateDate
+	  ,@UserId CreateUserId
+	  ,0 UpdateUserId
+	  ,1 IsActive
+FROM @MasterTbl M
+INNER JOIN EMP_PROFILE E ON E.emp_id = M.EmployeeId
+
+  
+  
+
+
+	Select @IntErrorCode = @@ERROR;
+						
+	If ( @IntErrorCode <> 0 )
+		GoTo PROBLEM;
+
+	SET NOCOUNT OFF;
+	
+Commit Tran;
+		if ( @IntErrorCode <> 0 )
+		Begin
+			RaisError(@Msg, 16, 1);
+		end;
+
+		PROBLEM:
+	        IF ( @intErrorCode <> 0 )
+	        BEGIN
+	                print 'Unexpected error occurred! ';
+					print '';
+					print 'Process has not Completed. ';
+	                ROLLBACK TRAN;
+	        END;	
+		ErrorMsg:
+			IF ( @intErrorCode <> 0 )
+			BEGIN
+				raiserror(@Msg, 16, 1)  ;        
+			END;	
+
+
+END
+
+
