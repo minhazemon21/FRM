@@ -1,0 +1,1074 @@
+using Common.Service;
+using Common.Service.StoredProcedure;
+using ERP.Web.Controllers;
+using ERP.Web.Helpers;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Data;
+using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using System.Web;
+using System.Web.Mvc;
+
+
+namespace Hrms.Controllers
+{
+    public class MobileAllowanceController : BaseController
+    {
+        private readonly ISPService spService;
+        private readonly ILookupBankService bankService;
+        private readonly ILookupBankBranchService bankbranchService;
+        public MobileAllowanceController(ISPService spService, ILookupBankService bankService, ILookupBankBranchService bankbranchService)
+        {
+            this.spService = spService;
+            this.bankService = bankService;
+            this.bankbranchService = bankbranchService;
+
+        }
+        // GET: MobileAllowance
+        public ActionResult Index(string SalMonth = "0", int SalYear = 0, string ProcessDate = "", string ExceptEmpCode = "", string inExCode = "I", int BranchId = 0, int DepartmentId = 0, int CompanyId = 0)
+        {
+            if (SalMonth != "0" && SalYear != 0)
+            {
+                var param = new { EmployeeId = 0, SalMonth = SalMonth, SalYear = SalYear, ExceptEmpCode = ExceptEmpCode, InExCode = inExCode, BranchId = BranchId, DepartmentId = DepartmentId, CompanyId = CompanyId, IsReprocess = 1 };
+                var Employeelt = spService.GetDataWithParameter(param, "USP_GET_MobileAllowanceListForProcess").Tables[0];
+                ViewBag.EmployeeList = Employeelt
+               .AsEnumerable()
+               .Select(
+                  x =>
+                      new EmployeeInfoForMobileAllowance
+                      {
+                          RowSl = x.Field<string>("RowSl"),
+                          emp_id = x.Field<int?>("emp_id"),
+                          emp_office_code = x.Field<string>("emp_office_code"),
+                          emp_name = x.Field<string>("emp_name"),
+                          DepartmentName = x.Field<string>("DepartmentName"),
+                          DesignationName = x.Field<string>("DesignationName"),
+                          SalaryPaymentMode = x.Field<string>("SalaryPaymentMode"),
+                          MobileAlw = x.Field<decimal?>("MobileBillAmount"),
+                          NoOfEmployee = x.Field<int>("NoOfEmployee"),
+                          SalMonth = x.Field<int?>("SalMonth"),
+                          SalYear = x.Field<int?>("SalYear")
+                      }).ToList();
+            }
+            else
+            {
+                ViewBag.EmployeeList = new List<EmployeeInfoForMobileAllowance>();
+            }
+
+            ViewBag.BranchList = spService.GetDataBySqlCommand("SELECT F.Id,F.BranchName FROM OfficeBranch AS F WHERE F.IsActive = 1").Tables[0]
+                .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+                {
+                    Id = x.Field<int>("Id"),
+                    BranchName = x.Field<string>("BranchName"),
+                }).ToList();
+            ViewBag.DepartmentList = spService.GetDataBySqlCommand("SELECT D.Id,D.DepartmentShortName,DepartmentName FROM BrokerDepartment AS D WHERE D.IsActive = 1").Tables[0]
+              .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+              {
+                  Id = x.Field<int>("Id"),
+                  DepartmentShortName = x.Field<string>("DepartmentShortName"),
+                  DepartmentName = x.Field<string>("DepartmentName"),
+              }).ToList();
+            ViewBag.BranchList = spService.GetDataBySqlCommand("SELECT F.Id,F.BranchName FROM OfficeBranch AS F WHERE F.IsActive = 1").Tables[0]
+                .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+                {
+                    Id = x.Field<int>("Id"),
+                    BranchName = x.Field<string>("BranchName"),
+                }).ToList();
+            var allid = spService.GetDataBySqlCommand("SELECT a.Id,a.AllowanceShortName FROM SalaryAllowance a  WHERE a.AllowanceShortName IN ('Atten','Incentive','OverTime') ORDER BY a.AllowanceShortName").Tables[0];
+
+            ViewData["AttenAllowanceId"] = allid.Rows[0][0].ToString();
+            ViewData["IncentiveId"] = allid.Rows[1][0].ToString();
+            ViewData["OverTimeId"] = allid.Rows[2][0].ToString();
+
+            ViewData["ProcessDate"] = ProcessDate;
+            ViewData["inExCode"] = inExCode;
+            ViewData["ExceptEmpCode"] = ExceptEmpCode;
+            ViewData["BranchId"] = BranchId;
+            ViewData["DepartmentId"] = DepartmentId;
+
+            ViewData["SalMonth"] = SalMonth == "0" ? DateTime.Now.Month.ToString() : SalMonth;
+            ViewData["SalYear"] = SalYear == 0 ? DateTime.Now.Year : SalYear;
+            ViewData["CompanyId"] = CompanyId;
+
+            var companyList = spService.GetDataWithoutParameter("USP_GET_SisterConcern_List_For_DropdownList").Tables[0];
+            ViewBag.CompanyList = companyList;
+
+            var PaymentType = spService.GetDataWithoutParameter("Get_Mobile_Allowance_Payment_Type").Tables[0];
+            ViewBag.PaymentType = PaymentType;
+            return View();
+
+
+        }
+        public JsonResult Get_Employeewise_Mobile_Allowance(string SalMonth = "0", int SalYear = 0, string ProcessDate = "", string ExceptEmpCode = "", string inExCode = "I", int BranchId = 0, int DepartmentId = 0, int CompanyId = 0)
+        {
+            try
+            {
+                var param = new { EmployeeId = 0, SalMonth = SalMonth, SalYear = SalYear, ExceptEmpCode = ExceptEmpCode, InExCode = inExCode, BranchId = BranchId, DepartmentId = DepartmentId, CompanyId = CompanyId, IsReprocess = 1 };
+                var Employeelt = spService.GetDataWithParameter(param, "USP_GET_MobileAllowanceListForProcess").Tables[0];
+                var EmployeeList = Employeelt
+          .AsEnumerable()
+           .Select(
+               x =>
+                   new
+                   {
+                       RowSl = x.Field<string>("RowSl"),
+                       emp_id = x.Field<int?>("emp_id"),
+                       emp_office_code = x.Field<string>("emp_office_code"),
+                       emp_name = x.Field<string>("emp_name"),
+                       DepartmentName = x.Field<string>("DepartmentName"),
+                       DesignationName = x.Field<string>("DesignationName"),
+                       SalaryPaymentMode = x.Field<string>("SalaryPaymentMode"),
+                       MobileAlw = x.Field<decimal?>("MobileBillAmount"),
+                       NoOfEmployee = x.Field<int>("NoOfEmployee"),
+                       SalMonth = x.Field<int?>("SalMonth"),
+                       SalYear = x.Field<int?>("SalYear"),
+                       companyId = x.Field<int>("CompanyId"),
+                       designationId = x.Field<int>("emp_desg_id"),
+                       departmentId = x.Field<int>("emp_dept_id"),
+                       branchId = x.Field<int>("emp_branch_id"),
+
+                   }).ToList();
+
+                return Json(new { Status = true, Result = EmployeeList, Message = "Successfull." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Result = "", Message = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public JsonResult SaveEmployeewiseMobileAllowance(string allEmployeeCodes, int salYear, int salMonth, string processDate)
+        {
+            try
+            {
+                var param = new
+                {
+                    AllEmployeeCodes = allEmployeeCodes,
+                    SalYear = salYear,
+                    SalMonth = salMonth,
+                    ProcessDate = ReportHelper.FormatDateToString(processDate),
+                    UserId = SessionHelper.LoggedInUserId
+
+                };
+                var Data = spService.GetDataWithParameter(param, "USP_Save_Mobile_Allowance");
+
+
+                return Json(new { Status = true, Result = "", Message = "Save successfull." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Result = "", Message = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public JsonResult PaymentModeType()
+        {
+            try
+            {
+
+                var type = spService.GetDataWithoutParameter("Get_Mobile_Allowance_Payment_Type");
+
+                var paymnetType = type.Tables[0].AsEnumerable()
+                .Select(x => new
+                {
+                    Id = x.Field<int>("Id"),
+                    Name = x.Field<string>("Name"),
+                    SName = x.Field<string>("ShortName")
+                }).ToList();
+
+                return Json(new { status = true, data = paymnetType, message = "" }, JsonRequestBehavior.AllowGet);
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { status = false, data = "", message = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public ActionResult MobileAllowanceReporcess(string SalMonth = "0", int SalYear = 0)
+        {
+            ViewData["SalMonth"] = SalMonth == "0" ? DateTime.Now.Month.ToString() : SalMonth;
+            ViewData["SalYear"] = SalYear == 0 ? DateTime.Now.Year : SalYear;
+            ViewBag.BranchList = spService.GetDataBySqlCommand("SELECT F.Id,F.BranchName FROM OfficeBranch AS F WHERE F.IsActive = 1").Tables[0]
+                .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+                {
+                    Id = x.Field<int>("Id"),
+                    BranchName = x.Field<string>("BranchName"),
+                }).ToList();
+            ViewBag.DepartmentList = spService.GetDataBySqlCommand("SELECT D.Id,D.DepartmentShortName,DepartmentName FROM BrokerDepartment AS D WHERE D.IsActive = 1").Tables[0]
+              .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+              {
+                  Id = x.Field<int>("Id"),
+                  DepartmentShortName = x.Field<string>("DepartmentShortName"),
+                  DepartmentName = x.Field<string>("DepartmentName"),
+              }).ToList();
+            ViewBag.BranchList = spService.GetDataBySqlCommand("SELECT F.Id,F.BranchName FROM OfficeBranch AS F WHERE F.IsActive = 1").Tables[0]
+                .AsEnumerable().Select(x => new EmployeeInfoForMobileAllowance
+                {
+                    Id = x.Field<int>("Id"),
+                    BranchName = x.Field<string>("BranchName"),
+                }).ToList();
+            var allid = spService.GetDataBySqlCommand("SELECT a.Id,a.AllowanceShortName FROM SalaryAllowance a  WHERE a.AllowanceShortName IN ('Atten','Incentive','OverTime') ORDER BY a.AllowanceShortName").Tables[0];
+
+            var companyList = spService.GetDataWithoutParameter("USP_GET_SisterConcern_List_For_DropdownList").Tables[0];
+            ViewBag.CompanyList = companyList;
+
+            return View();
+        }
+        public JsonResult Get_Employeewise_Mobile_Allowance_Reprocess(string SalMonth = "0", int SalYear = 0, string ProcessDate = "", string ExceptEmpCode = "", string inExCode = "I", int BranchId = 0, int DepartmentId = 0, int CompanyId = 0)
+        {
+            try
+            {
+                var param = new { EmployeeId = 0, SalMonth = SalMonth, SalYear = SalYear, ExceptEmpCode = ExceptEmpCode, InExCode = inExCode, BranchId = BranchId, DepartmentId = DepartmentId, CompanyId = CompanyId, IsReprocess = 1 };
+                var Employeelt = spService.GetDataWithParameter(param, "USP_GET_MobileAllowanceListForReProcess").Tables[0];
+                var EmployeeList = Employeelt
+          .AsEnumerable()
+           .Select(
+               x =>
+                   new
+                   {
+                       RowSl = x.Field<string>("RowSl"),
+                       emp_id = x.Field<int?>("emp_id"),
+                       emp_office_code = x.Field<string>("emp_office_code"),
+                       emp_name = x.Field<string>("emp_name"),
+                       DepartmentName = x.Field<string>("DepartmentName"),
+                       DesignationName = x.Field<string>("DesignationName"),
+                       SalaryPaymentMode = x.Field<string>("SalaryPaymentMode"),
+                       MobileAlw = x.Field<decimal?>("MobileBillAmount"),
+                       NoOfEmployee = x.Field<int>("NoOfEmployee"),
+                       SalMonth = x.Field<int?>("SalMonth"),
+                       SalYear = x.Field<int?>("SalYear"),
+                       companyId = x.Field<int>("CompanyId"),
+                       designationId = x.Field<int>("emp_desg_id"),
+                       departmentId = x.Field<int>("emp_dept_id"),
+                       branchId = x.Field<int>("emp_branch_id"),
+                       PaidAmount = x.Field<decimal?>("PaidAmount"),
+                       Remarks = x.Field<string>("Remarks"),
+                       TypeId = x.Field<int>("TypeId"),
+                       MId = x.Field<int>("Id")
+
+                   }).ToList();
+
+                return Json(new { Status = true, Result = EmployeeList, Message = "Successfull." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Result = "", Message = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+        public JsonResult UpdateEmployeewiseMobileAllowance(List<MobileAllowanceUp> allmobileid)
+        {
+
+
+            try
+            {
+                if (allmobileid.Count > 0)
+                {
+                    foreach(var data in allmobileid)
+                    {
+                        var param = new
+                        {
+                            Mobilealoid = data.MblId,
+                            Paid = data.paid,
+                            Remarks = data.remarks,
+                            PaymentModeType = data.paymentMode,
+                            Processdate = ReportHelper.FormatDateToString(data.processDate),
+                            userid = SessionHelper.LoggedInUserId
+                        };
+                        var Data = spService.GetDataWithParameter(param, "USP_Update_Mobile_Allowance");
+                    }
+                }
+                
+
+
+                return Json(new { Status = true, Result = "", Message = "Update successfull." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Result = "", Message = ex.InnerException.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public class EmployeeInfoForMobileAllowance
+        {
+            public string RowSl { get; set; }
+            public int Id { get; set; }
+            public int TransactionTypeId { get; set; }
+            public string TransactionTypeName { get; set; }
+            public string AllowanceName { get; set; }
+            public string AllowanceShortName { get; set; }
+            public string CalculationBasisOn { get; set; }
+            public int IsPercentage { get; set; }
+            public decimal? Percentage { get; set; }
+            public int IsAddition { get; set; }
+            public int TCount { get; set; }
+            public int? emp_id { get; set; }
+            public string emp_office_code { get; set; }
+            public string emp_name { get; set; }
+            public decimal? MobileAlw { get; set; }
+            public decimal? TaxAtm { get; set; }
+            public decimal? PFOfficeContribution { get; set; }
+            public decimal? PFPersonalContribution { get; set; }
+            public decimal? Payable { get; set; }
+            public string DesignationName { get; set; }
+            public string DesignationShortName { get; set; }
+            public string SalaryPaymentMode { get; set; }
+            public int NoOfEmployee { get; set; }
+            public int? AbsentCnt { get; set; }
+            public decimal? TotalDeductForAbsent { get; set; }
+            public string SalaryDeductForAbsentSts { get; set; }
+            public string JoiningSatus { get; set; }
+            public string IsNewSetup { get; set; }
+            public int? SalMonth { get; set; }
+            public int? SalYear { get; set; }
+            public string ExceptEmpCode { get; set; }
+            public string IncentiveDate { get; set; }
+            public string InExCode { get; set; }
+            public string CompanyName { get; set; }
+            public string CompanyShortName { get; set; }
+            public string BranchName { get; set; }
+            public string DepartmentShortName { get; set; }
+            public string DepartmentName { get; set; }
+            public int DisplayOrder { get; set; }
+            public string PercentageSts { get; set; }
+            public string AdditionSts { get; set; }
+            public string CalculationBasisOnSts { get; set; }
+            public decimal? DueAmount { get; set; }
+            public decimal? DuePaidAmount { get; set; }
+            public decimal? DueAtNow { get; set; }
+            public string DuePaidDate { get; set; }
+            public string SalMonthYear { get; set; }
+            public string BankAccountName { get; set; }
+            public string BankAccountNo { get; set; }
+            public string BankBranchName { get; set; }
+            public string BankName { get; set; }
+            public int? BankId { get; set; }
+            public int? BankBranchId { get; set; }
+            public string ProcessDate { get; set; }
+            public string YearMonthName { get; set; }
+            public string YearMonth { get; set; }
+            public string TransactionTypeShortName { get; set; }
+            public string SignatoryName { get; set; }
+            public string SignatoryDesignation { get; set; }
+            public string InvestmentName { get; set; }
+            public int? AttenAllowanceId { get; set; }
+            public decimal? PayableAftAbsDeduct { get; set; }
+            public decimal? OverTimeAmount { get; set; }
+
+        }
+
+        public class MobileAllowanceUp
+        {
+            public int MblId { get; set; }
+            public decimal paid { get; set; }
+            public string remarks { get; set; }
+            public int paymentMode { get; set; }
+            public string processDate { get; set; }
+        }
+    }
+}
+=====================
+@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "MobileAllowanceReProcess";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.EmployeeList;
+    var branchList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.BranchList;
+    var departmentList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.DepartmentList;
+
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name"),
+        ShortName = r.Field<string>("ShortName")
+    });
+
+  
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+<script type="text/javascript">
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function SaveEmployeewiseMobileAllowance() {
+        var allEmployeeCodes = "";
+        var salYear = $("#ddlSalYear").val();
+        var salMonth = $("#ddlSalMonth").val();
+        var processDate = $("#txtProcessDate").val().trim();
+        var OrgShortName = $("#ddlCompanyList option:selected").attr("data-sname");
+        var CompanyId = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+        //var allAgendaid = new Array();
+        //$(".clEmpIds").each(function () {
+        //    var empCode = $(this).attr("data-code");//chk-
+        //    if ($("#chk-" + empCode).is(":checked") == true) {
+        //        allAgendaid[allAgendaid.length] = $(this).val();
+        //    }
+        //});
+        var mobileided = new Array();
+        $(".clEmpIds").each(function () {
+            var empCode = $(this).attr("data-code");//chk-
+            if ($("#chk-" + empCode).is(":checked") == true) {
+                //var payable = $(this).attr("data-payable") == "" ? "0" : $(this).attr("data-payable");
+                var MblId = $(this).attr("data-MId")
+                var paid = $("#paid-" + empCode).val();
+                var remarks = $("#remarks-" + empCode).val();
+                var empId = $(this).attr("data-empid");
+                var paymentMode = $("#ddlPaymentType" + empCode).val();
+
+                var allmobileid = new Object();
+                allmobileid.MblId = MblId;
+                allmobileid.paid = paid;
+                allmobileid.remarks = remarks;
+                allmobileid.paymentMode = paymentMode;
+                allmobileid.processDate = processDate;
+                mobileided.push(allmobileid);
+
+                //117~1000~1000~~3~1~29~9~1
+                //|2~3000~3000~grr~152~1~58~8~1
+                //|2~33~3000~J~J~1|1~34~6000~J~J~1|44~25~1000~~~1|88~65~2000~bank~bank~4|117~64~1000~J~J~2|189~66~991~~~3|209~31~1000~PP~PP~1
+
+                //var allEmployeeCodes = allEmployeeCodes + "|" + empId + "~" + MblId + "~" + paid + "~" + remarks + "~" + remarks + "~" + paymentMode;
+
+            }
+        });
+
+
+        if (processDate == "" || processDate == "0") {
+            $.alert.open("error", "Please insert process date.");
+            return false;
+        }
+        else if (salYear == "0") {
+            $.alert.open("error", "Please select year.");
+            return false;
+        }
+        else if (salMonth == "0") {
+            $.alert.open("error", "Please select month.");
+            return false;
+        }
+        //else if (allEmployeeCodes == "") {
+        //    $.alert.open("error", "No Employee Found.");
+        //    return false;
+        //}
+        else {
+         
+            var json = JSON.stringify(mobileided)
+            $("#AjaxLoader").show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("UpdateEmployeewiseMobileAllowance", "MobileAllowance", "http")',
+                data : json,
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if (data.Status == true) {
+                        $.alert.open(data.Result, data.Message, function () {
+                            window.location.reload();
+                        });
+                    }
+                    else {
+                        $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#AjaxLoader").hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+
+
+    function totPayable() {
+        var pay = 0;
+        $(".clpaythismonth").each(function () {
+
+            pay = pay + parseFloat($(this).html());
+        });
+        $("#sptotPayable").html(pay.toFixed(2));
+        $("#sptotPaid").html(pay);
+
+    }
+
+    $(document).ready(function () {
+        //PaymentModeType();
+        $("#ddlCompanyList").val(@ViewData["CompanyId"]);
+
+        $("#ddlSalMonth").val(@ViewData["SalMonth"]);
+        $("#ddlSalYear").val(@ViewData["SalYear"]);
+        $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+
+        $("#ddlCompanyList").change(function () {
+            GetDepartmentList(0);
+        });
+
+        GetDepartmentList(0);
+        $("#all_chk").on("click", function () {
+            $(".chksig").prop("checked", $(this).is(":checked"));
+        });
+
+        totPayable();
+
+        /*$("#txtNoOfEmployee").val($(".txtNoEmp").val())*/;
+
+        $(".childTbl").find('thead').append(
+            '<tr style="padding-top: 12px; padding-bottom: 12px; text-align: left; color: green;">' +
+            '<td>SL</td>' +
+            '<td>Allowance Name</td>' +
+            '<td>Amount</td>' +
+            '<td>Calc base on</td></tr>'
+            );
+
+        $("#btnSearch").on("click", function () {
+            var SalYear = $("#ddlSalYear").val() == "" ? "0" : $("#ddlSalYear").val();
+            var SalMonth = $("#ddlSalMonth").val() == "" ? "0" : $("#ddlSalMonth").val();
+            var ProcessDate = $("#txtProcessDate").val().trim();
+            var exceptEmpCode = $("#txtExceptEmpCode").val().trim();
+            var inExCode = $("#chkExceptEmpCode").is(":checked") == true ? "E" : "I";
+            var branchId = $("#ddlBranchList").val();
+            var departmentId = $("#ddldepartmentList").val();
+            var companyId = $("#ddlCompanyList").val();
+
+            if (ProcessDate == "" || ProcessDate == "0") {
+                $.alert.open("error", "Please insert process date.");
+                return false;
+            }
+            else if (SalYear == "0") {
+                $.alert.open("error", "Please select year.");
+                return false;
+            }
+            else if (SalMonth == "0") {
+                $.alert.open("error", "Please select month.");
+                return false;
+            }
+            //else if (CompanyId == "0") {
+            //    $.alert.open("error", "Please select company.");
+            //    return false;
+            //}
+            else {
+                ////window.location = "@Url.Action("Index", "MobileAllowance")?SalMonth=" + SalMonth + '&SalYear=' + SalYear + '&ProcessDate=' + ProcessDate + '&ExceptEmpCode=' + exceptEmpCode + '&inExCode=' + inExCode + '&BranchId=' + branchId + '&DepartmentId=' + departmentId + '&CompanyId=' + CompanyId;
+                     $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Get_Employeewise_Mobile_Allowance_Reprocess", "MobileAllowance", "http")',
+                    data: {
+                        SalMonth: SalMonth,
+                        SalYear: SalYear,
+                        ProcessDate: ProcessDate,
+                        ExceptEmpCode: exceptEmpCode,
+                        inExCode: inExCode,
+                        BranchId: branchId,
+                        DepartmentId: departmentId,
+                        CompanyId: companyId
+
+                    },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $("#divLoader").hide();
+                        var dtTable = $('#tblAllowanceList');
+                        var tableBody = dtTable.find('tbody');
+                        tableBody.empty();
+                        if (data.Status == true) {
+                            $.each(data.Result, function (id, r) {
+                                tableBody.append('<tr id="row' + id + '">'
+                                    + '<td>' + (id + 1) + '</td>'
+                                    + '<td>' + r.emp_office_code + '</td>'
+                                    + '<td>' + r.emp_name + '</td>'
+                                    + '<td>' + r.DepartmentName + '</td>'
+                                    + '<td>' + r.DesignationName + '</td>'
+                                    + '<td><select class="PaymentTypedd" id="ddlPaymentType' + r.emp_office_code + '"></select></td>'
+                                    + '<td>' + r.MobileAlw + '</td>'
+                                    + '<td><input type="number" class="clEmpIds" data-payable="' + r.MobileAlw + '" data-code="' + r.emp_office_code + '" data-companyid="' + r.companyId + '" data-desgId="' + r.designationId + '" data-deptId="' + r.departmentId + '" data-branchId="' + r.branchId + '" data-empid="' + r.emp_id + '" data-MId="' + r.MId + '" id="paid-' + r.emp_office_code + '" style="width:100%" value="' + r.PaidAmount + '" onkeyup="CalcPaidAmount(' + "'" + r.emp_office_code + "'" + ');" /></td>'
+                                    + '<td><input id="remarks-' + r.emp_office_code + '" style="width:100%" value="' + r.Remarks + '" type="text" /></td>'
+                                    + '<td><input id="chk-' + r.emp_office_code + '" type="checkbox" class="chksig" checked /></td>'
+                                    + '</tr>');
+                                //$('#tblAllowanceList tbody').append(html);
+                                PaymentModeType(r.emp_office_code, r.TypeId);
+                            });
+                            
+                            /*$("#txtNoOfEmployee").html(NoOfEmployee);*/
+                            //var totPayable = 0;
+                            //$(".clEmpIds").each(function () {
+                            //    totPayable = totPayable + parseFloat($(this).attr("data-payable"));
+                            //});
+                            //$("#lblTotalAmount").html(totPayable);
+                            //$("#lblPaidAmount").html(totPayable);
+                        }
+                        else {
+                            $.alert.open("error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+
+        $("#btnReset").on("click", function () {
+            window.location = "@Url.Action("Index", "MobileAllowance")";
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseMobileAllowance();
+        });
+
+
+        if ($("#txtinExCode").val() == "E") {
+            $("#chkExceptEmpCode").prop("checked", true);
+            $("#lblEmpCode").html("Exclude Employee Code");
+        }
+        else {
+            $("#chkExceptEmpCode").prop("checked", false);
+            $("#lblEmpCode").html("Employee Code");
+        }
+
+        $("#chkExceptEmpCode").on("click", function () {
+            if ($("#chkExceptEmpCode").is(":checked") == true) {
+                $("#lblEmpCode").html("Exclude Employee Code");
+            }
+            else {
+                $("#lblEmpCode").html("Employee Code");
+            }
+        });
+
+
+        $(".csTable").on("click", function () {
+
+            var nm = $(this).attr("name");
+            var bName = $(this).val();
+
+            if (bName == "-") {
+                $("#tr-" + nm).hide();
+                $(this).val("+");
+            }
+            else {
+                $("#tr-" + nm).show();
+                $(this).val("-");
+            }
+
+        });
+    });
+
+    function CalcPercentage() {
+        var pay = 0;
+        var perc = parseFloat($("#txtPercentage").val() == "" ? "0" : $("#txtPercentage").val());
+
+        $(".cltotPaid").each(function () {
+
+            var EmpCode = $(this).attr("data-empcode");
+            var payable = parseFloat($("#pay-" + EmpCode).html() == "" ? "0" : $("#pay-" + EmpCode).html());
+            if (perc != 0) {
+                var paid = Math.round((payable * perc) / 100);
+                $("#paid-" + EmpCode).val(paid);
+                pay = pay + paid;
+            }
+            else {
+                $("#paid-" + EmpCode).val(payable);
+                pay = pay + payable;
+            }
+
+        });
+        $("#sptotPaid").html(pay);
+
+
+    }
+
+    function CalcTotalPayable(EmpCode) {
+        var pay = 0;
+        var paid = parseFloat($("#paid-" + EmpCode).val() == "" ? "0" : $("#paid-" + EmpCode).val());
+        var payable = parseFloat($("#pay-" + EmpCode).html() == "" ? "0" : $("#pay-" + EmpCode).html());
+
+        if (paid <= payable) {
+            pay = 0;
+            $(".cltotPaid").each(function () {
+                pay = pay + parseFloat($(this).val());
+            });
+            $("#sptotPaid").html(pay);
+
+            return false;
+        }
+        else {
+            $("#paid-" + EmpCode).val(payable);
+            $("#percentage-" + EmpCode).val(0);
+            pay = 0;
+            $(".cltotPaid").each(function () {
+                pay = pay + parseFloat($(this).val());
+            });
+            $("#sptotPaid").html(pay);
+
+            $.alert.open("error", "Paid amount is grater then payable.");
+        }
+    }
+
+    function CalcAddition(EmpCode) {
+        var pay = 0;
+
+        var absAmt = parseFloat($("#abAmt-" + EmpCode).val() == "" ? "0" : $("#abAmt-" + EmpCode).val());
+
+        var payable = parseFloat($("#pay-" + EmpCode).attr("data-payable") == "" ? "0" : $("#pay-" + EmpCode).attr("data-payable")) - absAmt;
+
+
+        // var payableNew = parseFloat($("#pay-" + EmpCode).html() == "" ? "0" : $("#pay-" + EmpCode).html() );
+
+
+        $("#paid-" + EmpCode).val(payable);
+        // $("#percentage-" + EmpCode).val(0);
+
+        var addAmt = parseFloat($("#addAmt-" + EmpCode).val() == "" ? "0" : $("#addAmt-" + EmpCode).val());
+
+        // var paid = parseFloat($("#paid-" + EmpCode).val() == "" ? "0" : $("#paid-" + EmpCode).val());
+        var newPayable = payable + addAmt;
+
+        $("#pay-" + EmpCode).html(newPayable);
+        $("#paid-" + EmpCode).val(newPayable);
+
+
+        pay = 0;
+        $(".cltotPaid").each(function () {
+            pay = pay + parseFloat($(this).val());
+        });
+
+        $("#sptotPaid").html(pay);
+        $("#sptotPayable").html(pay);
+
+    }
+
+    function CalcAbsent(EmpCode) {
+        var pay = 0;
+
+        var addAmt = parseFloat($("#addAmt-" + EmpCode).val() == "" ? "0" : $("#addAmt-" + EmpCode).val());
+        var payable = parseFloat($("#pay-" + EmpCode).attr("data-payable") == "" ? "0" : $("#pay-" + EmpCode).attr("data-payable")) + addAmt;
+
+        // var payable = parseFloat($("#pay-" + EmpCode).html() == "" ? "0" : $("#pay-" + EmpCode).html());
+
+        $("#paid-" + EmpCode).val(payable);
+        $("#percentage-" + EmpCode).val(0);
+
+        var absAmt = parseFloat($("#abAmt-" + EmpCode).val() == "" ? "0" : $("#abAmt-" + EmpCode).val());
+
+        // var paid = parseFloat($("#paid-" + EmpCode).val() == "" ? "0" : $("#paid-" + EmpCode).val());
+        var newPayable = payable - absAmt;
+
+        if (absAmt <= payable) {
+            $("#pay-" + EmpCode).html(newPayable);
+
+            $("#paid-" + EmpCode).val(newPayable);
+
+
+            pay = 0;
+            $(".cltotPaid").each(function () {
+                pay = pay + parseFloat($(this).val());
+            });
+
+            $("#sptotPaid").html(pay);
+            $("#sptotPayable").html(pay);
+        }
+        else {
+            $("#pay-" + EmpCode).html(payable);
+
+            $("#paid-" + EmpCode).val(payable);
+
+            pay = 0;
+            $(".cltotPaid").each(function () {
+                pay = pay + parseFloat($(this).val());
+            });
+
+            $("#sptotPaid").html(pay);
+            $("#sptotPayable").html(pay);
+
+            $.alert.open("error", "Invalid transaction");
+        }
+    }
+
+    function PaymentModeType(empcode,paymentType) {
+     
+        var type = $("#ddlPaymentType" + empcode);
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("PaymentModeType", "MobileAllowance", "http")',
+            data: {},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                type.html('');
+                //type.append($('<option></option>').val("0").html("Please Select"));
+                $.each(data.data, function (id, option) {
+                    type.append($('<option></option>').val(option.Id).html(option.Name));
+
+                });
+                if (paymentType != 0) {
+                    $("#ddlPaymentType" + empcode).val(paymentType);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+</script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">Mobile Allowance ReProcess</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Month", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            @Html.Label("Year", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        var cYear = DateTime.Now.Year;
+                                        <option value="0">Select year</option>
+                                        for (var i = cYear - 12; i < DateTime.Now.Year + 12; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Process Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtProcessDate" class="form-control DateInput check-date" value="@ViewData["processdate"]" />
+                            </div>
+                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlBranchList">
+                                    <option value="0">Please select</option>
+                                    @foreach (var b in branchList)
+                                    {
+                                        <option value="@b.Id">@b.BranchName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id" data-sname="@dt.ShortName">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2", @id = "lblEmpCode" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" value="@ViewData["exceptempcode"]" />
+                                <input type="checkbox" title="Except Employee Code" id="chkExceptEmpCode" />
+                                <input type="text" value="@ViewData["inExCode"]" style="display:none" id="txtinExCode" />
+                            </div>
+
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary" id="btnReset">Reset</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                </div>
+                <div class="row form-group">
+                    <table id="tblAllowanceList">
+                        <thead>
+                            <tr>
+                                @*<th></th>*@
+                                <th>&nbsp; Sl</th>
+                                <th>Code</th>
+                                <th>Employee Name</th>
+                                <th>Department Name</th>
+                                <th>Designation Name</th>
+                                <th>Payment Mode</th>
+                                <th>Total Payable</th>
+                                <th style="width:10%">Paid </th>
+                                <th style="width:8%">Remarks</th>
+                                <th><input type="checkbox" id="all_chk" checked="checked" /></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-offset-5 col-md-4">
+                        <button type="submit" class="btn btn-success" id="btnSave">Process</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+====================== SP
+USE [UCAS_HRM_Regent]
+GO
+/****** Object:  StoredProcedure [dbo].[USP_Save_Mobile_Allowance]    Script Date: 30-May-23 10:32:50 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[USP_Update_Mobile_Allowance](          
+					 @Mobilealoid int = 0
+					 ,@Paid DECIMAL(18,4) = 0
+					 ,@Remarks VARCHAR(500) = ''
+					 ,@PaymentModeType int = 0
+					,@Processdate VARCHAR(20)= ''--- 28 May 2023
+					,@userid INT = 213
+					)
+AS
+BEGIN
+DECLARE @Payable DECIMAL(18,4)
+SELECT @Payable = A.PayableAmount  FROM MobileBillAllowance A
+WHERE A.Id = @Mobilealoid
+
+UPDATE MobileBillAllowance
+SET 
+ProcessDate = @Processdate,
+PaidAmount = @Paid,
+DueAmount = @Payable - @Paid,
+Remarks = @Remarks,
+MobileAllowancePaymentModeId = @PaymentModeType,
+UpdateDate = GETDATE(),
+UpdateUserId = @userid
+WHERE Id = @Mobilealoid
+
+
+
+END
