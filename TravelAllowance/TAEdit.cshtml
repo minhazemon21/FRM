@@ -1,0 +1,503 @@
+﻿@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var Invoice = (int)ViewBag.Invoice;
+
+    var TAList = ((DataTable)ViewBag.TAList).AsEnumerable().Select(row => new
+    {
+        Id = row.Field<int?>("Id"),
+        TADate = row.Field<string>("TADate"),
+        LocationFrom = row.Field<string>("LocationFrom"),
+        LocationTo = row.Field<string>("LocationTo"),
+        WayTypeId = row.Field<int>("WayTypeId"),
+        WayTypeName = row.Field<string>("WayTypeName"),
+        TrasportName = row.Field<string>("TrasportName"),
+        Description = row.Field<string>("Description"),
+        Amount = row.Field<decimal?>("Amount"),
+    }).ToList().OrderBy(x => x.Id);
+}
+
+<style type="text/css">
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        margin-left: 0px;
+    }
+
+        .radio-container label.active span.radio-text {
+            color: #FFFFFF;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    input[type=radio] {
+        margin: -2px 0 0;
+    }
+
+    /*Scarchable dropdown CSS Customization Select2 Plugin*/
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 16px !important;
+        color: black;
+    }
+
+    .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 3px double #CCC !important;
+    }
+
+        .select2-container--default .select2-selection--single:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 200px;
+        overflow-y: auto;
+        color: black;
+    }
+
+        .select2-container--default .select2-results > .select2-results__options :focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-selection--single, .select2-container--default .select2-selection--multiple {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        min-height: 33px !important;
+        max-height: 33px !important;
+        overflow: hidden;
+        font-size: 13px;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 14px;
+            position: absolute;
+            top: 7px;
+            right: 1px;
+            width: 18px;
+        }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    #tblItems {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblItems tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblItems tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblItems th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #tblItems tfoot tr {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #31B0D5;
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        TblExt();
+
+        $("#btnAdd").on("click", function () {
+
+            var html = "";
+            var invoiceNo = $("#txtInvoiceNo").val();
+            var date = $("#txtDate").val();
+            var locForm = $("#txtFormLocation").val().trim();
+            var locTo = $("#txtToLocation").val().trim();
+            var trnsType = $("#ddTransportType").val();
+            var trnsTypeT = $("#ddTransportType option:selected").text();
+            var trnsName = $("#txttransportName").val().trim();
+            var description = $("#txtDescription").val().trim();
+            var amount = $("#txtAmount").val();
+
+            var listedItemId = 0;
+            var itmCnt = 0;
+            $("#tblItems tbody tr").each(function (index) {
+                listedItemId = $(this).find('td:eq(0)').attr("id");
+                if (listedItemId == invoiceNo) {
+                    itmCnt = 1;
+                }
+            });
+
+                html = '<tr class="save">'
+                    + '<td id="' + invoiceNo + '" data-date="' + date + '"><label class="control-label">&nbsp;' + date + '</label></td>'
+                    + '<td data-locForm="' + locForm + '">' + locForm + '</td>'
+                    + '<td data-locTo="' + locTo + '">' + locTo + '</td>'
+                    + '<td data-trnsType="' + trnsType + '">' + trnsTypeT + '</td>'
+                    + '<td data-trnsName="' + trnsName + '">' + trnsName + '</td>'
+                    + '<td data-description="' + description + '">' + description + '</td>'
+                    + '<td data-amount="' + amount + '">' + amount + '</td>'
+                    + '<td data-detailid="0"><a href="#" title="Delete"><i class="fa fa-trash-o"></i></a></td>'
+                    + '</tr>'
+
+                $("#tblItems tbody").append(html);
+
+                TblExt();
+
+        });
+
+        $("#btnSave").on("click", function () {
+
+            var invoiceNo = @Invoice;
+            console.log(invoiceNo);
+            if ($("#tblItems tbody tr").length == 0)
+            {
+                $.alert.open("info", "Please add Bill Item.");
+                return false;
+            }
+
+            var date = [];
+            var locationFrom = [];
+            var locationTo = [];
+            var trnsType = [];
+            var trnsName = [];
+            var description = [];
+            var amount = [];
+
+            $("#tblItems tbody tr.save").each(function (index) {
+                //invId.push($(this).find('td:eq(0)').attr("id"));
+                date.push($(this).find('td:eq(0)').attr("data-date"));
+                locationFrom.push($(this).find('td:eq(1)').attr("data-locForm"));
+                locationTo.push($(this).find('td:eq(2)').attr("data-locTo"));
+                trnsType.push($(this).find('td:eq(3)').attr("data-trnsType"));
+                trnsName.push($(this).find('td:eq(4)').attr("data-trnsName"));
+                description.push($(this).find('td:eq(5)').attr("data-description"));
+                amount.push($(this).find('td:eq(6)').attr("data-amount"));
+
+            });
+            var dates = date.join("|");
+            var locationFroms = locationFrom.join("|");
+            var locationTos = locationTo.join("|");
+            var trnsTypes = trnsType.join("|");
+            var trnsNames = trnsName.join("|");
+            var descriptions = description.join("|");
+            var amounts = amount.join("|");
+
+            var json = JSON.stringify({ invoiceNo: invoiceNo, dates: dates, locationFroms: locationFroms, locationTos: locationTos, trnsTypes: trnsTypes, trnsNames: trnsNames, descriptions: descriptions, amounts: amounts});
+
+            $("#AjaxLoader").show();
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("UpdateTravelAllowance", "TravelAllowance", "http")',
+                type: "POST",
+                dataType: 'json',
+                async: true,
+                data: json,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if(data.Status == true)
+                    {
+                        $.alert.open("Success", "Save successful. ...", function () {
+
+                            window.location = '@Url.Action("TAList", "TravelAllowance")';
+
+                        });
+                    }
+                    else
+                    {
+                        $.alert.open("error",data.Message);
+                    }
+
+                },
+                error: function (data) {
+                    $("#AjaxLoader").hide();
+                    alert(data.Message);
+                }
+            });
+
+        })
+
+        $('#tblItems').on('click', 'tr .fa', function (e) {
+            e.preventDefault();
+
+            var detailId = $(this).closest('tr').find('td:eq(7)').attr("data-detailid");
+            $(this).closest('tr').remove();
+            if (detailId != 0) {
+
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteTABill", "TravelAllowance", "http")',
+                    data: { Id: detailId },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        if (data.Status == true) {
+                            return true;
+                        }
+                        else {
+                            $.alert.open("error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+            TblExt();
+        });
+
+    });
+    function TblExt() {
+        var trCnt = $("#tblItems tbody tr").length;
+        //var totqty = 0;
+        var tottk = 0;
+
+        $("#tblItems tbody tr").each(function (index) {
+            //totqty = totqty + parseFloat($(this).find('td:eq(2)').html());
+            tottk = tottk + parseFloat($(this).find('td:eq(6)').html());
+        });
+        $("#tblItems tfoot").find('td:eq(0)').html('&nbsp;' + trCnt);
+        //$("#tblItems tfoot").find('td:eq(2)').html(totqty);
+        $("#tblItems tfoot").find('td:eq(6)').html(tottk);
+    }
+
+
+
+</script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Travel Allowance Bill Edit</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="row">
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div id="AjaxLoader" class="ajaxLoader"></div>
+                    <div class="x_content">
+                        <fieldset>
+                            <div class="row form-group" style="display:none">
+                                <label class="control-label col-md-1 text-right required">Invoice No</label>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" id="txtInvoiceNo" value="2" />
+                                </div>
+                                @*<label class="control-label col-md-1 text-right required">Invoice Date</label>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control Date" id="txtInvoiceDate" value="@(st == 0 ? "" : storeList.FirstOrDefault().InvoiceDate)" />
+                                    </div>
+                                    <label class="control-label col-md-1 text-right">Supplier</label>
+                                    <div class="col-md-3">
+                                        <select class="form-control bordercss" id="ddlDealer">
+                                            <option value="0">Please Select</option>
+                                            @foreach (var m in dealerList)
+                                            {
+                                                <option value="@m.Id" @(st == 0 ? "" : (storeList.FirstOrDefault().DealerId == @m.Id ? "selected='selected'" : ""))>@m.DealerName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <label class="control-label col-md-1 text-right">Lot No</label>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" id="txtLot" value="@(st == 0 ? 0 : storeList.FirstOrDefault().LotNo)" />
+                                    </div>*@
+                            </div>
+
+                        </fieldset>
+                        <fieldset style="text-align:right">
+
+                            <div class="row form-group">
+                                @Html.Label(" Date", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txtDate" class="form-control DateInput check-date" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Location Form", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txtFormLocation" class="form-control" />
+                                </div>
+                                @Html.Label("Location To", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txtToLocation" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                                    @Html.Label("Transport Type", new { @class = "control-label required" })
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <select class="input-sm form-control bordercss" id="ddTransportType">
+                                        <option value="1" selected="selected">Up</option>
+                                        <option value="2">Down</option>
+                                        <option value="3">Up-Down</option>
+                                    </select>
+                                </div>
+                                @Html.Label("Transport Name", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txttransportName" class="form-control" />
+                                </div>
+
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Description", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txtDescription" class="form-control" />
+                                </div>
+                                @Html.Label("Amount", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                    <input type="text" id="txtAmount" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:center">
+                                    <button type="button" class="btn btn-info" id="btnAdd">Add</button>
+                                </div>
+                            </div>
+
+                        </fieldset>
+                        @*<fieldset>
+
+                                <div class="row form-group">
+                                    <label class="control-label col-md-1 text-right">Brand</label>
+                                    <div class="col-md-3">
+                                        <select class="form-control bordercss" id="ddlItemMaster">
+                                            @if (itemMaster.Count() > 1)
+                                                {
+                                                    <option value="0">Please Select</option>
+                                                }
+                                                @foreach (var m in itemMaster)
+                                                {
+                                                    <option value="@m.Id">@m.ItemName</option>
+                                                }
+                                        </select>
+                                    </div>
+                                    <label class="control-label col-md-1 text-right required">Item</label>
+                                    <div class="col-md-3">
+                                        <select class="form-control bordercss" id="ddlItem"></select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control" id="txtItem" />
+                                    </div>
+                                </div>
+
+                                <div class="row form-group">
+                                    <label class="control-label col-md-1 text-right">Qty Type</label>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="txtQtyType" readonly="readonly" />
+                                    </div>
+                                    <label class="control-label col-md-1 text-right required">Quantity</label>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" id="txtQuantity" onkeyup="CalcTotal();" />
+                                    </div>
+                                    <label class="control-label col-md-1 text-right required">Rate</label>
+                                    <div class="col-md-3">
+                                        <input type="number" class="form-control" id="txtItemRate" onkeyup="CalcTotal();" />
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <label class="control-label col-md-1 text-right">Total</label>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="txtTotal" readonly="readonly" />
+                                    </div>
+                                    <div class="col-sm-offset-1 col-md-3">
+                                        <button type="button" class="btn btn-info" id="btnAdd">Add</button>
+                                    </div>
+                                </div>
+                            </fieldset>*@
+
+
+                        <fieldset>
+                            <legend>Bill List</legend>
+                            <div class="row form-group">
+                                <table id="tblItems">
+                                    <thead>
+                                        <tr>
+                                            <th>&nbsp; Date</th>
+                                            <th>Location Form</th>
+                                            <th>Location To</th>
+                                            <th>Type</th>
+                                            <th>Transport Name</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        @foreach (var m in TAList.Where(x => x.Id != null))
+                                            {
+                                                <tr>
+                                                    <td id="@m.Id"><label class="control-label">&nbsp;@m.TADate</label></td>
+                                                    <td data-LocationFrom="@m.LocationFrom">@m.LocationFrom</td>
+                                                    <td data-LocationTo="@m.LocationTo">@m.LocationTo</td>
+                                                    <td data-type="@m.WayTypeId">@m.WayTypeName</td>
+                                                    <td data-TrasportName="@m.TrasportName">@m.TrasportName</td>
+                                                    <td data-Description="@m.Description">@m.Description</td>
+                                                    <td data-Amount="@m.Amount">@m.Amount</td>
+                                                    <td data-detailid="@m.Id"><a href="#" title="Delete"><i class="fa fa-trash-o"></i></a></td>
+                                                </tr>
+                                            }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </fieldset>
+                        <div class="form-group">
+                            <div class="col-sm-offset-5 col-md-8">
+                                <button type="button" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+

@@ -1,0 +1,99 @@
+USE [UCAS_HRM_Regent]
+GO
+/****** Object:  StoredProcedure [dbo].[USP_Insert_TravelAllowance]    Script Date: 06-Jun-23 1:19:05 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER PROCEDURE [dbo].[USP_Insert_TravelAllowance](
+ @invoiceNo int = 0
+, @dates VARCHAR(MAX) = ''
+, @locationFroms VARCHAR(MAX) = ''
+, @locationTos VARCHAR(MAX) = ''
+, @trnsTypes VARCHAR(MAX) = ''
+, @trnsNames VARCHAR(MAX) = ''
+, @descriptions VARCHAR(MAX) = ''
+, @amounts VARCHAR(MAX) = ''
+, @UserId INT = 0 
+)
+AS
+BEGIN
+
+DECLARE @Invoce INT = 0
+SELECT @Invoce = ISNULL(MAX(d.InvoiceNo),0) + 1 FROM TravelAllowanceBill d
+
+DECLARE @tem TABLE(id INT, datefor date,locationfromfor VARCHAR(500), locationTofor VARCHAR(500), ttype int, trname VARCHAR(500), descrp VARCHAR(1000),amont DECIMAL(18,2))
+
+INSERT INTO @tem(id,datefor,locationfromfor,locationTofor,ttype,trname,descrp, amont)
+
+SELECT aa.Id,aa.datefor,bb.locationfromfor,cc.locationTofor,dd.ttype,ee.trname,ff.descrp,gg.amont
+FROM (
+  SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,a.CODE datefor FROM Split(@dates,'|') a WHERE a.Code <> '' 
+) AS aa
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,b.CODE locationfromfor FROM Split(@locationFroms,'|') b  WHERE b.Code <> '' 
+) AS bb ON bb.Id = aa.Id
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,c.CODE locationTofor FROM Split(@locationTos,'|') c  WHERE c.Code <> '' 
+) AS cc ON cc.Id = aa.Id
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,d.CODE ttype FROM Split(@trnsTypes,'|') d  WHERE d.Code <> '' 
+) AS dd ON dd.Id = aa.Id
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,e.CODE trname FROM Split(@trnsNames,'|') e  WHERE e.Code <> '' 
+) AS ee ON ee.Id = aa.Id
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,e.CODE descrp FROM Split(@descriptions,'|') e  WHERE e.Code <> '' 
+) AS ff ON ff.Id = aa.Id
+INNER JOIN (
+ SELECT row_number() OVER (ORDER BY (SELECT NULL)) Id,e.CODE amont FROM Split(@amounts,'|') e  WHERE e.Code <> '' 
+) AS gg ON gg.Id = aa.Id
+
+BEGIN
+	INSERT INTO TravelAllowanceBill(InvoiceNo, emp_id, TADate, LocationFrom, LocationTo, WayTypeId, TrasportName, Description, Amount, CreateDate, CreatedUserId, IsActive)
+	SELECT @Invoce, @UserId, CONVERT(VARCHAR,tt.datefor,106) as TADate, tt.locationfromfor, tt.locationTofor, tt.ttype, tt.trname, tt.descrp, tt.amont, GETDATE(), @UserId, 1 FROM @tem tt
+
+	--INSERT INTO ConvenceMaster(InvoiceNo, emp_Id, IsApproved, CreateDate,CreateUserId, TotalAmount)
+	--SELECT @Invoce, @UserId, 1, GETDATE(), @UserId, SUM(tt.amont) FROM @tem tt
+END
+--IF @masterId = 0
+--BEGIN
+--Id, InvoiceNo, emp_Id, IsApproved, CreateDate, CreateUserId, UpdateDate, UpdateUserId, ApprovedDate, TotalAmount
+--	INSERT INTO StoreInMaster(DealerId,InvoiceNo,InvoiceDate,Remarks,EntryUserId,EntryDate,IsActive)
+--	VALUES(@dealerId,@invoiceNo,@invoiceDate,@remarks,@UserId,GETDATE(),1)
+--	SET @StoreMasterId = SCOPE_IDENTITY();
+--END
+--ELSE
+--BEGIN
+--    UPDATE StoreInMaster SET DealerId = @dealerId,InvoiceNo = @invoiceNo,InvoiceDate = @invoiceDate,Remarks=@remarks,UpdateDate=GETDATE(),UpdateUserId = @UserId WHERE Id = @masterId
+--	SET @StoreMasterId = @masterId;
+--END
+
+--Declare curP cursor For
+
+--   SELECT t.Id FROM @tem t
+
+--OPEN curP 
+--Fetch Next From curP Into @autoId
+
+--While @@Fetch_Status = 0 Begin
+
+--  INSERT INTO StockInDetails(StoreInMasterId,SubItemID,LotNo,Quantity,QuantityType,UnitPrice,UnitType,TotalPrice,TransactionType,EntryUserId,EntryDate,IsActive)
+
+--  SELECT @StoreMasterId,tt.itemId,(SELECT ISNULL(MAX(d.LotNo),0) + 1 FROM StockInDetails d WHERE d.SubItemID = tt.itemId),tt.qty,tt.qtyType,tt.unitPrice,'TK',tt.totalPrice,'SIN',@UserId,GETDATE(),1 FROM @tem tt WHERE tt.id = @autoId
+	
+--Fetch Next From curP Into @autoId
+
+--End -- End of Fetch
+
+--Close curP
+--Deallocate curP
+
+END
+
+
+
+
+
+
+
