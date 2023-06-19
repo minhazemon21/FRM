@@ -86,7 +86,7 @@ age_entry = Entry(window)
 age_entry.grid(row=3, column=1, padx=10, pady=10)
 
 nationality_var = StringVar()
-nationality_dropdown = OptionMenu(window, nationality_var, "Country 1")
+nationality_dropdown = OptionMenu(window, nationality_var, "Bangladesh", "USA", "Germany")
 nationality_dropdown.grid(row = 3, column=3, padx=10, pady=10)
 
 # Create registration status checkbox
@@ -101,7 +101,7 @@ semester_entry = Entry(window)
 semester_entry.grid(row=5, column=3, padx=10, pady=10)
 
 terms_var = BooleanVar()
-terms_checkbutton = Checkbutton(window, variable=terms_var)
+terms_checkbutton = Checkbutton(window, variable=terms_var, text="I accept the Terms and Conditions")
 terms_checkbutton.grid(row=6, column=1, sticky=W, padx=10, pady=10)
 
 # Create register button
