@@ -48,7 +48,7 @@ first_name_label = Label(window, text="First Name:")
 first_name_label.grid(row=0, column=0, sticky=E)
 
 last_name_label = Label(window, text="Last Name:")
-last_name_label.grid(row=0, column=4, sticky=E)
+last_name_label.grid(row=1, column=0, sticky=E)
 
 title_label = Label(window, text="Title:")
 title_label.grid(row=2, column=0, sticky=E)
@@ -76,7 +76,7 @@ first_name_entry = Entry(window)
 first_name_entry.grid(row=0, column=1)
 
 last_name_entry = Entry(window)
-last_name_entry.grid(row=0, column=5)
+last_name_entry.grid(row=1, column=1)
 
 title_var = StringVar()
 title_dropdown = OptionMenu(window, title_var, "Mr", "Mrs")
@@ -87,6 +87,22 @@ age_entry.grid(row=3, column=1)
 
 nationality_var = StringVar()
 nationality_dropdown = OptionMenu(window, nationality_var, "Country 1")
+nationality_dropdown.grid(row = 4, column=1)
+
+# Create registration status checkbox
+registration_status_var = BooleanVar()
+registration_status_checkbox = Checkbutton(window, variable=registration_status_var, text="Registered")
+registration_status_checkbox.grid(row=5, column=1, sticky=W)
+
+completed_courses_entry = Entry(window)
+completed_courses_entry.grid(row=6, column=1)
+
+semester_entry = Entry(window)
+semester_entry.grid(row=7, column=1)
+
+terms_var = BooleanVar()
+terms_checkbutton = Checkbutton(window, variable=terms_var)
+terms_checkbutton.grid(row=8, column=1, sticky=W)
 
 # Create register button
 register_button = Button(window, text="Register", command=register_student)
