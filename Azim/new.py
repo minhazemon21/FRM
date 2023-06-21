@@ -62,13 +62,13 @@ nationality_label = Label(window, text="Nationality:")
 nationality_label.grid(row=2, column=3, sticky=E, padx=10, pady=10)
 
 registration_status_label = Label(window, text="Registration Status:")
-registration_status_label.grid(row=2, column=5, sticky=E, padx=10, pady=10)
+registration_status_label.grid(row=4, column=1, sticky=E, padx=10, pady=10)
 
 completed_courses_label = Label(window, text="Completed Courses:")
-completed_courses_label.grid(row=4, column=1, sticky=E, padx=10, pady=10)
+completed_courses_label.grid(row=4, column=3, sticky=E, padx=10, pady=10)
 
 semester_label = Label(window, text="Semester:")
-semester_label.grid(row=4, column=3, sticky=E, padx=10, pady=10)
+semester_label.grid(row=4, column=5, sticky=E, padx=10, pady=10)
 
 terms_label = Label(window, text="Terms and Conditions:")
 terms_label.grid(row=6, column=0, sticky=E, padx=10, pady=10)
@@ -94,13 +94,13 @@ nationality_Combobox.grid(row = 3, column=3, padx=10, pady=10)
 # Create registration status checkbox
 registration_status_var = BooleanVar()
 registration_status_checkbox = Checkbutton(window, variable=registration_status_var, text="Registered")
-registration_status_checkbox.grid(row=3, column=5, sticky=W, padx=10, pady=10)
+registration_status_checkbox.grid(row=5, column=1, sticky=W, padx=10, pady=10)
 
 completed_courses_entry = Entry(window)
-completed_courses_entry.grid(row=5, column=1, padx=10, pady=10)
-
+completed_courses_entry.grid(row=5, column=3, padx=10, pady=10)
+# completed_courses_entry.insert(0,"0")
 semester_entry = Entry(window)
-semester_entry.grid(row=5, column=3, padx=10, pady=10)
+semester_entry.grid(row=5, column=5, padx=10, pady=10)
 
 terms_var = BooleanVar()
 terms_checkbutton = Checkbutton(window, variable=terms_var, text="I accept the Terms and Conditions")
