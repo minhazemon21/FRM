@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
+from tkinter import Tk, StringVar
+from tkinter.ttk import Combobox
 
 def register_student():
     first_name = first_name_entry.get()
@@ -79,15 +81,15 @@ last_name_entry = Entry(window)
 last_name_entry.grid(row=1, column=3, padx=10, pady=10)
 
 title_var = StringVar()
-title_dropdown = OptionMenu(window, title_var, "Mr", "Mrs")
-title_dropdown.grid(row=1, column=5, sticky=W, padx=10, pady=10)
+title_combobox = Combobox(window, textvariable=title_var, values=["Mr", "Mrs"])
+title_combobox.grid(row=1, column=5, sticky="W", padx=10, pady=10)
 
 age_entry = Entry(window)
 age_entry.grid(row=3, column=1, padx=10, pady=10)
 
 nationality_var = StringVar()
-nationality_dropdown = OptionMenu(window, nationality_var, "Bangladesh", "USA", "Germany")
-nationality_dropdown.grid(row = 3, column=3, padx=10, pady=10)
+nationality_Combobox = Combobox(window, textvariable=nationality_var, values=["Bangladesh", "USA", "Germany", "Japan", "China"])
+nationality_Combobox.grid(row = 3, column=3, padx=10, pady=10)
 
 # Create registration status checkbox
 registration_status_var = BooleanVar()
