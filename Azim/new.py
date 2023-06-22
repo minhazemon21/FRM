@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import Tk, StringVar
 from tkinter.ttk import Combobox
 
+
 def register_student():
     first_name = first_name_entry.get()
     last_name = last_name_entry.get()
@@ -15,10 +16,26 @@ def register_student():
     terms_checked = terms_var.get()
 
     # Validate inputs
+    # if not first_name or not last_name or not age or not completed_courses or not semester:
+    #     messagebox.showerror("Error", "Please fill in all fields.")
+    #     return
+    #  # Check terms and conditions
+    # if not terms_checked:
+    #     messagebox.showerror("Error", "Please accept the terms and conditions.")
+    #     return
+    # Validate inputs
     if not first_name or not last_name or not age or not completed_courses or not semester:
-        messagebox.showerror("Error", "Please fill in all fields.")
+        error_label.config(text="Please fill in all fields.", fg="red")
         return
+    else:
+        error_label.config(text="")  # Clear any previous error message
 
+    # Check terms and conditions
+    if not terms_checked:
+        error_label.config(text="Please accept the terms and conditions.", fg="red")
+        return
+    else:
+        error_label.config(text="")  # Clear any previous error message
     # Write student information to file
     with open("students.txt", "a") as file:
         file.write(f"First Name: {first_name}\n")
@@ -44,6 +61,8 @@ def register_student():
 # Create the main window
 window = Tk()
 window.title("Student Registration System")
+# Set the window icon
+window.iconbitmap("favicon.ico")  # Replace "logo.ico" with the actual path and filename of your logo file
 
 # Create labels
 first_name_label = Label(window, text="First Name:")
@@ -106,9 +125,13 @@ terms_var = BooleanVar()
 terms_checkbutton = Checkbutton(window, variable=terms_var, text="I accept the Terms and Conditions")
 terms_checkbutton.grid(row=6, column=1, sticky=W, padx=10, pady=10)
 
+# Create error label
+error_label = Label(window, fg="red")
+error_label.grid(row=9, columnspan=2, padx=10, pady=10)
+
 # Create register button
 register_button = Button(window, text="Register", command=register_student)
-register_button.grid(row=9, columnspan=2, padx=10, pady=10)
+register_button.grid(row=10, columnspan=2, padx=10, pady=10)
 
 # Start the main loop
 window.mainloop()
