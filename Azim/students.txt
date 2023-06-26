@@ -22,3 +22,13 @@ Completed Courses: 55
 Semester: 4
 Terms and Conditions: Accepted
 
+First Name: Azim
+Last Name: Mahmud
+Title: Mr
+Age: 21
+Nationality: Bangladesh
+Registration Status: Yes
+Completed Courses: 1
+Semester: 12
+Terms and Conditions: Accepted
+

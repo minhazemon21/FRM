@@ -15,14 +15,7 @@ def register_student():
     semester = semester_entry.get()
     terms_checked = terms_var.get()
 
-    # Validate inputs
-    # if not first_name or not last_name or not age or not completed_courses or not semester:
-    #     messagebox.showerror("Error", "Please fill in all fields.")
-    #     return
-    #  # Check terms and conditions
-    # if not terms_checked:
-    #     messagebox.showerror("Error", "Please accept the terms and conditions.")
-    #     return
+    
     # Validate inputs
     if not first_name or not last_name or not age or not completed_courses or not semester:
         error_label.config(text="Please fill in all fields.", fg="red")
@@ -51,10 +44,14 @@ def register_student():
     # Clear input fields
     first_name_entry.delete(0, END)
     last_name_entry.delete(0, END)
+    title_combobox.delete(0, END)
     age_entry.delete(0, END)
+    nationality_Combobox.delete(0, END)
+    registration_status_checkbox.deselect()
     completed_courses_entry.delete(0, END)
     semester_entry.delete(0, END)
     terms_checkbutton.deselect()
+    error_label.config(text="")
 
     messagebox.showinfo("Success", "Student registered successfully.")
 
@@ -62,35 +59,35 @@ def register_student():
 window = Tk()
 window.title("Student Registration System")
 # Set the window icon
-window.iconbitmap("favicon.ico")  # Replace "logo.ico" with the actual path and filename of your logo file
+window.iconbitmap("favicon.ico") 
 
 # Create labels
 first_name_label = Label(window, text="First Name:")
-first_name_label.grid(row=0, column=1, sticky=E, padx=10, pady=10)
+first_name_label.grid(row=0, column=1, padx=10, pady=10)
 
 last_name_label = Label(window, text="Last Name:")
-last_name_label.grid(row=0, column=3, sticky=E, padx=10, pady=10)
+last_name_label.grid(row=0, column=3, padx=10, pady=10)
 
 title_label = Label(window, text="Title:")
-title_label.grid(row=0, column=5, sticky=E, padx=10, pady=10)
+title_label.grid(row=0, column=5, padx=10, pady=10)
 
 age_label = Label(window, text="Age:")
-age_label.grid(row=2, column=1, sticky=E, padx=10, pady=10)
+age_label.grid(row=2, column=1, padx=10, pady=10)
 
 nationality_label = Label(window, text="Nationality:")
-nationality_label.grid(row=2, column=3, sticky=E, padx=10, pady=10)
+nationality_label.grid(row=2, column=3,  padx=10, pady=10)
 
 registration_status_label = Label(window, text="Registration Status:")
-registration_status_label.grid(row=4, column=1, sticky=E, padx=10, pady=10)
+registration_status_label.grid(row=4, column=1, padx=10, pady=10)
 
 completed_courses_label = Label(window, text="Completed Courses:")
-completed_courses_label.grid(row=4, column=3, sticky=E, padx=10, pady=10)
+completed_courses_label.grid(row=4, column=3, padx=10, pady=10)
 
 semester_label = Label(window, text="Semester:")
-semester_label.grid(row=4, column=5, sticky=E, padx=10, pady=10)
+semester_label.grid(row=4, column=5, padx=10, pady=10)
 
 terms_label = Label(window, text="Terms and Conditions:")
-terms_label.grid(row=6, column=0, sticky=E, padx=10, pady=10)
+terms_label.grid(row=6, column=0, padx=10, pady=10)
 
 # Create entry fields
 first_name_entry = Entry(window)
@@ -101,7 +98,7 @@ last_name_entry.grid(row=1, column=3, padx=10, pady=10)
 
 title_var = StringVar()
 title_combobox = Combobox(window, textvariable=title_var, values=["Mr", "Mrs"])
-title_combobox.grid(row=1, column=5, sticky="W", padx=10, pady=10)
+title_combobox.grid(row=1, column=5, padx=10, pady=10)
 
 age_entry = Entry(window)
 age_entry.grid(row=3, column=1, padx=10, pady=10)
@@ -113,7 +110,7 @@ nationality_Combobox.grid(row = 3, column=3, padx=10, pady=10)
 # Create registration status checkbox
 registration_status_var = BooleanVar()
 registration_status_checkbox = Checkbutton(window, variable=registration_status_var, text="Registered")
-registration_status_checkbox.grid(row=5, column=1, sticky=W, padx=10, pady=10)
+registration_status_checkbox.grid(row=5, column=1, padx=10, pady=10)
 
 completed_courses_entry = Entry(window)
 completed_courses_entry.grid(row=5, column=3, padx=10, pady=10)
@@ -123,7 +120,7 @@ semester_entry.grid(row=5, column=5, padx=10, pady=10)
 
 terms_var = BooleanVar()
 terms_checkbutton = Checkbutton(window, variable=terms_var, text="I accept the Terms and Conditions")
-terms_checkbutton.grid(row=6, column=1, sticky=W, padx=10, pady=10)
+terms_checkbutton.grid(row=6, column=1,  padx=10, pady=10)
 
 # Create error label
 error_label = Label(window, fg="red")
