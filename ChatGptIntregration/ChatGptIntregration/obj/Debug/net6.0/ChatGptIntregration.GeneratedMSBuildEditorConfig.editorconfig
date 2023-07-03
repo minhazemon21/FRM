@@ -9,37 +9,37 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ChatGptIntregration
 build_property.RootNamespace = ChatGptIntregration
-build_property.ProjectDir = C:\Users\Administrator\Desktop\FRM\ChatGptIntregration\ChatGptIntregration\
+build_property.ProjectDir = c:\Users\Administrator\Desktop\FRM\ChatGptIntregration\ChatGptIntregration\
 build_property.RazorLangVersion = 6.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\Administrator\Desktop\FRM\ChatGptIntregration\ChatGptIntregration
+build_property.MSBuildProjectDirectory = c:\Users\Administrator\Desktop\FRM\ChatGptIntregration\ChatGptIntregration
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Error.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Index.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Privacy.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJpdmFjeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Shared/_ValidationScriptsPartial.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/_ViewImports.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/_ViewStart.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Shared/_Layout.cshtml]
+[c:/Users/Administrator/Desktop/FRM/ChatGptIntregration/ChatGptIntregration/Pages/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-oc0srvns0s

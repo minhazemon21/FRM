@@ -1,0 +1,131 @@
+namespace MMS.Web.Controllers
+{
+    public class NoticeViewController : BaseController
+    {
+        private readonly ISPService sPService;
+        public NoticeViewController(ISPService sPService)
+        {
+            this.sPService = sPService;
+        }
+
+        // GET: NoticeView
+        public ActionResult Index()
+        {
+            ViewBag.MeetingType = sPService.GetDataWithoutParameter("USP_GET_MEETING_TYPE_FOR_DROPDOWNLIST").Tables[0];
+            
+            return View();
+        }
+        public JsonResult GetMeetingidWiseTitleandDate(int meetingId)
+        {
+            try
+            {
+                var param = new
+                {
+                    MEETING_ID = meetingId
+                   
+                };
+                string storedProcedureName = "USP_GET_MEETING_WISE_Title_Date_Time_For_Report";
+
+                var data = sPService.GetDataWithParameter(param, storedProcedureName).Tables[0];
+                var GMWAFD = data.AsEnumerable().Select(r => new
+                {
+                    MeetingNo = r.Field<string>("MeetingNo"),
+                    MeetingId = r.Field<int>("MeetingId"),
+                    MeetingTitle = r.Field<string>("MeetingTitle"),
+                    MeetingDate = r.Field<string>("MeetingDate"),
+                    MeetingTime = r.Field<string>("MeetingTime")
+                }).FirstOrDefault();
+                return Json(new { Status = true, Result = GMWAFD }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        public void ShowNoticeReport(int reportNo, int meetingId, string ReportType = "pdf")
+        {
+            var param = new
+            {
+                MEETING_ID = meetingId
+            };
+
+            var data = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE");
+            //var data1 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportOne");
+            //var data2 = sPService.GetDataWithParameter(param, "USP_RPT_MEETING_NOTICE_SubReportTwo");
+            var MainReport = data.Tables[0];
+            var qrPath = GeneratorQRCode.GenerateMeetingNoticeQRImage(meetingId);
+
+
+            var reportParam = new Dictionary<string, object>
+            {
+                { "qrPath", Server.MapPath(qrPath) }
+            };
+            ReportHelper.ShowReport(MainReport, ReportType, "rptMeetingNotice.rpt", "rptMeetingNotice", reportParam, null);
+            
+           
+
+        }
+        public JsonResult SendReportinEmail(string email, int meetingId = 0)
+        {
+            try
+            {
+                var param = new
+                {
+                    MEETING_ID = meetingId
+                };
+                var storedProcedureName = "USP_RPT_MEETING_NOTICE";
+                var data = sPService.GetDataWithParameter(param, storedProcedureName);
+                var MainReport = data.Tables[0];
+                var subject = MainReport.Rows[0]["MeetingNo"].ToString()+ " তম " + MainReport.Rows[0]["TypeName"].ToString()+" এর নোটিশ";
+                var body = "Please Check";
+                var qrPath = GeneratorQRCode.GenerateMeetingNoticeQRImage(meetingId);
+                var reportParam = new Dictionary<string, object>
+                {
+                  { "qrPath", Server.MapPath(qrPath) }
+                };
+                if (!String.IsNullOrEmpty(email))
+                {
+                    ReportHelper.EmailReport(email, subject, body, MainReport, "pdf", "rptMeetingNotice.rpt", "MeetingNotice_" + MainReport.Rows[0]["MeetingNo"].ToString() + ".pdf", reportParam);
+
+
+                }
+                return Json(new { Status = true, Message = "ইমেইল সফলভাবে পাঠানো হয়েছে" }, JsonRequestBehavior.AllowGet);
+
+
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Status = false, Message = ex.GetErrorMessage() }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+    }
+}
+
+
+====================================================================
+This code snippet appears to be a C# implementation of a controller class called `NoticeViewController` in an ASP.NET MVC application. The code follows the principles of object-oriented programming (OOP) to organize and structure the functionality of the controller.
+
+Here's a breakdown of the OOP concepts utilized in this code:
+
+1. **Class:** The code defines a class named `NoticeViewController`, which serves as a controller for handling notice-related actions in the application. It extends the `BaseController` class.
+
+2. **Constructor:** The class has a constructor that accepts an `ISPService` instance as a parameter. The constructor initializes the `sPService` field with the provided service.
+
+3. **Encapsulation:** The `sPService` field is declared as `private`, encapsulating its accessibility within the class. It can only be accessed through the constructor or other methods of the class.
+
+4. **Inheritance:** The `NoticeViewController` class extends the `BaseController` class, implying that it inherits properties and behaviors from the base class.
+
+5. **Methods:** The class contains several methods that define the actions to be performed by the controller, such as `Index()`, `GetMeetingidWiseTitleandDate()`, `ShowNoticeReport()`, and `SendReportinEmail()`. These methods encapsulate specific functionality related to notice management.
+
+6. **Method Overloading:** The `ShowNoticeReport()` method demonstrates method overloading by having two different parameter signatures: one with two integer parameters (`reportNo` and `meetingId`) and one with an additional optional string parameter (`ReportType`).
+
+7. **Exception Handling:** The code includes exception handling using `try-catch` blocks to catch any exceptions that may occur during the execution of certain methods. The caught exceptions are then returned as JSON responses to provide feedback to the client.
+
+8. **Access Modifiers:** The code uses access modifiers such as `public` and `private` to control the visibility and accessibility of class members and methods.
+
+9. **Polymorphism:** The code leverages polymorphism through the use of LINQ queries (`Select()`, `FirstOrDefault()`) to transform and project data retrieved from a database table into an anonymous type for further processing.
+
+10. **Dependency Injection:** The `NoticeViewController` class accepts an `ISPService` instance through the constructor, indicating a dependency injection approach. This allows for more flexible and modular code by decoupling the controller from specific implementations of the service.
+
+Overall, this code demonstrates the implementation of an MVC controller class using object-oriented programming concepts, such as encapsulation, inheritance, polymorphism, and exception handling, to provide notice-related functionality within an ASP.NET application.
