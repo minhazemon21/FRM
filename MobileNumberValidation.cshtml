@@ -1,0 +1,500 @@
+﻿@using Apartment.Data.ApartmentDataModel
+@using Common.Data.CommonDataModel
+@using System.Data;
+@using Common.Web.Helpers;
+@{
+    ViewBag.Title = "Lead";
+    var sources = (List<Source>)ViewBag.Sources;
+    var executives = (List<OfficeExecutive>)ViewBag.Executives;
+
+    var department = ((DataTable)ViewBag.Department).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        DepartmentName = x.Field<string>("DepartmentName"),
+    }).ToList();
+
+    var occupationList = ((DataTable)ViewBag.OccupationList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        ProfessionName = x.Field<string>("ProfessionName"),
+    }).ToList();
+
+    var companyBusinessList = ((DataTable)ViewBag.CompanyBusinessList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        BusinessName = x.Field<string>("BusinessName"),
+    }).ToList();
+
+    var customerList = ((DataTable)ViewBag.CustomerList).AsEnumerable().Select(x => new
+    {
+        CustomerId = x.Field<int?>("CustomerId"),
+        CustomerName = x.Field<string>("CustomerName"),
+        AssignDate = x.Field<string>("AssignDate"),
+        CustomerAddress = x.Field<string>("CustomerAddress"),
+        AssignedExecutiveId = x.Field<int?>("AssignedExecutiveId"),
+        ExecutiveName = x.Field<string>("ExecutiveName"),
+        CustomerMobile = x.Field<string>("CustomerMobile"),
+        CustomerEmail = x.Field<string>("CustomerEmail"),
+        OccupationId = x.Field<int?>("OccupationId"),
+        OccupationName = x.Field<string>("OccupationName"),
+        DesignationName = x.Field<string>("DesignationName"),
+        SourceId = x.Field<int?>("SourceId"),
+        SourceName = x.Field<string>("SourceName"),
+        DepartmentId = x.Field<int?>("DepartmentId"),
+        BusinessIds = x.Field<string>("BusinessIds"),
+        FacebookUrl = x.Field<string>("FacebookUrl")
+    }).ToList();
+
+    var Customer_Id = 0;
+}
+<style type="text/css">
+    li p{
+        color:#004274;
+    }
+</style>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="panel panel-success panel-custom">
+            <div class="panel-heading PageHeader">
+                <h3 class="panel-title">New Lead Add</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Lead Name", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm csname" id="txtCustomerName" data-id="0" />
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Mobile No", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="txtCustomerMobile" maxlength="11" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Email", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="email" class="form-control input-sm" id="txtCustomerEmail" />
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Occupation", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="form-control" id="ddlOccupation">
+                            <option value="0">Please Select</option>
+                            @foreach (var r in occupationList)
+                            {
+                                <option value="@r.Id">@r.ProfessionName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Designation", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" class="form-control input-sm" id="txtDesignation" />
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Source", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="form-control input-sm" id="cmbSource">
+                            <option value="0">Select Source</option>
+                            @if(SessionHelper.LoggedInDepartmentId == 2)
+                            {
+                                foreach (var src in sources.Where(x => x.Id == 6 || x.Id == 8 || x.Id == 15).ToList())
+                                    {
+                                        <option value="@src.Id">@src.SourceName</option>
+                                    }
+                            }
+                            else if (SessionHelper.LoggedInDepartmentId == 10)
+                            {
+                                 foreach (var src in sources.Where(x => x.Id == 6 || x.Id == 8 || x.Id == 13 || x.Id == 9).ToList())
+                                    {
+                                        <option value="@src.Id">@src.SourceName</option>
+                                    }
+                            }
+                            else
+                            {
+                                foreach (var src in sources)
+                                    {
+                                        <option value="@src.Id">@src.SourceName</option>
+                                    }
+                            }
+                            
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <div class="col-sm-2 label-container">
+                            <label class="control-label">Department</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <select class="form-control" id="ddlDepartment">
+                                @if(department.Count > 1)
+                                {
+                                     <option value="0">Please Select</option>
+                                }
+                               
+                                @foreach (var m in department)
+                                {
+                                    <option value="@m.Id">@m.DepartmentName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Assigned Executive", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="form-control input-sm" id="cmbExecutive">
+                            @if (SessionHelper.LoggedIn_IsAdmin != 1)
+                            {
+                                if (executives.Count() > 1)
+                                {
+                                    <option value="0">Select Executive</option>
+                                }
+                                foreach (var ext in executives.OrderBy(x => x.ExecutiveName))
+                                {
+                                    <option value="@ext.Id">@ext.ExecutiveName</option>
+                                }
+                            }
+                            else
+                            {
+                                <option value="0">Select Executive</option>
+                                foreach (var ext in executives.OrderBy(x => x.ExecutiveName))
+                                {
+                                    <option value="@ext.Id">@ext.ExecutiveName</option>
+                                }
+                            }
+
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Assign Date", new { @class = "control-label required" })
+                    </div>
+                    @if (SessionHelper.LoggedIn_IsAdmin == 1)
+                    {
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" value="@DateTime.Today.ToString("dd-MMM-yy")" id="txtAssignDate" readonly="readonly" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-sm-4">
+                            <input type="text" class="form-control" value="@DateTime.Today.ToString("dd-MMM-yy")" id="txtAssignDate" readonly="readonly" disabled/>
+                        </div>
+                    }
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Address", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-4">
+                        <textarea class="form-control input-sm" id="txtCustomerAddress" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Leads Add For", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-4">
+                        <ul class="to_do">
+                            <li>
+                                <p>
+                                    <input type="checkbox" class="flat chkall"><strong> All Project</strong>
+                                </p>
+                            </li>
+                            @foreach (var r in companyBusinessList)
+                            {
+                                <li>
+                                    <p>
+                                        <input type="checkbox" class="flat csbusiness" data-businessid="@r.Id"> @r.BusinessName
+                                    </p>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Facebook URL", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-4">
+                        <textarea class="form-control input-sm" id="txtFacebookUrl" rows="1"></textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1 col-sm-offset-6">
+                        <input type="button" name="btnAddNewLead" id="btnAddNewLead" class="btn btn-sm btn-success" value="Submit" />
+                    </div>
+                    <div class="col-sm-1">
+                        <input type="button" name="btnSet" id="btnSet" class="btn btn-sm btn-primary" value="Reset" />
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <table id="datatable" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Mobile</th>
+                                <th>Email</th>
+                                <th>Occupation</th>
+                                <th>Designation</th>
+                                <th>Source</th>
+                                <th>Assign Executive</th>
+                                <th>Assign Date</th>
+                                <th>Address</th>
+                                <th style="width: 20px;">FB Url</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                           @foreach(var c in customerList)
+                           {
+                               <tr>
+                                   <td>@c.CustomerName</td>
+                                   <td>@c.CustomerMobile</td>
+                                   <td>@c.CustomerEmail</td>
+                                   <td>@c.OccupationName</td>
+                                   <td>@c.DesignationName</td>
+                                   <td>@c.SourceName</td>
+                                   <td>@c.ExecutiveName</td>
+                                   <td>@c.AssignDate</td>
+                                   <td>@c.CustomerAddress</td>
+                                   <td style="width: 20px;">@c.FacebookUrl</td>
+                                   <td><a href="#" class="btn btn-info" onclick="Leaddtforedit(@c.CustomerId,'@c.CustomerName','@c.CustomerMobile','@c.CustomerEmail',@c.OccupationId,'@c.DesignationName',@c.SourceId,@c.AssignedExecutiveId,'@c.AssignDate','@c.CustomerAddress','@c.BusinessIds',@c.DepartmentId, '@c.FacebookUrl');">Edit</a>@*<a href="#" class="btn btn-danger" onclick="DeleteCustomer(@c.CustomerId);" >Delete</a>*@</td>
+                               </tr>
+                           }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+               
+        </div>
+    </div>
+</div>
+<div class="loader" id="divLoader" style="display: none;"></div>
+<script type="text/javascript" src="~/Scripts/jquery.maskedinput-1.3.min.js"></script>
+<script src="~/Scripts/EmailValidation.js"></script>
+<script type="text/javascript">
+
+    function Leaddtforedit(CustomerId, CustomerName, CustomerMobile, CustomerEmail, OccupationId, DesignationName, SourceId, AssignedExecutiveId, AssignDate, CustomerAddress, BusinessIds, DepartmentId, FacebookUrl) {
+
+        $("#txtCustomerName").attr("data-id", CustomerId);
+        $("#txtCustomerName").val(CustomerName);
+        $("#txtCustomerMobile").val(CustomerMobile);
+        $("#txtCustomerAddress").val(CustomerAddress);
+        $("#txtCustomerEmail").val(CustomerEmail);
+        $("#txtAssignDate").val(AssignDate);
+        $("#ddlOccupation").val(OccupationId);
+        $("#txtDesignation").val(DesignationName);
+        $("#cmbExecutive").val(AssignedExecutiveId);
+        $("#cmbSource").val(SourceId);
+        $("#ddlDepartment").val(DepartmentId);
+        $("#txtFacebookUrl").val(FacebookUrl);
+
+        //$(".csbusiness").prop("checked", true);
+        if (BusinessIds != "") {
+            var bs = BusinessIds.split(",");
+            var c = 0
+            $(".csbusiness").each(function () {
+                if ($(this).attr("data-businessid") == bs[c]) {
+                    $(this).prop("checked", true);
+                }
+                c += 1;
+            });
+        }
+    }
+
+
+    function GetExecutiveList() {
+        var deptId = $("#ddlDepartment").val();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetDepartmentwiseExecutive", "CallCenter", "http")',
+            data: { deptId: deptId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Status == true) {
+                    var html = "";
+                    $("#cmbExecutive").html("");
+                    html = '<option value="0">Select Executive</option>';
+                    $.each(data.data, function (id, e) {
+
+                        html = html + '<option value="' + e.Id + '">' + e.ExecutiveName + '-' + e.ExecutiveCode + '</option>';
+                    });
+                    $("#cmbExecutive").html(html);
+                }
+                else {
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+
+        $("#btnSet").on("click", function () {
+            window.location.reload();
+        });
+
+
+        $(document).on("click", "#txtAssignDate", function () {
+            $(this).datepicker({
+                dateFormat: "dd-M-yy",
+                showAnim: "scale",
+                changeMonth: true,
+                changeYear: true,
+                minDate: "0",
+                maxDate: "+1Y"
+            }).focus();
+        });
+
+        $(".chkall").on("click", function () {
+
+            $(".flat").prop("checked",$(this).is(":checked"));
+
+        });
+
+        $("#txtCustomerEmail").on("change", function () {
+            if (IsEmail($(this).val()) == true)
+            {
+                return true;
+            }
+            else
+            {
+                $("#txtCustomerEmail").val("");
+                $.alert.open("info","Invalid email format.");
+                return true;
+            }
+        })
+
+        $("#ddlDepartment").on("change", function () { GetExecutiveList(); });
+
+        $("#txtCustomerMobile").on("blur", function () {
+            var mlen = $(this).val().length;
+            if (mlen < 11 && mlen != 0) {
+                $.alert.open("info", "Minimun character length 11.");
+                $("#txtCustomerMobile").focus();
+            }
+        });
+
+        $('#txtCustomerMobile').on('keypress', function (event) {
+            var regex = new RegExp("^[0-9]+$");
+            var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+            if (!regex.test(key)) {
+                event.preventDefault();
+                return false;
+            }
+        });
+
+    });
+
+
+
+    $("#btnAddNewLead").on("click", function () {
+        var customerId = $("#txtCustomerName").attr("data-id");
+        var name = $("#txtCustomerName").val().trim();
+        var mobile = $("#txtCustomerMobile").val().trim();
+        var address = $("#txtCustomerAddress").val().trim();
+        var email = $("#txtCustomerEmail").val().trim();
+        var aasignDate = $("#txtAssignDate").val();
+        var occupationId = $("#ddlOccupation").val();
+        var designation = $("#txtDesignation").val();
+        var executiveId = $("#cmbExecutive").val();
+        var sourceId = $("#cmbSource").val();
+        var businessIds = "";
+        var fburl = $("#txtFacebookUrl").val().trim();
+
+        $(".csbusiness").each(function () {
+
+            if($(this).is(":checked") == true)
+            {
+                businessIds = businessIds +","+ $(this).attr("data-businessid");
+            }
+        });
+
+        if (name == "") {
+            $.alert.open("Error!!", "Please enter customer name.");
+            return false;
+        }
+        if (mobile == "") {
+            $.alert.open("Error!!", "Please enter customer mobile.");
+            return false;
+        }
+        if (mobile.length < 11) {
+            $.alert.open("Error!!", "mobile number length must be greater than 10.");
+            return false;
+        }
+        if (occupationId == "0") {
+            $.alert.open("Error!!", "Please select occupation.");
+            return false;
+        }
+        if (aasignDate == "") {
+            $.alert.open("Error!!", "Please enter aasign date.");
+            return false;
+        }
+        if (executiveId == "0") {
+            $.alert.open("Error!!", "Please select assigned executive.");
+            return false;
+        }
+        if (sourceId == "0") {
+            $.alert.open("Error!!", "Please select source.");
+            return false;
+        }
+        if (businessIds == "")
+        {
+            $.alert.open("Error!!", "Please checked atleast 1 business.");
+            return false;
+        }
+
+        var json = JSON.stringify({ Id: customerId, CustomerName: name, CustomerMobile: mobile, CustomerAddress: address, CustomerEmail: email, AssignedExecutiveId: executiveId, SourceId: sourceId, aasignDate: aasignDate, occupationId: occupationId, designation: designation, businessIds: businessIds, fburl: fburl });
+        $("#divLoader").show();
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("SaveCustomerInfo", "Customer")',
+            contentType: "application/json; charset=utf-8",
+            data: json,
+            dataType: "json",
+            success: function (data) {
+                $("#divLoader").hide();
+                if (data.Status == true) {
+                   // var message = "New leads assign";
+                   // SaveNotificationCommon(executiveId, message);
+                    $.alert.open("Success!!", data.Message, function () { window.location.reload(); });
+                } else {
+
+                    $.alert.open("Error!!", data.Message,
+                        function () {
+                            if (data.CustomerId != 0) {
+                                window.location = "@Url.Action("Followup", "CallCenter")?id=" + data.CustomerId;
+                            }
+                            else {
+                                return false;
+                            }
+
+                        }
+
+                       );
+                }
+            }
+        });
+        return true;
+    });
+
+
+</script>
