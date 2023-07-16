@@ -1,0 +1,9 @@
+        var myArray = new Array();
+
+        var teamAdd = new Object();
+        teamAdd.teamName = teamName;
+        teamAdd.teamStName = teamStName;
+        teamAdd.formationDate = formationDate;
+        teamAdd.remarks = remarks;
+        myObject.push(teamAdd);
+        console.log(myArray);
