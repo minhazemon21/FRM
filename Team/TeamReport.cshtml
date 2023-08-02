@@ -1,0 +1,201 @@
+﻿@using Apartment.Data.ApartmentDataModel
+@using Common.Data.CommonDataModel
+@using System.Data;
+@{
+    ViewBag.Title = "TeamReport";
+    //  var organizations = (List<Organization>)ViewBag.Organizations;
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    var TeamList = ((DataTable)ViewBag.TeamList).AsEnumerable().Select(x => new
+    {
+        CRMTeamId = x.Field<int>("CRMTeamId"),
+        TeamName = x.Field<string>("TeamName"),
+        TeamShortName = x.Field<string>("TeamShortName"),
+        TeamLeaderId = x.Field<int>("TeamLeaderId"),
+        ExecutiveName = x.Field<string>("ExecutiveName"),
+        ExecutiveCode = x.Field<string>("ExecutiveCode"),
+    }).ToList();
+}
+
+<link href="~/Content/css/timePicker.css" rel="stylesheet" />
+<script src="~/Content/js/timePicker.js"></script>
+
+
+
+<style type="text/css">
+    .panel-custom > .panel-heading {
+        color: #FFFFFF !important;
+    }
+    /**/
+    .panel-custom .panel-body .row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+    .panel-custom .panel-body .radio {
+        margin-top: 0px;
+    }
+
+    /*.panel-custom .panel-body .radio-text, .panel-custom .panel-body input[type=text] {
+        color: #000000;
+    }*/
+
+    .panel-custom .label-container {
+        text-align: left;
+    }
+
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    #error > .panel {
+        margin-bottom: 20px;
+    }
+
+        #error > .panel > .panel-heading {
+            padding: 0px 5px 0px 15px;
+        }
+
+    .radio-container label {
+        cursor: pointer;
+        padding: 5px;
+    }
+
+        .radio-container label.active {
+            background: #0e73a9;
+            border-radius: 4px;
+            /*margin-left: 10px;*/
+        }
+
+            .radio-container label.active span.radio-text {
+                color: #FFFFFF;
+            }
+    /*.modal {
+        z-index: 1 !important;
+    }*/
+
+    .modal-backdrop {
+        z-index: 0 !important;
+    }
+
+    .modal-header {
+        color: white;
+        background-color: #5bc0de;
+    }
+
+    .modal-title {
+        line-height: .7;
+    }
+
+    .close {
+        line-height: .9;
+        color: red;
+        opacity: 1;
+        margin-bottom: 5px !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-success panel-custom">
+            <div class="panel-heading PageHeader">
+                <h3 class="panel-title">Team Details Report</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                        @Html.Label("Report Name :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-10 col-xs-12  radio-container">
+                        <div class="row">
+                            @for (var r = 0; r < reports.Count; r++)
+                            {
+                                <label class="col-sm-6 col-xs-12 @(r==0?"active":"")">
+                                    <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="fileType" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                </div>
+                @*<div class="row" id="divDateRange">
+                    <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                        <label id="lblDateFrom" class="control-label required">Meeting Date From</label>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" class="form-control input-sm DateInput" id="txtStartDate" />
+                    </div>
+                    <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                        <label id="lblDateTo" class="control-label required">Meeting Date To</label>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" class="form-control input-sm DateInput" id="txtEndDate" />
+                    </div>
+                </div>*@
+                
+                
+            <div class="row">
+                <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12">
+                    @Html.Label("Team", new { @class = "control-label" })
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                    <select class="input-sm form-control" id="cmbCRMTeam">
+                        <option value="0">Please Select Team</option>
+                        @foreach (var dt in TeamList)
+                        {
+                            <option value="@dt.CRMTeamId">@dt.TeamName-(@dt.ExecutiveName-@dt.ExecutiveCode)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                    @Html.Label("Report Type :", new { @class = "control-label" })
+                </div>
+                <div class="col-md-4 col-sm-4 col-xs-12">
+                    <select class="input-sm form-control" id="cmbReportType">
+                        <option value="Pdf" selected="selected">Pdf</option>
+                        <option value="ExcelBook">Microsoft Excel</option>
+                        <option value="Excel">Microsoft Excel (97-2003)</option>
+                        <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                        <option value="Word">Microsoft Word (97-2003)</option>
+                        <option value="XML">XML</option>
+                    </select>
+                </div>
+
+
+            </div>
+                <hr />
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                        <input type="button" name="btnSubmit" id="btnSubmit" class="btn btn-sm btn-info" value="Show" />
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="~/Scripts/jquery.maskedinput-1.3.min.js"></script>
+<script type="text/javascript">
+    
+    
+
+    $(document).ready(function () {
+
+        $("#btnSubmit").on("click", function (e) {
+            var reportNo = parseInt($("input[type=radio][name=fileType]:checked").val());
+            //var startDate = $("#txtStartDate").val();
+            //var endDate = $("#txtEndDate").val();
+            var TeamId = $("#cmbCRMTeam").val();
+            var type = $("#cmbReportType").val();
+            //if (startDate == "" && endDate == "") {
+            //    $.alert.open("info", "Please select date.");
+            //    return false;
+            //}
+            if (reportNo == 1) {
+                var url = '/Apartment/Team/ShowReportforTeamDetails?reportNo=1&TeamId=' + TeamId + '&type=' + type;
+                window.open(url);
+            }
+        });
+    });
+    
+    
+</script>

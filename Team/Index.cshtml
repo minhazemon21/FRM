@@ -1,0 +1,249 @@
+﻿@using Apartment.Data.ApartmentDataModel
+@using Common.Data.CommonDataModel
+@using System.Data;
+@using Common.Web.Helpers;
+@{
+    ViewBag.Title = "Index";
+    var TeamList = ((DataTable)ViewBag.TeamList).AsEnumerable().Select(x => new
+    {
+        RowSl = x.Field<string>("RowSl"),
+        CRMTeamId = x.Field<int>("CRMTeamId"),
+        TeamName = x.Field<string>("TeamName"),
+        TeamShortName = x.Field<string>("TeamShortName"),
+        TeamLeaderId = x.Field<int>("TeamLeaderId"),
+        ExecutiveName = x.Field<string>("ExecutiveName"),
+        Remarks = x.Field<string>("Remarks"),
+        ExecutiveCode = x.Field<string>("ExecutiveCode"),
+    }).ToList();
+    
+    var TeamLeadAssign = ((DataTable)ViewBag.TeamLeadAssign).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        ExecutiveName = x.Field<string>("ExecutiveName"),
+        ExecutiveCode = x.Field<string>("ExecutiveCode")
+    }).ToList();
+}
+<style type="text/css">
+    li p {
+        color: #004274;
+    }
+    .panel-custom .label-container {
+        text-align: left;
+    }
+    #datatable th {
+        background-color: #04AA6D;
+        color:white
+    }
+</style>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-success panel-custom">
+                <div class="panel-heading PageHeader">
+                    <h3 class="panel-title">New Team Add</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                            @Html.Label("Team Name", new { @class = "control-label required" })
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" class="form-control input-sm csname" id="txtTeamName" data-id="0" />
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                            @Html.Label("Team Short Name", new { @class = "control-label required" })
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" class="form-control input-sm" id="txtTeamStName" />
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                            @Html.Label("Assigned Team Lead", new { @class = "control-label required" })
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <select class="form-control input-sm" id="teamLeadAssign">
+
+                                <option value="0">Select Executive</option>
+                                @foreach (var ext in TeamLeadAssign)
+                                {
+                                    <option value="@ext.Id">@ext.ExecutiveName - @ext.ExecutiveCode</option>
+                                }
+
+
+                            </select>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                            @Html.Label("Remarks", new { @class = "control-label" })
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <textarea class="form-control input-sm" id="txtTeamRemarks" rows="2"></textarea>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                            <input type="button" name="btnAddTeam" id="btnAddTeam" class="btn btn-sm btn-success " value="Submit" />
+                            <input type="button" name="btnReSet" id="btnReSet" class="btn btn-sm btn-primary" value="Reset" />
+
+                        </div>
+                        @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                            </div>*@
+                        @*<div class="col-sm-12 text-center">
+                                <input type="button" name="btnSubmit" id="btnSubmit" class="btn btn-sm btn-success" value="Submit" />
+                                <input type="button" name="btnReset" id="btnReset" class="btn btn-sm btn-success" value="Reset" />
+                            </div>*@
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:right">
+                            <input type="button" name="btnView" id="btnView" class="btn btn-sm btn-info" value="Grid Print" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-xs-12 table-responsive">
+                            <table id="datatable" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>SL No</th>
+                                        <th>Team Name</th>
+                                        <th>Short Name</th>
+                                        <th>Team Lead Name</th>
+                                        <th>Remarks</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var t in TeamList)
+                                    {
+                                        <tr>
+                                            <td>@t.RowSl</td>
+                                            <td>@t.TeamName</td>
+                                            <td>@t.TeamShortName</td>
+                                            <td>@t.ExecutiveName - @t.ExecutiveCode</td>
+                                            <td>@t.Remarks</td>
+                                            <td style="width:15%; text-align:right">
+                                                <a href="#" class="btn btn-info" onclick="Leaddtforedit(@t.CRMTeamId, '@t.TeamName', '@t.TeamShortName', @t.TeamLeaderId,'@t.Remarks');">Edit</a>
+                                                @*<a href="#" class="btn btn-danger" onclick="DeleteTeam(@t.CRMTeamId,@t.TeamLeaderId);" >Delete</a>*@
+                                                <a href="#" class="btn btn-primary" onclick="PrintTeam(@t.CRMTeamId);" >Print</a>
+
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<div class="loader" id="divLoader" style="display: none;"></div>
+
+<script type="text/javascript">
+
+    function Leaddtforedit(CRMTeamId, TeamName, TeamShortName, TeamLeaderId, Remarks) {
+        $("#txtTeamName").attr("data-id", CRMTeamId);
+        $("#txtTeamName").val(TeamName);
+        $("#txtTeamStName").val(TeamShortName);
+        $("#teamLeadAssign").val(TeamLeaderId);
+        $("#txtTeamRemarks").val(Remarks);
+        $("#btnAddTeam").val("Update");
+    }
+    function PrintTeam(CRMTeamId) {
+        var url = '/Apartment/Team/ShowReportforTeamDetails?reportNo=1&TeamId=' + CRMTeamId;
+        window.open(url);
+    }
+    function DeleteTeam(CRMTeamId, TeamLeaderId)
+    {
+        $.alert.open('confirm', 'Do you want to delete this record?', function (button) {
+            if (button == 'yes') {
+                $("#AjaxLoader").show();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("DeleteTeam", "Team", "http")',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ CRMTeamId: CRMTeamId, TeamLeaderId: TeamLeaderId }),
+                    dataType: 'json',
+                    success: function (data) {
+                        $("#AjaxLoader").hide();
+                        if (data.Status == true) {
+                            $.alert.open("Info!!", data.Message, function () {
+                                window.location.reload();
+                            });
+                        }
+                        else {
+                            $.alert.open("Error!!", data.Message);
+                        }
+
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+    $(document).ready(function () {
+        $("#btnReSet").on("click", function () {
+            window.location.reload();
+        });
+        $("#btnView").click(function (e) {
+            e.preventDefault();
+            var url = '/Apartment/Team/ShowTeamReport?reportNo=1';
+            window.open(url);
+
+        });
+    });
+    $("#btnAddTeam").on("click", function () {
+        var teamId = $("#txtTeamName").attr("data-id");
+        var teamName = $("#txtTeamName").val().trim();
+        var teamStName = $("#txtTeamStName").val().trim();
+        var teamLeadId = $("#teamLeadAssign").val();
+        var remarks = $("#txtTeamRemarks").val().trim();
+        if (teamName == "") {
+            $.alert.open("Error!!", "Please enter team name.");
+            return false;
+        }
+        if (teamStName == "") {
+            $.alert.open("Error!!", "Please enter team short name.");
+            return false;
+        }
+        if (teamLeadId == "0") {
+            $.alert.open("Error!!", "Please select team lead.");
+            return false;
+        }
+        var json = JSON.stringify({ teamId: teamId, teamName: teamName, teamStName: teamStName, teamLeadId: teamLeadId, remarks: remarks});
+        $("#divLoader").show();
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("SaveTeamInfo", "Team")',
+            contentType: "application/json; charset=utf-8",
+            data: json,
+            dataType: "json",
+            success: function (data) {
+                $("#divLoader").hide();
+                if (data.Status == true) {
+                    if (data.Response == 1 || data.Response == 2) {
+                        $.alert.open("Info!!", data.Message);
+                    }
+                    else {
+                        $.alert.open("Success!!", data.Message, function () { window.location.reload(); });
+                    }
+                }
+                else {
+
+                    $.alert.open("Error!!", data.Message);
+                }
+            }
+        });
+        return true;
+    });
+</script>
