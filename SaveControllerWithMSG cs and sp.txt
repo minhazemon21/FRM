@@ -1,0 +1,88 @@
+public JsonResult RefundAmountSetup(ClientRefund client)
+        {
+            try
+            {
+                var result = sPService.GetDataWithParameter(new
+                {
+                    Id = client.Id,
+                    OrganizationId = client.OrganizationId,
+                    ProjectId = client.ProjectId,
+                    FileNo = client.FileNo,
+                    SaleId = client.SaleId,
+                    RefundAmount = client.RefundAmount,
+                    RefundDate = client.RefundDate,
+                    Remarks = client.Remarks,
+                    EntryUserId = SessionHelper.LoggedInUserId
+                }, "USP_CLIENT_REFUND_AMOUNT_SETUP").Tables[0];
+
+                if (result.Rows[0][1].ToString() == "1")
+                {
+                    return Json(new { Message = result.Rows[0][0].ToString(), Status = true },
+                        JsonRequestBehavior.AllowGet);
+                }
+                return Json(new { Message = result.Rows[0][0].ToString(), Status = false },
+                    JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Message = ex.GetErrorMessage(), Status = false }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+
+ALTER PROCEDURE [dbo].[USP_CLIENT_REFUND_AMOUNT_SETUP]
+	@Id INT=0,
+	@OrganizationId INT = 0,
+	@ProjectId INT=0,
+	@FileNo VARCHAR(20)='',
+	@SaleId INT = 0,
+	@RefundAmount DECIMAL(18,4)=0.0,
+	@RefundDate datetime = '',
+	@Remarks varchar(1000) = '',
+	@EntryUserId INT=0
+AS
+BEGIN
+	IF(@Id=0)
+		BEGIN
+
+		IF EXISTS(SELECT * FROM ClientAmountRefund M WHERE M.FileNo=@FileNo AND M.IsActive=1)
+				BEGIN
+					SELECT 'This already exists in this list.' MessageText,0 'Status'
+				END
+			ELSE
+			
+				BEGIN
+					INSERT INTO ClientAmountRefund(OrganizationId, ProjectId, FileNo, SaleId, RefundAmount, RefundDate, Remarks, EntryDate, EntryUserId, UpdateDate, UpdateUserId, IsActive)
+					VALUES(@OrganizationId,@ProjectId, @FileNo, @SaleId, @RefundAmount, @RefundDate, @Remarks, GETDATE(),@EntryUserId,   NULL,NULL,1)
+
+					SELECT 'Client Refund saved successfully.' MessageText,1 'Status'
+				END				
+		END
+	ELSE
+		BEGIN
+
+			IF EXISTS(SELECT * FROM ClientAmountRefund M WHERE M.FileNo=@FileNo AND M.IsActive=1 AND M.Id<>@Id)
+				BEGIN
+					SELECT 'This already exists in this list.' MessageText,0 'Status'
+				END
+			ELSE
+				BEGIN
+					UPDATE ClientAmountRefund
+					SET 
+					OrganizationId = @OrganizationId,
+					ProjectId = @ProjectId,
+					FileNo = @FileNo,
+					SaleId = @SaleId,
+					RefundAmount=@RefundAmount,
+					RefundDate = @RefundDate,
+					Remarks = @Remarks,
+					UpdateDate=GETDATE(),
+					UpdateUserId=@EntryUserId
+					WHERE Id=@Id
+
+					SELECT 'Client Refund  updated successfully.' MessageText,1 'Status'
+				END	
+		END
+
+	END
