@@ -22,8 +22,13 @@ Public Class Form1
         sda.Fill(dt)
         If (dt.Rows.Count > 0) Then
             MessageBox.Show("Login Success", "information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Form2.Show()
         Else
             MessageBox.Show("Error", "information", MessageBoxButtons.OK, MessageBoxIcon.Information)
         End If
+    End Sub
+
+    Private Sub txtPassword_TextChanged(sender As Object, e As EventArgs) Handles txtPassword.TextChanged
+
     End Sub
 End Class
