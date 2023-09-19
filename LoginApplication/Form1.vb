@@ -21,7 +21,7 @@ Public Class Form1
         Dim dt As DataTable = New DataTable()
         sda.Fill(dt)
         If (dt.Rows.Count > 0) Then
-            MessageBox.Show("Login Success", "information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            'MessageBox.Show("Login Success", "information", MessageBoxButtons.OK, MessageBoxIcon.Information)
             Form2.Show()
         Else
             MessageBox.Show("Error", "information", MessageBoxButtons.OK, MessageBoxIcon.Information)
