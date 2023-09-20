@@ -1,6 +1,8 @@
 ﻿Imports System.Data
 Imports System.Data.SqlClient
 Public Class Form2
+    Dim con As SqlConnection = New SqlConnection("Data Source=DESKTOP-QB4O65F\SQLEXPRESS;Initial Catalog=LoginDB;Integrated Security=True")
+    Dim cmd As SqlCommand = New SqlCommand
     Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
 
     End Sub
@@ -22,9 +24,38 @@ Public Class Form2
         txtTaskName.Clear()
         txtDescription.Clear()
         txtEmpName.Focus()
+        ShowData()
     End Sub
 
     Private Sub Label3_Click(sender As Object, e As EventArgs) Handles Label3.Click
 
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+    End Sub
+
+    Private Sub Form2_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Using con As SqlConnection = New SqlConnection("Data Source=DESKTOP-QB4O65F\SQLEXPRESS;Initial Catalog=LoginDB;Integrated Security=True")
+            con.Open()
+            ShowData()
+        End Using
+    End Sub
+
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+
+    End Sub
+
+    Public Sub ShowData()
+        cmd.Connection = con
+        cmd = con.CreateCommand()
+        cmd.CommandType = CommandType.Text
+        cmd.CommandText = "SELECT T.Id,T.EmpName,T.TaskName,T.Description FROM TaskInfo T"
+        cmd.ExecuteNonQuery()
+        Dim dt As New DataTable()
+        Dim da As New SqlDataAdapter(cmd)
+        da.Fill(dt)
+        DataGridView1.DataSource = dt
     End Sub
 End Class
