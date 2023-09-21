@@ -30,9 +30,9 @@ Partial Class Form2
         Me.btnSave = New System.Windows.Forms.Button()
         Me.txtDescription = New System.Windows.Forms.TextBox()
         Me.Label4 = New System.Windows.Forms.Label()
-        Me.Button1 = New System.Windows.Forms.Button()
+        Me.btnDelete = New System.Windows.Forms.Button()
         Me.DataGridView1 = New System.Windows.Forms.DataGridView()
-        Me.Button2 = New System.Windows.Forms.Button()
+        Me.btnUpdate = New System.Windows.Forms.Button()
         CType(Me.DataGridView1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
@@ -79,7 +79,7 @@ Partial Class Form2
         '
         'btnSave
         '
-        Me.btnSave.Location = New System.Drawing.Point(123, 306)
+        Me.btnSave.Location = New System.Drawing.Point(231, 306)
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(75, 23)
         Me.btnSave.TabIndex = 6
@@ -102,41 +102,42 @@ Partial Class Form2
         Me.Label4.TabIndex = 8
         Me.Label4.Text = "List"
         '
-        'Button1
+        'btnDelete
         '
-        Me.Button1.Location = New System.Drawing.Point(42, 306)
-        Me.Button1.Name = "Button1"
-        Me.Button1.Size = New System.Drawing.Size(75, 23)
-        Me.Button1.TabIndex = 9
-        Me.Button1.Text = "Delete"
-        Me.Button1.UseVisualStyleBackColor = True
+        Me.btnDelete.Location = New System.Drawing.Point(42, 306)
+        Me.btnDelete.Name = "btnDelete"
+        Me.btnDelete.Size = New System.Drawing.Size(75, 23)
+        Me.btnDelete.TabIndex = 9
+        Me.btnDelete.Text = "Delete"
+        Me.btnDelete.UseVisualStyleBackColor = True
         '
         'DataGridView1
         '
         Me.DataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-        Me.DataGridView1.Location = New System.Drawing.Point(410, 81)
+        Me.DataGridView1.Location = New System.Drawing.Point(324, 81)
         Me.DataGridView1.Name = "DataGridView1"
         Me.DataGridView1.RowTemplate.Height = 25
-        Me.DataGridView1.Size = New System.Drawing.Size(356, 172)
+        Me.DataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+        Me.DataGridView1.Size = New System.Drawing.Size(442, 235)
         Me.DataGridView1.TabIndex = 10
         '
-        'Button2
+        'btnUpdate
         '
-        Me.Button2.Location = New System.Drawing.Point(204, 306)
-        Me.Button2.Name = "Button2"
-        Me.Button2.Size = New System.Drawing.Size(75, 23)
-        Me.Button2.TabIndex = 11
-        Me.Button2.Text = "Update"
-        Me.Button2.UseVisualStyleBackColor = True
+        Me.btnUpdate.Location = New System.Drawing.Point(139, 306)
+        Me.btnUpdate.Name = "btnUpdate"
+        Me.btnUpdate.Size = New System.Drawing.Size(75, 23)
+        Me.btnUpdate.TabIndex = 11
+        Me.btnUpdate.Text = "Update"
+        Me.btnUpdate.UseVisualStyleBackColor = True
         '
         'Form2
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(800, 450)
-        Me.Controls.Add(Me.Button2)
+        Me.Controls.Add(Me.btnUpdate)
         Me.Controls.Add(Me.DataGridView1)
-        Me.Controls.Add(Me.Button1)
+        Me.Controls.Add(Me.btnDelete)
         Me.Controls.Add(Me.Label4)
         Me.Controls.Add(Me.txtDescription)
         Me.Controls.Add(Me.btnSave)
@@ -161,7 +162,7 @@ Partial Class Form2
     Friend WithEvents btnSave As Button
     Friend WithEvents txtDescription As TextBox
     Friend WithEvents Label4 As Label
-    Friend WithEvents Button1 As Button
+    Friend WithEvents btnDelete As Button
     Friend WithEvents DataGridView1 As DataGridView
-    Friend WithEvents Button2 As Button
+    Friend WithEvents btnUpdate As Button
 End Class
