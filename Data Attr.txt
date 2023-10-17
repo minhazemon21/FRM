@@ -1,0 +1,4 @@
+                        var html = '<option value="0">Select</option>';
+                        $.each(data.MoujaList, function (id, option) {
+                            html += '<option value="' + option.Id + '" data-name="' + option.MoujaName.trim() + '">' + option.MoujaName + '</option>';
+                        });

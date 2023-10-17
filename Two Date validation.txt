@@ -1,0 +1,22 @@
+ $("#ReQuisitionDate").datepicker({
+            dateFormat: "dd-M-yy",
+            showAnim: "scale",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "1920:2025",
+            minDate: new Date(),
+            onSelect: function (selectedDate) {
+                var selected = new Date(selectedDate);
+                selected.setDate(selected.getDate() + 3); 
+                $("#RequiredDate").datepicker("option", "minDate", selected);
+            }
+        });
+
+        $("#RequiredDate").datepicker({
+            dateFormat: "dd-M-yy",
+            showAnim: "scale",
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "1920:2025",
+            minDate: 3 
+        });
