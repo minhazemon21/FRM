@@ -1,0 +1,38 @@
+// This is the query fo finding one invesot in only one companis
+Select d.InvestorId, ID.InvestorCode, ID.InvestorName  
+,Count(d.CompanyId)  CompanyIdCount
+from InvestorCurrentPortfolio d 
+Inner Join InvestorDetails ID on ID.id=d.InvestorId 
+Where  d.InvestorId in (Select c.InvestorId
+						from InvestorCurrentPortfolio c 
+						Where c.CompanyId =151 AND 
+						c.StatusId <>3
+						AND c.TotalQuantity >0)
+
+AND d.TotalQuantity >0
+Group By d.InvestorId, ID.InvestorCode, ID.InvestorName  
+Having Count(d.CompanyId)=1
+Order By d.InvestorId
+
+
+select a.InvestorId,d.CompanyId,e.InvestorCode, e.InvestorName from 
+(Select c.InvestorId
+						from InvestorCurrentPortfolio c 
+						Where c.CompanyId =151 AND 
+						c.StatusId <>3
+						AND c.TotalQuantity >0
+) a
+inner join (
+select c.InvestorId, Count(c.CompanyId) CompanyId from InvestorCurrentPortfolio c 
+where c.TotalQuantity >0 and c.StatusId <>3
+group by c.InvestorId 
+having count(c.CompanyId)=1
+)d on d.InvestorId = a.InvestorId
+inner join 
+(
+Select 
+d.InvestorName, d.InvestorCode, d.Id
+from InvestorDetails d
+)e on e.Id = a.InvestorId
+
+order by a.InvestorId
