@@ -1,0 +1,8 @@
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\bin\UCAS.Hrms.Web.dll.config
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\bin\UCAS.Hrms.Web.dll
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\bin\UCAS.Hrms.Web.pdb
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\Areas\Hrms\obj\Debug\HRMS.Web.csproj.AssemblyReference.cache
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\Areas\Hrms\obj\Debug\HRMS.Web.csproj.CoreCompileInputs.cache
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\Areas\Hrms\obj\Debug\HRMS.Web.csproj.Up2Date
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\Areas\Hrms\obj\Debug\UCAS.Hrms.Web.dll
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\ERP.Web\Areas\Hrms\obj\Debug\UCAS.Hrms.Web.pdb

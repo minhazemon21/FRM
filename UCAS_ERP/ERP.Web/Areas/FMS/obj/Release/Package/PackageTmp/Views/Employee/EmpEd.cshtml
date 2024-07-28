@@ -1,0 +1,631 @@
+﻿@model Hrms.Controllers.EmployeeController.EmployeeModel
+@{
+    ViewBag.Title = "EmpDetails";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .accordion .panel-heading {
+        padding: 8px;
+    }
+
+    .wizard_content {
+        /*overflow:auto;*/
+        margin: 0 auto;
+        height: 350px;
+        bottom: 0px;
+        top: 0px;
+        overflow-x: hidden;
+    }
+
+    .control-label {
+        text-align: right;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    function GetEducationDegree(DegreeId) {
+        var ddlDegreeList = $("#ddlDegreeList");
+        var EduLevelId = $("#EduLevelList").val();
+        if (EduLevelId != "") {
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("GetEducationDegree", "Employee", "http")',
+                data: { EduLevelId: EduLevelId },
+                dataType: 'json',
+                async: true,
+                success: function (BankBrach) {
+                    ddlDegreeList.html('');
+                    ddlDegreeList.append($('<option></option>').val("0").html("Please select"));
+                    $.each(BankBrach, function (id, option) {
+                        ddlDegreeList.append($('<option></option>').val(option.Id).html(option.DegreeName));
+                    });
+                    if (DegreeId != 0) {
+                        $("#ddlDegreeList").val(DegreeId);
+                    }
+
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+
+
+        }
+        else {
+            ddlDegreeList.html('');
+            ddlDegreeList.append($('<option></option>').val("0").html("Please select"));
+        }
+    }
+
+
+
+    function GetEmployeewiseEducationInformation(EmployeeId) {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetEmployeewiseEducationInformation", "Employee", "http")',
+                    dataType: "json",
+                    data: { EmployeeId: EmployeeId }
+                }
+            },
+            pageSize: 20
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 600,
+            //  groupable: true,
+            reorderable: true,
+            resizable: true,
+            filterable: true,
+            sortable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                hidden: true,
+                filterable: false
+            },
+             {
+                 field: "emp_id",
+                 hidden: true,
+                 filterable: false
+             },
+            {
+                field: "EmployeeCode",
+                title: "ID",
+                width: "7%",
+            },
+             {
+                 field: "medium_name",
+                 title: "Medium",
+                 hidden: true,
+             },
+               {
+                   field: "edu_level_name",
+                   title: "Exam Name",
+               },
+               {
+                   field: "DegreeName",
+                   title: "Degree",
+                 //  hidden: true,
+               },
+                {
+                    field: "BoardUniversity",
+                    title: "Board/University",
+                },
+                {
+                    field: "GroupSubject",
+                    title: "Group/Subject",
+                },
+                {
+                    field: "EduResult",
+                    title: "Result",
+                },
+                 {
+                     field: "PassingYear",
+                     title: "Passing Year",
+                     width: "10%",
+                 },
+                  {
+                      field: "CertificateType",
+                      title: "Certificate Type",
+                      hidden: true,
+                  },
+                   {
+                       field: "ResultDate",
+                       title: "Result Date",
+                       hidden: true,
+                   },
+
+                    {
+                        title: "Action",
+                        width: "10%",
+                        template: function (dataItem) {
+                            return '<a href="#" onclick="EditEducationInfo(' + dataItem.Id + ',' + dataItem.emp_id + ',' + dataItem.medium_id + ',' + dataItem.edu_level_id + ',' + dataItem.DegreeId + ',' + dataItem.edu_board_id + ',' + dataItem.edu_Group_id + ',' + dataItem.MajorSubjectId + ',' + dataItem.UniversityId + ',' + dataItem.edu_result_id + ',' + dataItem.mark_cgpa + ',' + dataItem.grade_mark_scale + ',' + dataItem.edu_certificate_type_id + ',' + dataItem.passing_year + ',' + "'" + dataItem.ResultDate + "'" + ',' + "'" + dataItem.remark + "'" + ');"  title="Edit" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>'
+                                  + '<a href="#" onclick="DeleteEducationInfo(' + dataItem.Id + ');"  title="Delete" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i></a>'
+                        }
+                    }
+            ],
+        });
+    }
+
+
+    function EditEducationInfo(Id, emp_id, medium_id, edu_level_id, DegreeId, edu_board_id, edu_Group_id, MajorSubjectId, UniversityId, edu_result_id, mark_cgpa, grade_mark_scale, edu_certificate_type_id, passing_year, ResultDate, remark) {
+        $("#hdnEduDetailId").val(Id);
+        $("#hdnEmployeeId").val(emp_id);
+        $("#MediumList").val(medium_id);
+        $("#EduLevelList").val(edu_level_id);
+        $("#BoardList").val(edu_board_id);
+        $("#GroupList").val(edu_Group_id);
+        $("#MajorSubjectList").val(MajorSubjectId);
+        $("#UniversityList").val(UniversityId);
+        $("#ResultList").val(edu_result_id);
+        $("#txtCgpa").val(mark_cgpa);
+        $("#txtOutofCgpa").val(grade_mark_scale);
+        $("#CertificateTypeList").val(edu_certificate_type_id);
+        $("#ddlPassingYear").val(passing_year);
+
+        $("#txtResultDate").val(ResultDate);
+        $("#Remarks").val(remark);
+
+
+        if (edu_level_id == 1 || edu_level_id == 2) {
+            $("#divGradu").hide();
+            $("#divSscHsc").show();
+        }
+        else {
+            $("#divSscHsc").hide();
+            $("#divGradu").show();
+        }
+
+        GetEducationDegree(DegreeId = DegreeId);
+        //MediumList EduLevelList GroupList BoardList MajorSubjectList UniversityList ResultList txtCgpa txtOutofCgpa  ddlPassingYear txtResultDate CertificateTypeList Remarks
+    }
+
+    function DeleteEducationInfo(Id) {
+        $.alert.open('confirm', 'Are you sure you want to DELETE this record?', function (button) {
+            if (button == 'yes') {
+
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteEducationInfo", "Employee", "http")',
+                    data: { Id: Id },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        GetEmployeewiseEducationInformation($("#hdnEmployeeId").val())
+                        $.alert.open("success", data.Message);
+                        //$.alert.open("Error", data.Message);
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+
+    }
+
+
+
+    function Clear() {
+        //$("#hdnEmployeeId").val(0);
+        // $("#EmployeeName").val("");
+        // $("#desg_name").val("");
+        // $("#branch_name").val("");
+        // $("#Dept_name").val();
+        //$("#hdnEduDetailId").val(0);
+        //$("#MediumList").val("");
+        $("#EduLevelList").val("");
+        $("#BoardList").val("");
+        $("#GroupList").val("");
+        $("#MajorSubjectList").val("");
+        $("#UniversityList").val("");
+        $("#ResultList").val("");
+        $("#txtCgpa").val("");
+        $("#txtOutofCgpa").val("");
+        //$("#CertificateTypeList").val("");
+        //$("#ddlPassingYear").val("");
+        $("#txtResultDate").val("");
+        $("#Remarks").val("");
+
+    }
+
+    function Get_EmployeeInfo_Details_By_Code() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+
+                        $("#hdnEmployeeId").val(E.emp_id);
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeName").val(E.emp_name);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#branch_name").val(E.branch_name);
+                        GetEmployeewiseEducationInformation(EmployeeId = E.emp_id)
+
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+
+
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function GetYearsList() {
+        var CurrentYear = parseInt(@DateTime.Now.Year.ToString()) + 5;
+        for (i = 1; i < 50; i++) {
+            var yr = parseInt(CurrentYear) - i;
+            $("#ddlPassingYear").append($('<option></option>').val(yr).html(yr));
+        }
+        $("#ddlPassingYear").val(0).html("Please select");
+    }
+
+    function Save_Educational_Information() {
+        var emp_id = $("#hdnEmployeeId").val();
+        var medium_id = $("#MediumList").val();
+        var edu_level_id = $("#EduLevelList").val();
+        var edu_board_id = $("#BoardList").val() == "" ? null : $("#BoardList").val();
+        var edu_Group_id = $("#GroupList").val() == "" ? null : $("#GroupList").val();
+        var MajorSubjectId = $("#MajorSubjectList").val() == "" ? null : $("#MajorSubjectList").val();
+        var UniversityId = $("#UniversityList").val() == "" ? null : $("#UniversityList").val();
+        var edu_result_id = $("#ResultList").val() == "" ? null : $("#ResultList").val();
+        var mark_cgpa = $("#txtCgpa").val() == "" ? "0" : $("#txtCgpa").val();
+        var grade_mark_scale = $("#txtOutofCgpa").val() == "" ? "0" : $("#txtOutofCgpa").val();
+        var edu_certificate_type_id = $("#CertificateTypeList").val() == "" ? null : $("#CertificateTypeList").val();
+        var passing_year = $("#ddlPassingYear").val();
+        var result_date = $("#txtResultDate").val() == "" ? null : $("#txtResultDate").val();
+        var remark = $("#Remarks").val();
+        var DegreeId = $("#ddlDegreeList").val() == "" ? null : $("#ddlDegreeList").val();
+
+
+        if (edu_level_id == "") {
+            $.alert.open("error", "Select exam name");
+            return false;
+        }
+            //else if ((edu_level_id == "1" || edu_level_id == "2") && edu_board_id == null) {
+            //    $.alert.open("error", "Select education board");
+            //    return false;
+            //}
+            //else if ((edu_level_id == "1" || edu_level_id == "2") && edu_Group_id == null) {
+            //    $.alert.open("error", "Select group");
+            //    return false;
+            //}
+            //else if (edu_level_id == "1" && edu_level_id == "2" && MajorSubjectId == null) {
+            //    $.alert.open("error", "Select subject");
+            //    return false;
+            //}
+            //else if (edu_level_id == "1" && edu_level_id == "2" && UniversityId == null) {
+            //    $.alert.open("error", "Select university");
+            //    return false;
+            //}
+            //else if (edu_result_id == "") {
+            //    $.alert.open("error", "Select result");
+            //    return false;
+            //}
+            //else if (edu_result_id == "") {
+            //    $.alert.open("error", "Select result");
+            //    return false;
+            //}
+            //else if (edu_result_id == 4 && (mark_cgpa == "0" ||grade_mark_scale == "0")) {
+            //    $.alert.open("error", "Insert CGPA and out of scale");
+            //    return false;
+            //}
+            //else if (result_date == "") {
+            //    $.alert.open("error", "Insert result publish date");
+            //    return false;
+            //}
+        else {
+            var allTrx = new Object();
+
+            allTrx.emp_id = emp_id;
+            allTrx.medium_id = medium_id;
+            allTrx.edu_level_id = edu_level_id;
+            allTrx.DegreeId = DegreeId;
+            allTrx.edu_board_id = edu_board_id;
+            allTrx.edu_Group_id = edu_Group_id;
+            allTrx.MajorSubjectId = MajorSubjectId;
+            allTrx.UniversityId = UniversityId;
+            allTrx.edu_result_id = edu_result_id;
+            allTrx.mark_cgpa = mark_cgpa;
+            allTrx.grade_mark_scale = grade_mark_scale;
+            allTrx.edu_certificate_type_id = edu_certificate_type_id;
+            allTrx.passing_year = passing_year;
+            allTrx.result_date = result_date;
+            allTrx.remark = remark;
+
+
+            var json = JSON.stringify(allTrx);
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("Save_Educational_Information", "Employee", "http")',
+                type: "POST",
+                dataType: 'json',
+                async: true,
+                data: json,
+                success: function (data) {
+                    if (data.Result == "success") {
+                        Clear();
+                        $.alert.open("success", data.Message);
+                        GetEmployeewiseEducationInformation(EmployeeId = emp_id)
+                    }
+                    else {
+                        $.alert.open("error", data.Message);
+                    }
+
+                },
+                error: function (result) {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", result)
+
+                }
+            });
+        }
+    }
+
+
+    $(document).ready(function () {
+
+        GetYearsList();
+
+        $("#divGradu").hide();
+
+        $("#EduLevelList").change(function () {
+            if ($("#EduLevelList").val() == 1 || $("#EduLevelList").val() == 2) {
+                $("#divGradu").hide();
+                $("#divSscHsc").show();
+            }
+            else {
+                $("#divSscHsc").hide();
+                $("#divGradu").show();
+            }
+        });
+
+        $("#ResultList").change(function () {
+
+            if ($("#ResultList").val() == 4) {
+                $("#divCgpa").show();
+            }
+            else {
+                $("#divCgpa").hide();
+            }
+        });
+
+
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            Save_Educational_Information();
+
+        });
+
+
+        $("#EduLevelList").change(function () {
+            GetEducationDegree(DegreeId = 0);
+        });
+
+        $("#EmployeeCode").blur(function () {
+            if ($("#EmployeeCode").val() != "") {
+                Get_EmployeeInfo_Details_By_Code();
+            }
+
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <input type="hidden" id="hdnEduDetailId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Employee Basic Information</h3>
+                        </div>
+                        @* @Html.ActionLink("Back to list", "Index", "Employee", new { EmployeeId = 0 }, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <legend>Basic Information</legend>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control", @autofocus = true } })
+                                </div>
+                                @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("Dept_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("desg_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("branch_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Education Information</legend>
+                        <div class="row form-group">
+                            @Html.Label("Education Medium", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("MediumList", new SelectList(ViewBag.MediumList, "medium_id", "medium_name"), "Please Select", new { @class = "form-control bordercss" })
+                            </div>
+                            @Html.Label("Level", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("EduLevelList", new SelectList(ViewBag.EduLevelList, "Id", "EduLevelShortname"), "Please Select", new { @class = "form-control bordercss" })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Exam/Degree", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("DegreeList", null, new { @id = "ddlDegreeList", @class = "form-control bordercss" })
+                            </div>
+                            @Html.Label("Certificate Type", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("CertificateTypeList", new SelectList(ViewBag.CertificateTypeList, "Id", "edu_certificate_type_name"), "Please Select", new { @class = "form-control bordercss" })
+                            </div>
+
+                        </div>
+                        <div class="row form-group" id="divSscHsc">
+                            @Html.Label("Group ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("GroupList", new SelectList(ViewBag.GroupList, "Id", "GroupName"), "Please Select", new { @class = "form-control bordercss" })
+                            </div>
+                            @Html.Label("Board ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("BoardList", new SelectList(ViewBag.BoardList, "Id", "edu_board_name"), "Please Select", new { @class = "form-control bordercss" })
+                            </div>
+                        </div>
+                        <div class="row form-group" id="divGradu">
+                            @Html.Label("Subject", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("MajorSubjectList", new SelectList(ViewBag.MajorSubjectList, "Id", "EDU_SUBJECT_NAME"), "Please select", new { @class = "form-control bordercss" })
+                            </div>
+                            @Html.Label("University", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("UniversityList", new SelectList(ViewBag.UniversityList, "Id", "edu_university_name"), "Please select", new { @class = "form-control bordercss" })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Result", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("ResultList", new SelectList(ViewBag.ResultList, "Id", "edu_result_name"), "Please select", new { @class = "form-control bordercss" })
+                            </div>
+                            <div id="divCgpa">
+                                @Html.Label("CGPA", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-2 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtCgpa", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+                                @Html.Label("Out Of", htmlAttributes: new { @class = "control-label col-md-1" })
+                                <div class="col-md-1 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtOutofCgpa", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row form-group">
+                            @*@Html.Label("Session", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtSession", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>*@
+                            @Html.Label("Passing Year", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control bordercss" id="ddlPassingYear">
+                                    @for (var i = 1970; i <= DateTime.Today.Year; i++)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Result Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("txtResultDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @*@Html.Label("Certificate Type", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.DropDownList("CertificateTypeList", new SelectList(ViewBag.CertificateTypeList, "Id", "edu_certificate_type_name"), new { @class = "form-control bordercss" })
+                                </div>*@
+                            @Html.Label("Rmarks", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.TextArea("Remarks", htmlAttributes: new { @class = "form-control", @rows = "4" })
+                            </div>
+                        </div>
+
+                        <div class="row form-group">
+                            <div class="control-label col-md-5">
+                                <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row form-group">
+                            <div id="grid"></div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,13 @@
+@media (max-width: 768px) {
+  .wrapper {
+    margin: 30px 15px; }
+    .wrapper .innerWrapper {
+      flex-direction: column-reverse; }
+      .wrapper .innerWrapper .left {
+        align-items: center; }
+        .wrapper .innerWrapper .left .name {
+          text-align: center; }
+      .wrapper .innerWrapper .right {
+        border-bottom: 1px solid rgba(8, 160, 57, 0.25); } }
+
+/*# sourceMappingURL=loginRes.css.map */

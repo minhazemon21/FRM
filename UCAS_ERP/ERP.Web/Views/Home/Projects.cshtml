@@ -1,0 +1,18 @@
+﻿@using Common.Data.CommonDataModel
+@using ERP.Web.Helpers
+@using System.Configuration
+@model ERP.Web.Models.LoginModel
+@{
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+  
+<div>
+    <a href="@ConfigurationManager.AppSettings["MainProjectLink"]/Home/Index">
+        <div class="col-md-3 col-sm-offset-2 ">
+            <div class="x_panel" style="height: 150px; text-align: center; background-image: url(/Images/North-South-Green-City.jpg); background-repeat: no-repeat; background-size: 100% 100%;">
+            </div>
+        </div>
+    </a>
+</div>
+

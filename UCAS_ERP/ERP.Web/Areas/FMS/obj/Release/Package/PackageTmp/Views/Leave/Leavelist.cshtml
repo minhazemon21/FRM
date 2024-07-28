@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+</style>
+<script type="text/javascript">
+
+    function GetEmployeeLeaveApplicationInfo() {
+
+        var LeaveStatus = $("#ddlLeaveStatus").val();
+        var AppliedDateFrom = $("#DateFrom").val();
+        var AppliedDateTo = $("#DateTo").val();
+        var BranchId = $("#BrokerBranchList").val() == "" ? "0" : $("#BrokerBranchList").val();
+        var EmployeeCode = $("#EmployeeCode").val();
+
+        if (AppliedDateFrom == "" || AppliedDateTo == "")
+        {
+            $.alert.open("error", "Select date.");
+            return false;
+        }
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetEmployeeLeaveApplicationInfo", "Leave", "http")',
+                    dataType: "json",
+                    data: { LeaveStatus: LeaveStatus, AppliedDateFrom: AppliedDateFrom, AppliedDateTo: AppliedDateTo, BranchId: BranchId, EmployeeCode: EmployeeCode }
+                }
+            },
+            pageSize: 20
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 600,
+          //  groupable: true,
+            reorderable: true,
+            resizable: true,
+            filterable: true,
+            sortable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "LeaveId",
+                hidden: true,
+                filterable: false
+            },
+             {
+                 field: "employee_id",
+                 hidden: true,
+                 filterable: false
+             },
+            {
+                field: "emp_name",
+                title: "Name",
+            },
+             {
+                 field: "emp_office_code",
+                 title: "Employee Id ",
+             },
+               {
+                   field: "EMP_DESG_NAME",
+                   title: "Designation",
+               },
+
+                {
+                    field: "EMP_BRANCH_NAME",
+                    title: "Branch",
+                    hidden:true
+                },
+                {
+                    field: "EMP_DEPT_NAME",
+                    title: "Department",
+                },
+                {
+                    field: "leave_type_name",
+                    title: "Leave Type",
+                },
+                 {
+                     field: "LeaveStartDate",
+                     title: "Start Date",
+                 },
+                  {
+                      field: "LeaveEndDate",
+                      title: "End Date",
+                  },
+                   {
+                       field: "AppliedDate",
+                       title: "Applied Date",
+                       hidden: true,
+                   },
+                   {
+                       field:"LeaveStatus",
+                       title: "Leave Status"
+                   },
+                    {
+                        title: "Action",
+                        width: "10%",
+                        template: function (dataItem) {
+                            return '<a href="#" onclick="LeaveApplicationForm(' + dataItem.LeaveId + ','+dataItem.employee_id+','+"'"+dataItem.emp_office_code+"'"+');"  title="Print" class="btn btn-primary btn-xs"><i class="fa fa-print"></i></a>'
+                        }
+                    }
+            ],
+           
+        });
+    }
+
+    function LeaveApplicationForm(LeaveId, employee_id, emp_office_code) {
+
+        var url = '/HRMS/ReportView/PrintLeaveApplicationForm?reportNo=1&LeaveId=' + LeaveId + '&EmployeeId=' + employee_id + '&EmpCode=' + emp_office_code;
+        window.open(url);
+    }
+    //$(document).ready(function () {
+    $(document).ready(function () {
+        GetEmployeeLeaveApplicationInfo();
+
+        $("#btnSearche").click(function (e) { e.preventDefault(); GetEmployeeLeaveApplicationInfo(); });
+    });
+</script>
+
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Leave Information</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                        <div class="row form-group">
+                            @Html.Label("Applied Date From", htmlAttributes: new { @class = "control-label col-md-2 required text-right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("DateFrom", new { htmlAttributes = new { @class = "form-control DateInput CurrentDate"} })
+                            </div>
+                            @Html.Label("Applied Date To", htmlAttributes: new { @class = "control-label col-md-2 required text-right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("DateTo", new { htmlAttributes = new { @class = "form-control DateInput CurrentDate" } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2 text-right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.DropDownList("BrokerBranchList", new SelectList(ViewBag.BrokerBranchList, "Id", "BranchName"), "Please select", new { @class = "form-control bordercss" })
+                            </div>
+                            @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 text-right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Leave Status", htmlAttributes: new { @class = "control-label col-md-2 required text-right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control bordercss" id="ddlLeaveStatus">
+                                    <option value="2"> Approve</option>
+                                    <option value="4"> Reliever</option>
+                                    <option value="5"> Recommender</option>
+                                    <option value="9"> Second Recommender</option>
+                                    <option value="11"> HR</option>
+                                    <option value="1"> Apply</option>
+                                </select>
+                            </div>
+                            @* 1= Apply, 2=Approved, 4=Reliever, 3=cancel ,5 =Recommand,6 = Reliever Cancel, 7 = Recommand Cancel, 8 = Approver Cancel, 9 = Recommand2, 10 = Recommand2 Cancel, 11 = HR Approved, 12 = HR Cancel*@
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <button type="submit" class="btn btn-info" id="btnSearche">Search</button>
+                            </div>
+                        </div>
+    
+                    <div class="form-group">
+                        <div class="row">
+                           <div id="grid">
+
+                           </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

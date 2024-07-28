@@ -1,0 +1,316 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "ProjectEdit";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    //var projectList = ((DataTable)ViewBag.projectList).AsEnumerable().Select(x => new
+    //{
+    //    Id = x.Field<int>("Id"),
+    //    ProjectName = x.Field<string>("ProjectName"),
+    //    ProjectShortName = x.Field<string>("ProjectShortName")
+    //}).ToList();
+    var Id = (int)ViewBag.Id;
+    var empId = (int)ViewBag.empId;
+    var editdata = ((DataTable)ViewBag.editdata).AsEnumerable().Select(row => new
+    {
+        Id = row.Field<int?>("Id"),
+        ProjectId = row.Field<int>("ProjectId"),
+        EmployeeId = row.Field<int>("EmployeeId"),
+        AssignDateFrom = row.Field<string>("AssignDateFrom"),
+        AssignDateTo = row.Field<string>("AssignDateTo"),
+        Remarks = row.Field<string>("Remarks"),
+        emp_office_code = row.Field<string>("emp_office_code"),
+    }).FirstOrDefault();
+
+}
+
+
+<style>
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        margin-left: 0px;
+    }
+
+        .radio-container label.active span.radio-text {
+            color: #FFFFFF;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    input[type=radio] {
+        margin: -2px 0 0;
+    }
+
+    /*Scarchable dropdown CSS Customization Select2 Plugin*/
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 16px !important;
+        color: black;
+    }
+
+    .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 3px double #CCC !important;
+    }
+
+        .select2-container--default .select2-selection--single:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 200px;
+        overflow-y: auto;
+        color: black;
+    }
+
+        .select2-container--default .select2-results > .select2-results__options :focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-selection--single, .select2-container--default .select2-selection--multiple {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        min-height: 33px !important;
+        max-height: 33px !important;
+        overflow: hidden;
+        font-size: 13px;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 14px;
+            position: absolute;
+            top: 7px;
+            right: 1px;
+            width: 18px;
+        }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    #tblItems {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblItems tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblItems tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblItems th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #tblItems tfoot tr {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #31B0D5;
+            color: white;
+        }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        getprojectlistbyId()
+        //$("#EmployeeCode").blur(function () {
+        //    if ($("#EmployeeCode").val() != "") {
+        //        Get_EmployeeInfo_Details_By_Code();
+
+        //    }
+
+        //});
+        $("#txtAssignDatefrm").on("change", function () {
+            var fromDate = $("#txtAssignDatefrm").val();
+            $("#txtAssignDateto").datepicker('option', { minDate: fromDate });
+        });
+        $("#txtAssignDateto").on("change", function () {
+            var toDate = $("#txtAssignDateto").val();
+            $("#txtAssignDatefrm").datepicker('option', { maxDate: toDate });
+        });
+
+        $("#btnSave").on("click", function () {
+
+            var Id = @Id;
+            var dateFrom = $("#txtAssignDatefrm").val();
+            var dateto = $("#txtAssignDateto").val();
+            var projectId = $("#ddProjectName").val();
+            var projectName = $("#ddProjectName option:selected").text();
+            var remarks = $("#txtRemarks").val().trim();
+            var employeeId = @empId;
+
+            if (projectId == 0) {
+                $.alert.open("info", "Please Select Project.");
+                return false;
+            }
+            else if (dateFrom == "") {
+                $.alert.open("info", "Please Select Start Date.");
+                return false;
+            }
+            //else if (dateto == "") {
+            //    $.alert.open("info", "Please Select End Date.");
+            //    return false;
+            //}
+            else if (remarks == "") {
+                $.alert.open("info", "Please Add remarks.");
+                return false;
+            }
+            if (employeeId == 0 || employeeId == null || employeeId == undefined) {
+                $.alert.open("info", "Please check employee id.");
+                return false;
+            }
+            var json = JSON.stringify({ Id: Id, dateFrom: dateFrom, dateto: dateto, projectId: projectId, remarks: remarks, employeeId: employeeId });
+
+            $("#AjaxLoader").show();
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("UpdateProjectAssign", "Project", "http")',
+                type: "POST",
+                dataType: 'json',
+                async: true,
+                data: json,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if(data.Status == true)
+                    {
+                        $.alert.open("Success", "Save successful. ...", function () {
+
+                                window.location = '@Url.Action("EmployeeProjectList", "Project")';
+
+                        });
+                    }
+                    else
+                    {
+                        $.alert.open("error",data.Message);
+                    }
+
+                },
+                error: function (data) {
+                    $("#AjaxLoader").hide();
+                    alert(data.Message);
+                }
+            });
+
+        });
+
+       
+
+        
+    });
+   
+    function getprojectlistbyId() {
+
+        var empCode = @editdata.emp_office_code;
+        var Id = @editdata.ProjectId;
+        var epId = @Id;
+        console.log(Id)
+        var projectNameDD = $("#ddProjectName");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetProjectDetailsempIdwiseDDforUpdate", "Project", "http")',
+            data: { empCode: empCode, epId: epId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                projectNameDD.html('');
+                projectNameDD.append($('<option></option>').val("0").html("Please Select"));
+                $.each(data.Result, function (id, option) {
+                    projectNameDD.append($('<option></option>').val(option.Id).html(option.ProjectName));
+
+                });
+                if (Id != 0) {
+                    $("#ddProjectName").val(Id);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+</script>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<input type="hidden" id="hdnEmployeeId" value="0" />
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Employee Assign Project Edit</div>
+            <div class="panel-footer">
+
+                <div class="row form-group">
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                        @Html.Label("Project Name", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control input-sm bordercss" id="ddProjectName">
+                            @*<option value="0">Please Select</option>
+                                @foreach (var dt in projectList)
+                                {
+                                    <option value="@dt.Id" data-psName="@dt.ProjectShortName">@dt.ProjectName</option>
+                                }*@
+                        </select>
+                    </div>
+                    @Html.Label("Remarks", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtRemarks" class="form-control" value="@editdata.Remarks"/>
+                    </div>
+
+                </div>
+                <div class="row form-group">
+                    @Html.Label("Assign Date From", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtAssignDatefrm" class="form-control DateInput check-date" value="@editdata.AssignDateFrom" />
+                    </div>
+                    @Html.Label("Assign Date To", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtAssignDateto" class="form-control DateInput check-date" value="@editdata.AssignDateTo"/>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:center">
+                        <button type="button" class="btn btn-info" id="btnSave">Save</button>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,379 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .accordion .panel-heading {
+        padding: 8px;
+    }
+
+    .wizard_content {
+        /*overflow:auto;*/
+        margin: 0 auto;
+        height: 350px;
+        bottom: 0px;
+        top: 0px;
+        overflow-x: hidden;
+    }
+    .panel-heading {
+        padding: 6px 0px;
+        border-bottom: 1px solid transparent;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-sm-12">
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="panel panel-success panel-custom">
+            <div class="panel-heading PageHeader">
+                <h3 class="panel-title">Employee Over Time Entry</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Emp ID:", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-3">
+                        <input style="display:none;" id="hdnEmployeeId" value="0" />
+                        <input type="text" class="form-control" id="EmployeeCode" />
+                    </div>
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Name:", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="EmployeeName" disabled/>
+                    </div>
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Designation:", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="desg_name" disabled/>
+                    </div>
+                </div>
+                <hr style="height:1px;padding:0px;margin:10px 0px;background-color:gray"/>
+                <div class="row">
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Year:", new { @class = "control-label required" })
+                        <input style="display:none;" id="otcId" value="0" />
+                    </div>
+                    <div class="col-sm-3">
+                        @Html.DropDownList("YearNameList", new SelectList(ViewBag.YearNameList, "Id", "YearNo"), "Please select", new { @class = "form-control", @id = "empOverTimeCountYear" })
+                    </div>
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Month:", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-3">
+                        @Html.DropDownList("MonthNameList", new SelectList(ViewBag.MonthNameList, "Key", "Value"), "Please select", new { @class = "form-control", @id = "empOverTimeCountMonth" })
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Over Time Count:", new { @class = "control-label required" })
+                    </div>
+                    <div class="col-sm-2 radio-container">
+                        <input type="number" class="form-control input-sm" id="empOverTimeCountDays" placeholder="Days"/>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:5px;">
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Remarks:", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-11 radio-container">
+                        <input type="text" class="form-control input-sm" id="empOverTimeCountRemarks" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 text-center">
+                        <input type="submit" name="btnSave" id="btnSave" class="btn btn-sm btn-success" value="Save" style="margin-top: 10px;" />
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row" style="margin: -16px;">
+                    <div class="panel-heading PageHeader col-sm-12" style="margin-bottom: 5px;">
+                        <h3 class="panel-title">Employee Over Time List</h3>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Year :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-2">
+                        @Html.DropDownList("YearNameList", new SelectList(ViewBag.YearNameList, "Id", "YearNo"), "Please select", new { @class = "form-control", @id = "empOverTimeCountYearForGS" })
+                    </div>
+                    <div class="col-sm-1 label-container">
+                        @Html.Label("Month :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-2">
+                        @Html.DropDownList("MonthNameList", new SelectList(ViewBag.MonthNameList, "Key", "Value"), "Please select", new { @class = "form-control", @id = "empOverTimeCountMonthForGS" })
+                    </div>
+                    <div class="col-sm-2 label-container">
+                        @Html.Label("Employee :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="EmployeeCodeForGS" />
+                    </div>
+                    <div class="col-sm-1 text-center">
+                        <input type="submit" name="btnSearch" id="btnSearch" class="btn btn-sm btn-success" value="Search" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-1 col-sm-offset-11">
+                        <input type="submit" name="btnPrint" id="btnPrint" class="btn btn-sm btn-success" value="Grid Print" />
+                    </div>
+                </div>
+                <table class="table table-bordered table-striped" id="tblDeedOfAgreementList">
+                    <thead>
+                        <tr>
+                            <th class="text-center">SL NO.</th>
+                            <th class="text-center">Emp Code</th>
+                            <th class="text-left">Emp Name</th>
+                            <th class="text-left">Emp Designation</th>
+                            <th class="text-center">Year</th>
+                            <th class="text-center">Month</th>
+                            <th class="text-center">OT Days</th>
+                            <th class="text-center">Remarks</th>
+                            <th class="text-center td-action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function Clear() {
+        $("#hdnEmployeeId").val(0);
+        $("#EmployeeName").val("");
+        $("#desg_name").val("");
+        $("#Dept_name").val(""); 
+        $("#EmployeeCode").val("");
+        $("#otcId").val(0);
+        $("#EmployeeCode").prop('disabled', false);
+
+        $("#empOverTimeCountDays").val("");
+        $("#empOverTimeCountRemarks").val("");
+    }
+
+    function Get_EmployeeInfo_Details_By_Code() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                ActionMode = "Edit"
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+
+                        $("#hdnEmployeeId").val(E.emp_id);
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeName").val(E.emp_name);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+
+
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function LoadEmployeeOT(year, month, empid) {
+        $("#divLoader").show();
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("GetOverTimeCountList", "OverTimeCount")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ year: year, month: month, employeeCode: empid }),
+            dataType: "json",
+            success: function (data) {
+                $("#divLoader").hide();
+                if (data.Status == true) {
+                    var html = "";
+                    $.each(data.Data, function (i, d) {
+                        html += '<tr>';
+                        html += '<td class="text-center">' + (i + 1) + '</td>';
+                        html += '<td class="text-center">' + d.EmployeeCode + '</td>';
+                        html += '<td class="text-left">' + d.EmployeeName + '</td>';
+                        html += '<td class="text-left">' + d.DesignationName + '</td>';
+                        html += '<td class="text-center">' + d.SalaryYear + '</td>';
+                        html += '<td class="text-center">' + d.SalaryMonth + '</td>';
+                        html += '<td class="text-center">' + d.OverTimeDay + '</td>';
+                        html += '<td class="text-center">' + d.Remarks + '</td>';
+                        html += '<td><a href="#" onclick="EditDataById('+d.Id+')" title="edit"  class="btn btn-success btn-xs"><i class="fa fa-pencil"></i></a></td>';
+                        html += '</tr>';
+                    });
+                    $("#tblDeedOfAgreementList").find('tbody').html(html);
+                } else {
+                    $.alert.open("error", data.Message);
+                    return false;
+                }
+            },
+            error: function (request, status, error) {
+                $("#divLoader").hide();
+                $.alert.open("Status", "An error occurred.<br/<br/>Please contact to your vendor.");
+            }
+        });
+        return true;
+    };
+
+    function EditDataById(Id) {
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetOverTimeCountListById", "OverTimeCount", "http")',
+            data: { Id: Id },
+            dataType: 'json',
+            async: true,
+            success: function (E) {
+                $('#AjaxLoader').hide();
+                Clear();
+                console.log(E);
+                if (E.Status == true) {
+                        $("#otcId").val(E.Data.Id);
+                        $("#hdnEmployeeId").val(E.Data.emp_id);
+                        $("#EmployeeCode").val(E.Data.EmployeeCode);
+                        $("#EmployeeName").val(E.Data.EmployeeName);
+                        $("#desg_name").val(E.Data.DesignationName);
+                        $("#empOverTimeCountYear").val(E.Data.SalaryYear);
+                        $("#empOverTimeCountMonth").val(E.Data.SalaryMonth);
+                        $("#empOverTimeCountDays").val(E.Data.OverTimeDay);
+                        $("#empOverTimeCountRemarks").val(E.Data.Remarks);
+                        $("#EmployeeCode").prop('disabled', true);
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+
+
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    $(document).ready(function () {
+        var now = new Date();
+        var currentMonth = now.getMonth() + 1;
+        var currentYear = now.getFullYear();
+        console.log(currentMonth, currentYear);
+
+        $("#empOverTimeCountYear").val(currentYear);
+        $("#empOverTimeCountMonth").val(currentMonth);
+        $("#empOverTimeCountYearForGS").val(currentYear);
+        $("#empOverTimeCountMonthForGS").val(currentMonth);
+
+        LoadEmployeeOT(currentYear, currentMonth);
+
+        $(document).on("click", "#btnSearch", function () {
+            var employeeCode = $("#EmployeeCodeForGS").val();
+            var year = $("#empOverTimeCountYearForGS").val();
+            var month = $("#empOverTimeCountMonthForGS").val();
+            LoadEmployeeOT(year, month, employeeCode);
+        });
+        $(document).on("click", "#btnPrint", function () {
+            var year = $("#empOverTimeCountYearForGS").val();
+            var month = $("#empOverTimeCountMonthForGS").val();
+            var employeeCode = $("#EmployeeCodeForGS").val();
+            window.open('/Hrms/OverTimeCount/GetOverTimeCountListForRpt?year=' + year + '&month=' + month + '&employeeCode=' + employeeCode);
+        });
+
+        $("#btnSave").click(function (e) {
+            e.preventDefault()
+            var employeeId = $("#hdnEmployeeId").val() == null ? "0" : $("#hdnEmployeeId").val();
+            var year = $("#empOverTimeCountYear").val();
+            var month = $("#empOverTimeCountMonth").val();
+            var otDays = $("#empOverTimeCountDays").val();
+            var remarks = $("#empOverTimeCountRemarks").val();
+            var Id = $("#otcId").val() == null ? "0" : $("#otcId").val();
+            if(year == 0 || year == null|| year == ''){
+                $.alert.open("error", "Please Insert Salary Year");
+                return false;
+            }
+            if(month == 0 || month == null|| month == ''){
+                $.alert.open("error", "Please Insert Salary Month");
+                return false;
+            }
+            if(otDays == 0 || otDays == null|| otDays == ''){
+                $.alert.open("error", "Please Insert Over Time Days");
+                return false;
+            }
+            $.ajax({
+                type: "Post",
+                url: '@Url.Action("SaveOverTimeCountRecord", "OverTimeCount")',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({ Id:Id, employeeId: employeeId, year: year, month: month, otDays: otDays, remarks: remarks }),
+                dataType: "json",
+                success: function (data) {
+                    $("#divLoader").hide();
+                    if (data.Status == true) {
+                       $.alert.open("success", data.Message);
+                       LoadEmployeeOT(currentYear, currentMonth);
+                       Clear();
+                    } else {
+                        $.alert.open("error", data.Message);
+                        Clear();
+                        return false;
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#divLoader").hide();
+                    $.alert.open("Status", "An error occurred.<br/<br/>Please contact to your vendor.");
+                }
+            });
+        });
+        $("#EmployeeCode").blur(function () {
+            if ($("#EmployeeCode").val() != "") {
+                Get_EmployeeInfo_Details_By_Code();
+            }
+
+        });
+    });
+
+</script>

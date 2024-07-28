@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AAGA,yBAAuB;EACtB,QAAQ;IACP,MAAM,EAAE,SAAS;IAEjB,sBAAa;MACZ,cAAc,EAAE,cAAc;MAE9B,4BAAK;QACJ,WAAW,EAAE,MAAM;QAEnB,kCAAK;UACJ,UAAU,EAAE,MAAM;MAGpB,6BAAM;QACL,aAAa,EAAE,gCAA4B",
+"sources": ["../scss/loginRes.scss"],
+"names": [],
+"file": "loginRes.css"
+}

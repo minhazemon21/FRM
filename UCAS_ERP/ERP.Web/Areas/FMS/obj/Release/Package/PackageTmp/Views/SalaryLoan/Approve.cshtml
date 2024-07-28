@@ -1,0 +1,283 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Loan";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var loanList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanList;
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblNonApprovedLoanList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblNonApprovedLoanList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblNonApprovedLoanList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblNonApprovedLoanList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblNonApprovedLoanList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+
+<script type="text/javascript">
+
+    function LoanApprove(Id)
+    {
+        $.alert.open('confirm', 'Are you sure you want to APPROVE selected records?', function (button) {
+            if (button == 'yes') {
+
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("LoanApprove", "SalaryLoan", "http")',
+                        type: "GET",
+                        dataType: 'json',
+                        async: true,
+                        data: { Id: Id },
+
+                        success: function (data) {
+                            if (data.Status == true) {
+                                $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                            }
+                            else {
+                                $.alert.open(data.Result, data.Message);
+                            }
+                        },
+                        error: function (error) {
+                            $.alert.open("error", "An error occurred. Please contact to the vendor.");
+                        }
+                    });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    function LoanCancel(Id)
+    {
+        $.alert.open('confirm', 'Are you sure you want to CANCEL selected records?', function (button) {
+            if (button == 'yes') {
+
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("LoanCancel", "SalaryLoan", "http")',
+                    type: "GET",
+                    dataType: 'json',
+                    async: true,
+                    data: { Id: Id },
+
+                    success: function (data) {
+                        if (data.Status == true) {
+                            $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (error) {
+                        $.alert.open("error", "An error occurred. Please contact to the vendor.");
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#btnSave").on("click", function () {
+
+            var loanItemId = $("#ddlLoanItem").val();
+            var interestTypeId = $("#ddlInterestCalcType").val();
+            var disbuseDate = $("#txtDisbuseDate").val().trim();
+            var amount = $("#txtAmount").val() == "" ? "0" : $("#txtAmount").val().trim();
+            var interestRate = $("#txtInterestRate").val() == "" ? "0" : $("#txtInterestRate").val().trim();
+            var totInstallment = $("#txtTotInstallment").val().trim();
+            var duration = $("#txtDuration").val() == "" ? "0" : $("#txtDuration").val().trim();
+            var installmentPrincipal = $("#txtInstallmentPrincipal").val() == "" ? "0" : $("#txtInstallmentPrincipal").val();
+            var installmentInterest = $("#txtInstallmentInterest").val() == "" ? "0" : $("#txtInstallmentInterest").val();
+
+
+            var employeeId = $("#hdnEmployeeId").val();
+            var employeeCode = $("#EmployeeCode").val().trim();
+
+            if (employeeId == 0 || employeeCode == "") {
+                $.alert.open("error", "Please insert employee.");
+                return false;
+            }
+            else if (loanItemId == "0") {
+                $.alert.open("error", "Please select loan item.");
+                return false;
+            }
+            else if (interestTypeId == "0") {
+                $.alert.open("error", "Please select loan interest type.");
+                return false;
+            }
+            else if (disbuseDate == "") {
+                $.alert.open("error", "Please insert disbuse date.");
+                return false;
+            }
+            else if (amount == "0") {
+                $.alert.open("error", "Please insert loan amount.");
+                return false;
+            }
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Loan_Disbusement_Info", "SalaryLoan", "http")',
+                    data: JSON.stringify({
+                        EmployeeId: employeeId,
+                        EmployeeCode: employeeCode,
+                        LoanItemId: loanItemId,
+                        InterestTypeId: interestTypeId,
+                        DisbuseDate: disbuseDate,
+                        LoanAmount: amount,
+                        InterestRate: interestRate,
+                        TotInstallment: totInstallment,
+                        Duration: duration,
+                        InstallmentPrincipal: installmentPrincipal,
+                        InstallmentInterest: installmentInterest
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Loan Approve</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblNonApprovedLoanList">
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Desg</th>
+                                    <th>Dept</th>
+                                    <th>Loan Item</th>
+                                    <th>Loan Amount</th>
+                                    <th>Disbusement Date</th>
+                                    <th>Interest Rate</th>
+                                    <th>No. Of Ins:</th>
+                                    <th>Per Installment</th>
+                                    <th>Action</th>
+                                </tr>
+                                @foreach (var r in loanList)
+                                {
+                                    <tr>
+                                        <td>@r.RowSl</td>
+                                        <td>@r.emp_office_code</td>
+                                        <td>@r.emp_name</td>
+                                        <td>@r.DesignationShortName</td>
+                                        <td>@r.DepartmentShortName</td>
+                                        <td>@r.LoanName</td>
+                                        <td>@r.LoanDisburseAmount</td>
+                                        <td>@r.LoanDisburseDate</td>
+                                        <td>@r.InterestRate</td>
+                                        <td>@r.LoanDurationMonth</td>
+                                        <td>@r.InstallmentAmount</td>
+                                        <td><a href="#" title="Approve" onclick="LoanApprove(@r.Id)" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a><a href="#" title="Cancel" onclick="LoanCancel(@r.Id)" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i></a></td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

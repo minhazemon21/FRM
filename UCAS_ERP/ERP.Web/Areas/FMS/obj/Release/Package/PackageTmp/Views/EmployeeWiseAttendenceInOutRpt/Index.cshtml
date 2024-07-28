@@ -1,0 +1,406 @@
+﻿@model Hrms.HRMViewModel.EmployeeReportViewModel
+@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    var signatoryList = (List<SalaryController.SalaryAllowance>)ViewBag.SignatoryList;
+    var departmentList = (List<BrokerDepartment>)ViewBag.DepartmentList;
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+<style type="text/css">
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        margin-left: 0px;
+    }
+
+        .radio-container label.active span.radio-text {
+            color: #FFFFFF;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    input[type=radio] {
+        margin: -2px 0 0;
+    }
+
+    /*Scarchable dropdown CSS Customization Select2 Plugin*/
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 16px !important;
+        color: black;
+    }
+
+    .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 3px double #CCC !important;
+    }
+
+        .select2-container--default .select2-selection--single:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 200px;
+        overflow-y: auto;
+        color: black;
+    }
+
+        .select2-container--default .select2-results > .select2-results__options :focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-selection--single, .select2-container--default .select2-selection--multiple {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        min-height: 33px !important;
+        max-height: 33px !important;
+        overflow: hidden;
+        font-size: 13px;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 14px;
+            position: absolute;
+            top: 7px;
+            right: 1px;
+            width: 18px;
+        }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+</style>
+<script type="text/javascript">
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function CurrentDate() {
+        var d = new Date();
+        var Day = d.getDate();
+        var Mont = d.getMonth() + 1;
+        var Year = d.getFullYear();
+        if (d.getDate() < 10) {
+            Day = '0' + d.getDate();
+        }
+        if ((d.getMonth() + 1) < 10) {
+            Mont = '0' + (d.getMonth() + 1);
+        }
+        var currentDate = Day + '/' + Mont + '/' + Year;
+        // Set current date
+        $(".CurrentDate").val(currentDate);
+        //$(".CurrentDate").datepicker('option', { maxDate: currentDate });
+    }
+    $(document).ready(function () {
+       //$("#divEmployeeList").hide();
+       /*$("#divDateRange").hide();*/
+       $("#ddlCompanyList").change(function () {
+           GetDepartmentList(0);
+       });
+        GetDepartmentList(0);
+
+        CurrentDate();
+        $("#txtDateFrom").on("change", function () {
+            var fromDate = $("#txtDateFrom").val();
+            $("#txtDateTo").datepicker('option', { minDate: fromDate });
+        });
+        $("#txtDateTo").on("change", function () {
+            var toDate = $("#txtDateTo").val();
+            $("#TotalDays").val(0);
+            $("#txtDateFrom").datepicker('option', { maxDate: toDate });
+        });
+        //============
+        $("#ddlEmployee").select2({ width: "100%" });
+        //===================================
+
+
+       $("input[type=radio][name=reports]").on("change", function () {
+           $(".radio-container label").removeClass("active");
+           $("input[type=radio][name=reports]:checked").parents("label").addClass("active");
+           var reportNo = parseInt($("input[type=radio][name=reports]:checked").val());
+
+
+           $("#divYear").hide();
+           $("#divMonth").hide();
+           /*$("#divEmployeeList").hide();*/
+           /*$("#divCompanyDipartment").hide();*/
+           //$("#divDateRange").hide();
+
+
+           //if (reportNo == 4) {
+           //    $("#divDateRange").show();
+           //    $("#divEmployeeList").show();
+           //}
+           //else if (reportNo == 5) {
+           //    $("#divDateRange").show();
+           //    $("#divCompanyDipartment").show();
+           //}
+           //else {
+           //    $("#divYear").show();
+           //    $("#divMonth").show();
+           //    $("#divCompanyDipartment").show();
+           //}
+       });
+
+        $("#btnShow").on("click", function () {
+
+            var reportNo = parseInt($("input[type=radio][name=reports]:checked").val());
+            var salMonth = $("#ddlSalMonth").val();
+            var salYear = $("#ddlSalYear").val();
+            var reportType = $("#cmbReportType").val();
+            var department = $("#ddldepartmentList").val();
+            var companyList = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+
+            var EmployeeList = $("#ddlEmployee").val() == "" ? "0" : $("#ddlEmployee").val();
+            var StartDate = $("#txtDateFrom").val();
+            var EndDate = $("#txtDateTo").val();
+
+            var ManagementStatus = $("#chkManagement").is(":checked") == true ? 1 : 0;
+            var OnlyForces = $("#chkOnlyForces").is(":checked") == true ? 1 : 0;
+
+            if (reportNo == 1) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date.");
+                    return false;
+                }
+
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + StartDate + "&companyId=" + companyList + "&DepartmentId=" + department + '&ReportType=' + reportType + "&ManagementStatus=" + ManagementStatus + "&onlyForces=" + OnlyForces;
+                    var url = '/EmployeeWiseAttendenceInOutRpt/rptEmployeeWiseAttendenceIn?' + param;
+                    window.open(url);
+                }
+
+            }
+            else if (reportNo == 2) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date.");
+                    return false;
+                }
+
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + StartDate + "&companyId=" + companyList + "&DepartmentId=" + department + '&ReportType=' + reportType + "&ManagementStatus=" + ManagementStatus + "&onlyForces=" + OnlyForces;
+                    var url = '/EmployeeWiseAttendenceInOutRpt/rptEmployeeWiseAttendenceOut?' + param;
+                    window.open(url);
+                }
+            }
+            else if (reportNo == 3) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date.");
+                    return false;
+                }
+
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + StartDate + "&companyId=" + companyList + "&DepartmentId=" + department + '&ReportType=' + reportType + "&ManagementStatus=" + ManagementStatus + "&onlyForces=" + OnlyForces;
+                    var url = '/EmployeeWiseAttendenceInOutRpt/rptEmployeeWiseAttendenceInandOut?' + param;
+                    window.open(url);
+                }
+            }
+
+            else if (reportNo == 4) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date.");
+                    return false;
+                }
+
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + StartDate + "&companyId=" + companyList + "&DepartmentId=" + department + '&ReportType=' + reportType + "&ManagementStatus=" + ManagementStatus + "&onlyForces=" + OnlyForces;
+                    var url = '/EmployeeWiseAttendenceInOutRpt/rptEmployeeWiseAttendenceInwithSign?' + param;
+                    window.open(url);
+                }
+            }
+
+
+
+        });
+    });
+</script>
+
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Employee's Attendence Report</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container" style="text-align:left">
+                        @Html.Label("Report Name ", new { @class = "control-label" })
+                    </div>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12 radio-container">
+                        <div class="row">
+                            @for (var r = 0; r < reports.Count; r++)
+                            {
+                                <label class="col-sm-4 @(r==0?"active":"")">
+                                    <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="reports" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row form-group">
+                    @*<div id="divYear">
+                            @Html.Label("Year", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        <option value="0">Select year</option>
+                                        for (var i = 2020; i < DateTime.Now.Year + 15; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>*@
+                    @*<div id="divMonth">
+                            @Html.Label("Month", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="row form-group" id="divDateRange">
+                    @Html.Label("Date", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtDateFrom" class="form-control DateInput check-date CurrentDate" />
+                    </div>
+                    @*@Html.Label("End Date", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtDateTo" class="form-control DateInput check-date" />
+                    </div>*@
+                </div>
+                <div class="row form-group" id="divCompanyDipartment">
+                    @Html.Label("Company Name", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select id="ddlCompanyList" class="form-control bordercss">
+                            @foreach (var dt in sl)
+                            {
+                                <option value="@dt.Id">@dt.Name</option>
+                            }
+                        </select>
+                    </div>
+                    @Html.Label("Department", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control" id="ddldepartmentList">
+                            <option value="0">Please select</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    @Html.Label("Only Forces", new { @class = "control-label col-md-2" })
+                    <div class="col-md-1 col-sm-6 col-xs-12">
+                        <input type="checkbox" id="chkOnlyForces" class="form-control" />
+                    </div>
+                    <div class="col-md-3"></div>
+                    @Html.Label("Without Management", new { @class = "control-label col-md-2" })
+                    <div class="col-md-1 col-sm-6 col-xs-12">
+                        <input type="checkbox" checked id="chkManagement" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="row form-group">
+                    @*<label class="col-lg-2 col-md-2 col-sm-2 col-xs-12 control-label required" id="lblEmployee">Employee List</label>
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            @Html.DropDownList("List_EmployeeInfo", new SelectList(ViewBag.List_EmployeeInfo, "emp_office_code", "EmployeeName"), "Please select", new { @class = "form-control bordercss", @id = "ddlEmployee" })
+                        </div>*@
+
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container">
+                        @Html.Label("Report Type :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="input-sm form-control bordercss" id="cmbReportType">
+                            <option value="Pdf" selected="selected">Pdf</option>
+                            <option value="ExcelBook">Microsoft Excel</option>
+                            <option value="Excel">Microsoft Excel (97-2003)</option>
+                            <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                            <option value="Word">Microsoft Word (97-2003)</option>
+                            <option value="XML">XML</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                        <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

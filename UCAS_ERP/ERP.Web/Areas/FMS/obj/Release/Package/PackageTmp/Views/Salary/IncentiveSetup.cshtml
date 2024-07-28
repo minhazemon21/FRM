@@ -1,0 +1,339 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@{
+    ViewBag.Title = "Incentive";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+
+<script type="text/javascript">
+
+
+    function GetEmployeewiseSalarySetup(EmployeeCode) {
+
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetEmployeewiseSalarySetup", "Salary", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                var dtTable = $('#tblAllowanceList').find('tbody');
+                $('#tblAllowanceList tbody tr').empty();
+                if (data.Status == true) {
+                    if (data.Result.length != 0) {
+                        $.each(data.Result, function (id, option) {
+                            $("#EmployeeCode").val(option.emp_office_code);
+                            $("#DateOfBirth").val(option.emp_datetimeof_birth);
+                            $("#EmployeeName").val(option.emp_name);
+                            $("#EmpDesignation").val(option.DesignationName);
+                            $("#EmpDepartment").val(option.DepartmentName);
+                            $("#EmpBranchName").val(option.BranchName);
+                            $("#JoiningDate").val(option.JoiningDate);
+                            $("#ConfirmationDate").val(option.ConfirmationDate);
+                            $("#txtSalary").html(option.GrossSalary);
+                            $("#lblEffectiveDate").html(option.EffectiveDate);
+
+                            dtTable.append(
+                                '<tr>' +
+                                    '<td>' + option.RowSl + '</td>' +
+                                    '<td>' + option.AllowanceName + '</td>' +
+                                    '<td><input type="number" style="display:none" value="' + option.Percentage + '"  id="Percent' + option.SalaryAllowanceId + '"/>' + option.Percentage + '</td>' +
+                                    '<td>' + option.Amount + '</td>' +
+                                    '<td><input type="number" class="Allowance" id="' + option.SalaryAllowanceId + '"/></td>' +
+                                '</tr>'
+
+                                );
+                        });
+
+                        $("#1").keyup(function () {
+                            SalaryClc();
+                        });
+
+                        $(".Allowance:not(#1)").keyup(function () {
+                            var gSalary = 0;
+                            $(".Allowance").each(function () {
+                                var allw = parseFloat($(this).val() == "" ? "0" : $(this).val());
+                                gSalary = gSalary + allw;
+                            });
+
+                            $("#lblTotalNew").html(gSalary);
+
+                            var preSalary = parseFloat($("#lblTotalPresent").html() == "" ? "0" : $("#lblTotalPresent").html());
+                            var totInc = parseFloat(gSalary) - preSalary;
+                            var perInc = (totInc * 100) / preSalary;
+                            $("#lblIncrement").html(perInc);
+                        });
+                    }
+                    else
+                    {
+                        $.alert.open("error","Invalid employee code.");
+                    }
+                }
+                else {
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SalaryClc()
+    {
+        var basic = $("#1").val();
+        var sAllowance = 0;
+        if (basic != "" && basic != "0") {
+            $(".Allowance:not(#1)").each(function () {
+
+                var allowId = $(this).attr("id");
+
+                var perc = $("#Percent" + allowId).val();
+
+                var amt = (basic * perc) / 100;
+                //alert(perc);
+                $("#" + allowId).val(amt);
+                sAllowance = sAllowance + parseFloat(amt);
+            });
+        }
+        var sGross = parseFloat(basic) + parseFloat(sAllowance);
+
+        $("#lblTotalNew").html(sGross);
+
+        var preSalary = parseFloat($("#lblTotalPresent").html() == "" ? "0" : $("#lblTotalPresent").html());
+        var totInc = parseFloat(sGross) - preSalary;
+        var perInc = (totInc * 100) / preSalary;
+        $("#lblIncrement").html(perInc);
+    }
+
+
+    function SaveEmployeewiseSalarySetup()
+    {
+        var allowanceIdAmt = "";
+        var basicAmt = $("#1").val() == "" ? "0" : $("#1").val();
+        // '1,1000/2,600/4,200/56,50000000/1000,155202565455'
+        $(".Allowance").each(function () {
+
+          var  allowanceId = $(this).attr("id");
+          var  amount = $(this).val() == "" ? "0" : $(this).val();
+               allowanceIdAmt = allowanceId + "," + amount + "/" + allowanceIdAmt;
+        });
+        var empCode = $("#EmployeeCode").val().trim();
+        var effectiveDate = $("#EffectiveDate").val();
+
+        if (empCode == "" || empCode == "0")
+        {
+            $.alert.open("error", "Please insert employee code.");
+            return false;
+        }
+        else if (effectiveDate == "")
+        {
+            $.alert.open("error", "Please insert effective date.");
+            return false;
+        }
+        else if (basicAmt == "0")
+        {
+            $.alert.open("error", "Please insert basic salary.");
+            return false;
+        }
+        else
+        {
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveEmployeewiseSalarySetup", "Salary", "http")',
+                data: JSON.stringify({ allowanceIdAmt: allowanceIdAmt, empCode: empCode, effectiveDate: effectiveDate, basicAmt: basicAmt }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+
+        }
+
+
+
+    }
+    $(document).ready(function () {
+
+        $("#EmployeeCode").blur(function () {
+            var EmployeeCode = $("#EmployeeCode").val().trim();
+            if (EmployeeCode != "" && EmployeeCode != "0")
+            {
+                GetEmployeewiseSalarySetup(EmployeeCode);
+            }
+
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseSalarySetup();
+        });
+
+    });
+
+</script>
+
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Salary Setup</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control" } })
+                            </div>
+                            @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpDesignation", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpDepartment", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpBranchName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Date Of Birth", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("DateOfBirth", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Joining Date ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("JoiningDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Confirmation Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("ConfirmationDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Salary", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("txtSalary", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Effective Date ", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EffectiveDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <table id="tblAllowanceList">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">SL</th>
+                                    <th style="text-align:center">Allowance</th>
+                                    <th style="text-align:center">Percentage</th>
+                                    <th style="text-align:center">Present <br /></th>
+                                    <th style="text-align:center">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" style="text-align:right"> Gross Salary</td>
+                                    <td style="text-align:right"><label style="font-size:x-small">Effective Date:</label><label style="font-size:x-small" id="lblEffectiveDate"></label><br /><label id="lblTotalPresent"></label></td>
+                                    <td style="text-align:right"><label id="lblTotalNew">0</label>&nbsp;&nbsp;&nbsp;&nbsp;(<label style="font-size:x-small">Increment</label> <label style="font-size:x-small" id="lblIncrement">0</label>%)</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </fieldset>
+                    <br />
+                    <div class="row form-group">
+                        <div class="col-md-offset-4 col-md-10">
+                            <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

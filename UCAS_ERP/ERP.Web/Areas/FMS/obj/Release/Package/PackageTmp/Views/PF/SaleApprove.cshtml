@@ -1,0 +1,212 @@
+﻿@using Hrms.Controllers
+@using Hrms.Data.HRMSDataModel
+@{
+    ViewBag.Title = "Investment Approve";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var companyList = (List<CompanyInformation>)ViewBag.CompanyList;
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblEmpList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblEmpList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmpList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmpList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+
+
+
+    function GetUnapproveShareSale() {
+
+        var dateFrom = $("#txtSaleDateFrom").val().trim();
+        var dateTo = $("#txtSaleDateTo").val().trim();
+        var CompanyId = $("#ddlCompanyId").val();
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetUnapproveShareSale", "PF", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: { DateFrom: dateFrom, DateTo: dateTo, CompanyId: CompanyId},
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblEmpList").find('tbody').empty();
+                    var TotalPFBlc = 0;
+                    $.each(data.Result, function (id, r) {
+                        TotalPFBlc = r.TotalPF_Balance;
+                        $("#tblEmpList").find('tbody').append(
+                        '<tr>' +
+                        '<td>' + r.RowSl + '</td>' +
+                        '<td>' + r.CompanyName + '</td>' +
+                        '<td>' + r.SaleDate + '</td>' +
+                        '<td>' + r.ShareQuantity + '</td>' +
+                        '<td>' + r.PerUnitSalePrice + '</td>' +
+                        //'<td>' + r.TotalPrice + '</td>' +
+                        '<td>' + r.TotalPriceWithCommission + '</td>' +
+                        '<td><input type="checkbox" class="invcheck"  data-id="' + r.Id + '" /></td>' +
+                        '</tr>'
+                    );
+                    });
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+
+
+    $(document).ready(function () {
+        GetUnapproveShareSale();
+        $("#ddlCompanyId,#txtSaleDateFrom,#txtSaleDateTo").on("change", function () { GetUnapproveShareSale(); });
+
+        $("#btnSave").on("click", function () {
+            var saleMasterId = [];
+            $(".invcheck").each(function () {
+                if ($(this).is(":checked") == true) {
+                    var invid = $(this).attr("data-id");
+                    saleMasterId[saleMasterId.length] = invid;
+                }
+            });
+
+            if (saleMasterId.length == 0) {
+                $.alert.open("Error!!", "No data found to save.");
+                return false;
+            }
+
+            var saleMasterIds = saleMasterId.join(",");
+
+            var json = JSON.stringify({saleMasterId: saleMasterIds });
+
+            $.ajax({
+                type: "Post",
+                url: '@Url.Action("ApproveShareSale", "PF")',
+                contentType: "application/json; charset=utf-8",
+                data: json,
+                dataType: "json",
+                success: function (dt) {
+                    if (dt.Status == true) {
+                        $.alert.open("Successful!!", dt.Message, function () { window.location.reload(); });
+                    } else {
+                        $.alert.open("Error!!", dt.Message);
+                    }
+                }
+            });
+            return true;
+        });
+
+
+        $("#chkallchek").on("click", function () {
+                $(".invcheck").prop("checked", $(this).is(":checked"));
+        });
+
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Share Sale Approve</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Company Name</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlCompanyId">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in companyList.OrderBy(x => x.CompanyName))
+                                        {
+                                            <option value="@r.Id">@r.CompanyName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2" id="lblInvDate">Sale Date From</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtSaleDateFrom" />
+                                </div>
+                                <label class="control-label col-md-2" id="lblInvDate">Sale Date To</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtSaleDateTo" />
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <br />
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Company Name</th>
+                                        <th>Sale Date</th>
+                                        <th>Share Qty</th>
+                                        <th>Unit Sale Price</th>
+                                        @*<th>Total</th>*@
+                                        <th>Total</th>
+                                        <th><input type="checkbox" id="chkallchek" /></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-4 col-sm-offset-2">
+                                @*<input type="text" class="form-control DateInput" id="txtApproveDate"/>*@
+                                <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

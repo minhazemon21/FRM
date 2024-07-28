@@ -1,0 +1,219 @@
+﻿@model Hrms.HRMViewModel.EmployeeReportViewModel
+@using Hrms.HRMViewModel
+@using Common.Data.CommonDataModel
+@{
+    ViewBag.Title = "Leave Summery Report";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<EmployeeReportViewModel>)ViewBag.EmployeeList;
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+}
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        margin-left: 0px;
+    }
+    .radio-container label.active span.radio-text {
+        color: #FFFFFF;
+    }
+</style>
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+
+<script type="text/javascript">
+    var AllEmployeeList = [];
+    function GetEmployeeList() {
+        $('#EmployeeCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: { },
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#EmployeeCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#EmployeeCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+        $('#EmployeeCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#EmployeeCode").val(ui.item.value); // display the selected text
+                $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+                $("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+    $(document).ready(function () {
+        GetEmployeeList();
+
+        $("#EmployeeCode").blur(function(){
+            if($("#EmployeeCode").val() == ""){
+                $("#EmployeeId").val(0);
+                $("#EmpOfficeCode").val("");
+            };
+        });
+        $("input[type=radio][name=reports]").on("change", function () {
+           $(".radio-container label").removeClass("active");
+           $("input[type=radio][name=reports]:checked").parents("label").addClass("active");
+           var report_No = parseInt($("input[type=radio][name=reports]:checked").val());
+            //var AsOnDate = $("#EndDate").val();
+            //var ReportType = $("#cmbReportType").val();
+            //var Emp_Code = $("#EmpOfficeCode").val();
+            if (report_No == 1) {
+                $("#dateason").show();
+                $("#dateBetween").hide();
+            }
+            else if (report_No == 2) {
+                $("#dateason").hide();
+                $("#dateBetween").show();
+
+            }
+            //if(AsOnDate == "" || AsOnDate == null || AsOnDate == undefined){
+            //    $.alert.open("error","Insert date");
+            //    return false;
+            //}
+       });
+
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+            var DateAsOn = $("#txtDateAson").val();
+            var StartDate = $("#txtDateFrom").val();
+            var EndDate = $("#txtDateTo").val();
+            var ReportType = $("#cmbReportType").val();
+            var EmpCode = $("#EmpOfficeCode").val();
+            var reportNo = parseInt($("input[type=radio][name=reports]:checked").val());
+            if (reportNo == 1) {
+                if (DateAsOn != "") {
+                    var data = "rptslnx=" + reportNo + "&EndDate=" + DateAsOn + "&EmpCode=" + EmpCode + "&ReportType=" + ReportType;
+                    ShowReport('/Hrms/ReportView/ShowLeaveSummaryReport', data);
+                }
+                else {
+                    $.alert.open("error", "Insert date");
+                }
+            }
+            else if (reportNo == 2) {
+                if (StartDate != "" && EndDate != "") {
+                    var data = "rptslnx=" + reportNo + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&EmpCode=" + EmpCode + "&ReportType=" + ReportType;
+                    ShowReport('/Hrms/ReportView/ShowLeaveSummaryReport', data);
+                }
+                else {
+                    $.alert.open("error", "Insert date");
+                }
+            }
+        });
+
+        $("#txtDateFrom").on("change", function () {
+            var fromDate = $("#txtDateFrom").val();
+            $("#txtDateTo").datepicker('option', { minDate: fromDate });
+        });
+        $("#txtDateTo").on("change", function () {
+            var toDate = $("#txtDateTo").val();
+            $("#TotalDays").val(0);
+            $("#txtDateFrom").datepicker('option', { maxDate: toDate });
+        });
+    });
+</script>
+
+
+<form name="frmEmployeeReport" class="form-horizontal form-label-left" id="frmEmployeeReport" method="post">
+    @Html.AntiForgeryToken()
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Leave Summary Report</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12 label-container" style="text-align:left">
+                            @Html.Label("Report Name ", new { @class = "control-label" })
+                        </div>
+                        <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12 radio-container">
+                            <div class="row">
+                                @for (var r = 0; r < reports.Count; r++)
+                                {
+                                    <label class="col-lg-6 col-md-6 col-sm-6 col-xs-12 @(r==0?"active":"")">
+                                        <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="reports" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row form-group" id="dateason">
+                        @Html.Label("Date", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" id="txtDateAson" class="form-control DateInput check-date" />
+                        </div>
+
+                    </div>
+                    <div class="row form-group" id="dateBetween" style="display:none">
+                        @Html.Label("From Date", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" id="txtDateFrom" class="form-control DateInput check-date" />
+                        </div>
+                        @Html.Label("To Date", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" id="txtDateTo" class="form-control DateInput check-date" />
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        @Html.Label("Employee Id", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" id="EmployeeCode" class="form-control bordercss" />
+                            <input type="text" id="EmployeeId" class="form-control bordercss" style="display:none;" />
+                            <input type="text" id="EmpOfficeCode" class="form-control bordercss" style="display:none;" />
+                        </div>
+                        @Html.Label("Report Type", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <select class="input-sm form-control bordercss" id="cmbReportType">
+                                <option value="Pdf" selected="selected">Pdf</option>
+                                <option value="ExcelBook">Microsoft Excel</option>
+                                <option value="Excel">Microsoft Excel (97-2003)</option>
+                                <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                <option value="Word">Microsoft Word (97-2003)</option>
+                                <option value="XML">XML</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                            <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+

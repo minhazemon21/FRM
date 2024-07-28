@@ -1,0 +1,656 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Loan";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var loanItemList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanItemList;
+    var interestTypeList = (List<SalaryLoanController.LoanModel>)ViewBag.InterestTypeList;
+    var loanList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanList;
+
+
+
+
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblNonApprovedLoanList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblNonApprovedLoanList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblNonApprovedLoanList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblNonApprovedLoanList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblNonApprovedLoanList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+<script type="text/javascript">
+
+
+    function Clear() {
+        $("#hdnEmployeeId").val(0);
+        $("#EmployeeName").val("");
+        //$("#empDateOfBirth").val("");
+        $("#desg_name").val("");
+        $("#empJoiningDate").val("");
+        $("#desg_name").val("");
+        $("#branch_name").val("");
+        $("#job_name").val("");
+       // $("#desk_name").val("");
+      //  $("#DueDateofConfirmation").val("");
+        $("#txtResignationDate").val("");
+        $("#txtResignationAcceptDate").val("");
+        $("#txtReleaseDate").val("");
+        $("#txtReleaseOrderNo").val("");
+        $("#txtFileCloseDate").val("");
+        $('#thumbnil').attr("src", "/Images/blank-headshot.jpg");
+        $("#thumbnil2").attr("src", "/Images/signature.png");
+    }
+
+    function Get_EmployeeInfo_Details_By_Code() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "SalaryLoan", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+
+                        $("#hdnEmployeeId").val(E.emp_id);
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeName").val(E.emp_name);
+                       // $("#empDateOfBirth").val(E.emp_datetimeof_birth);
+
+                        $("#empJoiningDate").val(E.emp_joining_datetime);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#job_name").val(E.job_name);
+                        $("#branch_name").val(E.branch_name);
+                        $("#TotalLoanAmount").val(E.TotalLoanAmmount);
+                        $("#PaidAmount").val(E.PaidAmount);
+                        $("#InstallmentAmount").val(E.InstallmentAmmount);
+                        $("#InterestRate").val(E.InterestRate);
+                        $("#DueAmount").val(E.DueAmount);
+                        $("#LoanDurationM").val(E.LoanDurationM);
+                      //  $("#desk_name").val(E.desk_name);
+                        //$("#DueDateofConfirmation").val(E.emp_confirmation_datetime);
+
+
+                        $('#AjaxLoader').hide();
+                        $("#thumbnil2").attr("src", "/Hrms/Employee/RetrieveSign/" + E.emp_id + "");
+                        $("#thumbnil").attr("src", "/Hrms/Employee/RetrieveImage/" + E.emp_id + "");
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+    function LoanInstallmentCalc()
+    {
+        var dueloanamount = parseFloat($("#DueAmount").val());
+        var loanAmountnew = parseFloat($("#txtAmountnew").val() == "" ? "0" : $("#txtAmountnew").val());
+        var loanAmountup = $("#txtAmount").val(Math.round(loanAmountnew + dueloanamount));
+        var loanAmount = parseFloat($("#txtAmount").val() == "" ? "0" : $("#txtAmount").val());
+        var interestRate = parseFloat($("#txtInterestRate").val() == "" ? "0" : $("#txtInterestRate").val());
+        var loanDuration = parseFloat($("#txtDuration").val() == "" ? "0" : $("#txtDuration").val());
+        /*alert(1);*/
+        var intType = $("#ddlInterestCalcType").val();
+        if(intType == 1) // No interest
+        {
+            if(loanDuration == 0)
+            {
+                $("#txtTotInstallment").val((loanAmount));
+                $("#txtInstallmentPrincipal").val((loanAmount));
+            }
+            else
+            {
+                $("#txtTotInstallment").val(Math.round((loanAmount / loanDuration)));
+                $("#txtInstallmentPrincipal").val(Math.round((loanAmount / loanDuration)));
+            }
+
+            $("#txtInstallmentInterest").val(0);
+            $("#txtInterestRate").val(0)
+            $("#txtInterestRate").attr("readonly", true);
+
+            $("#txtTotalPayment").val(loanAmount);
+
+            $("#hdnTotInterest").val(0);
+        }
+        else if (intType == 2) //Flat
+        {
+            $("#txtInterestRate").attr("readonly", false);
+            var interest = Math.round(parseFloat((loanAmount / 100) * interestRate));
+
+            $("#txtTotInstallment").val( loanDuration == 0?Math.round(loanAmount + interest): Math.round(((loanAmount + interest) / loanDuration)));
+            $("#txtInstallmentPrincipal").val(Math.round((loanDuration == 0 ?loanAmount :loanAmount / loanDuration)));
+            $("#txtInstallmentInterest").val(Math.round(loanDuration == 0 ? interest : interest / loanDuration));
+            $("#txtTotalPayment").val(loanAmount + interest);
+
+            $("#hdnTotInterest").val(interest);
+        }
+        else if (intType == 3) // Simple
+        {
+            $("#txtInterestRate").attr("readonly", false);
+            var interest = loanDuration == 0 ? Math.round(((loanAmount / 100) * interestRate)) : Math.round(((loanAmount / 100) * interestRate) * (loanDuration / 12));
+
+            $("#txtTotInstallment").val(Math.round(loanDuration == 0 ?(loanAmount + interest) : ((loanAmount + interest) / loanDuration)));
+            $("#txtInstallmentPrincipal").val(Math.round(loanDuration == 0 ?loanAmount : (loanAmount / loanDuration)));
+            $("#txtInstallmentInterest").val(Math.round(loanDuration == 0 ?interest : interest / loanDuration));
+
+            $("#txtTotalPayment").val(loanAmount + interest);
+            $("#hdnTotInterest").val(interest);
+        }
+
+        //  txtTotInstallment txtInstallmentPrincipal
+
+       // var loanAmount = parseFloat($("#txtAmount").val() == "" ? "0" : $("#txtAmount").val());
+    }
+
+    function LoanEdit(Id)
+    {
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_Loan_Disbuse_Info", "SalaryLoan", "http")',
+            data: { Id: Id },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if(data.Status == true)
+                    {
+                        $.each(data.Result, function (id, e) {
+
+                            $("#hdnEmployeeId").val(e.EmployeeId);
+                            $("#hdnLoanId").val(e.Id);
+                            $("#EmployeeCode").val(e.emp_office_code);
+                            $("#EmployeeName").val(e.emp_name);
+                            $("#job_name").val(e.job_name);
+                            $("#branch_name").val(e.BranchName);
+                            $("#Dept_name").val(e.DepartmentName);
+                            $("#desg_name").val(e.DesignationName);
+                            $("#empJoiningDate").val(e.JoiningDateMsg);
+
+
+                            $("#ddlLoanItem").val(e.LoanItemId);
+                            $("#ddlInterestCalcType").val(e.InterestTypeId);
+                            $("#txtAmount").val(e.LoanDisburseAmount);
+                            if (e.InterestTypeId == 1)
+                            {
+                                $("#txtInterestRate").val(e.InterestRate);
+                                $("#txtInterestRate").attr("readonly",true);
+                            }
+                            else
+                            {
+                                $("#txtInterestRate").val(e.InterestRate);
+                                $("#txtInterestRate").attr("readonly", false);
+                            }
+                            $("#hdnTotInterest").val(e.TotalInterestAmount);
+                            $("#txtTotalPayment").val(e.TotalPayable);
+                            $("#txtDuration").val(e.LoanDurationMonth);
+                            $("#txtTotInstallment").val(e.InstallmentAmount);
+                            $("#txtInstallmentPrincipal").val(e.PrincipalInstallmentAmount);
+                            $("#txtInstallmentInterest").val(e.InterestInstallmentAmount);
+                            $("#txtDisbuseDate").val(e.LoanDisburseDateMsg);
+                            $("#txtinstallmentDate").val(e.InstallmentStartDateMsg);
+                            $("#TotalLoanAmount").val(e.LoanDisburseAmount);
+                            $("#PaidAmount").val(e.TotalCollection);
+                            $("#InstallmentAmount").val(e.InstallmentAmount);
+                            $("#LoanDurationM").val(e.LoanDurationMonth);
+                            $("#InterestRate").val(e.InterestRate);
+                            $("#DueAmount").val(e.TotalPayable);
+
+
+                        });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+
+    }
+
+
+
+
+    $(document).ready(function () {
+
+        $("#EmployeeCode").blur(function () {
+            if($("#EmployeeCode").val() != "")
+            {
+                Get_EmployeeInfo_Details_By_Code();
+            }
+        });
+
+
+        $("#ddlInterestCalcType").on("change", function () {
+            LoanInstallmentCalc();
+        });
+
+        $("#btnSave").on("click",function(){
+
+            var loanItemId = $("#ddlLoanItem").val();
+            var interestTypeId = $("#ddlInterestCalcType").val();
+            var disbuseDate = $("#txtDisbuseDate").val().trim();
+            var installmentDate = $("#txtinstallmentDate").val().trim();
+
+            var amount = $("#txtAmount").val() == "" ? "0" : $("#txtAmount").val().trim();
+            var interestRate = $("#txtInterestRate").val() == "" ? "0" : $("#txtInterestRate").val().trim();
+            var totInstallment = $("#txtTotInstallment").val().trim();
+            var duration = $("#txtDuration").val() == "" ? "0" : $("#txtDuration").val().trim();
+            var installmentPrincipal = $("#txtInstallmentPrincipal").val() == "" ? "0" : $("#txtInstallmentPrincipal").val();
+            var installmentInterest = $("#txtInstallmentInterest").val() == "" ? "0" : $("#txtInstallmentInterest").val();
+            var loanId = $("#hdnLoanId").val();
+            var totInterest = $("#hdnTotInterest").val();
+
+            var employeeId = $("#hdnEmployeeId").val();
+            var employeeCode = $("#EmployeeCode").val().trim();
+
+            if (employeeId == 0 || employeeCode == "")
+            {
+                $.alert.open("error", "Please insert employee.");
+                return false;
+            }
+            else if (loanItemId == "0")
+            {
+                $.alert.open("error", "Please select loan item.");
+                return false;
+            }
+            else if (interestTypeId == "0") {
+                $.alert.open("error", "Please select loan interest type.");
+                return false;
+            }
+            else if (disbuseDate == "")
+            {
+                $.alert.open("error", "Please insert disbuse date.");
+                return false;
+            }
+            else if (installmentDate == "") {
+                $.alert.open("error", "Please insert installment start date.");
+                return false;
+            }
+            else if (amount == "0") {
+                $.alert.open("error", "Please insert loan amount.");
+                return false;
+            }
+            else
+            {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Loan_Disbusement_Info", "SalaryLoan", "http")',
+                    data: JSON.stringify({
+                        loanId:loanId,
+                        EmployeeId: employeeId,
+                        EmployeeCode: employeeCode,
+                        LoanItemId: loanItemId,
+                        InterestTypeId:interestTypeId,
+                        DisbuseDate: disbuseDate,
+                        InstallmentDate:installmentDate,
+                        LoanAmount: amount,
+                        InterestRate: interestRate,
+                        TotInstallment: totInstallment,
+                        Duration: duration,
+                        InstallmentPrincipal: installmentPrincipal,
+                        InstallmentInterest: installmentInterest,
+                        TotInterest: totInterest
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if(data.Status == true)
+                        {
+                            $("#hdnLoanId").val(0);
+                            $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                        }
+                        else
+                        {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <input type="hidden" id="hdnLoanId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Loan Re Disbusement</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <legend>Basic Information</legend>
+
+                        <form class="form-horizontal form-label-left">
+
+                            <div class="row form-group">
+                                @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control", @autofocus = true } })
+                                </div>
+                                @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+
+                            <div class="row form-group">
+                                @*@Html.Label("Date of Birth", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("empDateOfBirth", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                    </div>*@
+                                @Html.Label("Job Type", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("job_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Joining Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("empJoiningDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("desg_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("Dept_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("branch_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            @*<div class="row form-group">
+                    @Html.Label("Desk", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("desk_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                    </div>
+
+                    @Html.Label("Due Date of Confirmation", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("DueDateofConfirmation", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                    </div>
+                </div>*@
+                        </form>
+                    </fieldset>
+                    <fieldset>
+
+                        <legend>Previous Loan Information</legend>
+                        <div class="row form-group">
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Loan Amount:</label>
+                                <input style="border:none; font-weight:bold;" id="TotalLoanAmount" readonly />
+                            </div>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Paid Amount:</label>
+                                <input style="border:none; font-weight:bold; " id="PaidAmount" readonly />
+                            </div>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Instalment Amount:</label>
+                                <input style="border:none; font-weight:bold; " id="InstallmentAmount" readonly />
+                            </div>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Interest Rate:</label>
+                                <input style="border:none; font-weight:bold;" id="InterestRate" readonly />
+                            </div>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Due Amount:</label>
+                                <input style="border:none; font-weight:bold; " id="DueAmount" readonly />
+                            </div>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <label>Loan Duration Month:</label>
+                                <input style="border:none; font-weight:bold; width:20%" id="LoanDurationM" readonly />
+                            </div>
+                          
+                            
+                            @*@Html.Label("Previous Loan Amount", htmlAttributes: new { @class = "control-label col-md-2 " , style = "text-align:right" })
+                            <div class="col-md-3 col-sm-6 col-xs-12">
+                                @Html.Editor("TotalLoanAmount", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Paid Amount", htmlAttributes: new { @class = "control-label col-md-1" })
+                            <div class="col-md-3 col-sm-6 col-xs-12">
+                                @Html.Editor("PaidAmount", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Instalment Amount", htmlAttributes: new { @class = "control-label col-md-1" })
+                            <div class="col-md-2 col-sm-6 col-xs-12">
+                                @Html.Editor("InstallmentAmount", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>*@
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Loan Disbuse</legend>
+                        <div style="text-align:right">
+                            <div class="row form-group">
+                                @Html.Label("Loan Item", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlLoanItem">
+                                        <option value="0">Please select</option>
+                                        @foreach (var r in loanItemList)
+                                        {
+                                            <option value="@r.Id">@r.LoanName</option>
+                                        }
+                                    </select>
+                                </div>
+                                @Html.Label("Interest Calc Type", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlInterestCalcType">
+                                        @foreach (var t in interestTypeList)
+                                        {
+                                            <option value="@t.Id">@t.InterestTypeName</option>
+                                        }
+                                    </select>
+                                </div>
+
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("New Disbuse Amount", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtAmountnew", new { htmlAttributes = new { @class = "form-control", @type = "number", @onkeyup = "LoanInstallmentCalc()" } })
+                                </div>
+                                @Html.Label("Interest rate", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtInterestRate", new { htmlAttributes = new { @class = "form-control", @type = "number", @onkeyup = "LoanInstallmentCalc()" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("New Loan Amount", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtAmount", new { htmlAttributes = new { @class = "form-control", @type = "number", @onkeyup = "LoanInstallmentCalc()",  @readonly = "readonly" } })
+                                </div>
+                                @Html.Label("Loan Duration (Month)", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtDuration", new { htmlAttributes = new { @class = "form-control", @type = "number", @onkeyup = "LoanInstallmentCalc()" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+
+                                @Html.Label("Total Installment", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtTotInstallment", new { htmlAttributes = new { @class = "form-control", @type = "number", @readonly = "readonly" } })
+                                </div>
+                                @Html.Label("Installment(Interest)", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtInstallmentInterest", new { htmlAttributes = new { @class = "form-control", @type = "number", @readonly = "readonly" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Installment(Principal)", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtInstallmentPrincipal", new { htmlAttributes = new { @class = "form-control", @type = "number", @readonly = "readonly" } })
+                                </div>
+                                @Html.Label("Installment Start Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtinstallmentDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                                </div>
+
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Total Payable", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtTotalPayment", new { htmlAttributes = new { @class = "form-control", @type = "number", @readonly = "readonly" } })
+                                    <input type="hidden" value="0" id="hdnTotInterest" />
+                                </div>
+                                @Html.Label("Disbuse Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtDisbuseDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                               
+                            </div>
+                            <div class="row form-group">
+                                <div class="control-label col-md-5">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                    <fieldset>
+                        <legend>Non Approved Loan</legend>
+                        <div class="row form-group">
+                            <table id="tblNonApprovedLoanList">
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Desg</th>
+                                    <th>Dept</th>
+                                    <th>Loan Item</th>
+                                    <th>Loan Amount</th>
+                                    <th>Disbusement Date</th>
+                                    <th>Interest Rate</th>
+                                    <th>No. Of Ins:</th>
+                                    <th>Per Installment</th>
+                                    <th>Edit</th>
+                                </tr>
+                                @foreach (var r in loanList)
+                                {
+                                    <tr>
+                                        <td>@r.RowSl</td>
+                                        <td>@r.emp_office_code</td>
+                                        <td>@r.emp_name</td>
+                                        <td>@r.DesignationShortName</td>
+                                        <td>@r.DepartmentShortName</td>
+                                        <td>@r.LoanName</td>
+                                        <td>@r.LoanDisburseAmount</td>
+                                        <td>@r.LoanDisburseDate</td>
+                                        <td>@r.InterestRate</td>
+                                        <td>@r.LoanDurationMonth</td>
+                                        <td>@r.InstallmentAmount</td>
+                                        <td><a href="#" title="Edit" onclick="LoanEdit(@r.Id)" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a></td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

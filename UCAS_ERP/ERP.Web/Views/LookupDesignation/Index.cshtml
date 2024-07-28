@@ -1,0 +1,258 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+
+<style>
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .x_panel {
+        padding: 0px !important;
+    }
+    .k-grid td {
+        padding: 0px 0px !important;
+    }
+    .panel-success {
+        border-color: #1ABB9C !important;
+    }
+    .panel-heading {
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: white !important;
+        background-color: #1ABB9C !important;
+        border-color: #1ABB9C !important;
+    }
+</style>
+<script type="text/javascript">
+
+    function GetDesignation() {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetDesignation", "LookupDesignation", "http")',
+                    dataType: "json",
+                    data: {}
+                }
+            },
+            pageSize: 20,
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 500,
+            groupable: true,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            resizable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                hidden: true,
+                filterable: false
+            },
+           {
+               field: "RowSl",
+               title: "SL",
+               width: "10%"
+           },
+            {
+                field: "DesignationName",
+                title: "Designation ",
+                width: "35%"
+            },
+            {
+                field: "DesignationShortName",//
+                title: "In Short",
+                width: "17%"
+            },
+            {
+                field: "JobTypeName",
+                title: "Job Type",
+                width: "15%"
+                },
+                {
+                    field: "DisplayOrder",
+                    title: "Display Order",
+                    width: "15%"
+                },
+             {
+                 title: "Action",
+                 width: "8%",
+                 template: function (dataItem) {
+                     return '<a href="#" title="Edit" onclick=" LoadEditData(' + dataItem.Id + ',' + dataItem.JobTypeId + ',' + "'" + dataItem.DesignationShortName + "'" + ',' + "'" + dataItem.DesignationName + "'" + ',' + "'" + dataItem.DisplayOrder + "'" + ')" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>';
+                 }
+             },
+            ]
+        });
+    }
+    function LoadEditData(Id, JobTypeId, DesignationShortName, DesignationName, DisplayOrder)
+    {
+        $("#hdnDesignationId").val(Id);
+        $("#txtDesignation").val(DesignationName);
+        $("#txtShortName").val(DesignationShortName);
+        $("#JobTypeList").val(JobTypeId);
+        $("#txtDisplayOrder").val(DisplayOrder);
+        $("#txtShortName").prop('disabled', true);//.attr("disabled");
+    }
+    function DesignationDelete(Id) {
+        $.alert.open('confirm', 'Are you sure you want to delete this record?', function (button) {
+            if (button == 'yes') {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DesignationDelete", "LookupDesignation", "http")',
+                    data: { Id: Id },
+                    dataType: 'json',
+                    async: true,
+                    success: function (result) {
+                        $.alert.open("info","Delete successfull");
+                        GetDesignation();
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    $(document).ready(function () {
+        GetDesignation();
+
+        $("#hdnDesignationId").val("0");
+
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            if ($("#txtDesignation").val() == ""){
+                $.alert.open("error", "Insert Designation Name");
+                return false;
+            } else if ($('#txtShortName').val() == "") {
+                $.alert.open("error", "Insert Designation Short Name");
+                return false;
+            } else if ($("#JobTypeList").val() == "") {
+                $.alert.open("error", "Insert Job Type Name");
+                return false;
+            }
+            else if ($("#txtDisplayOrder").val() == "") {
+                $.alert.open("error", "Insert Designation Display Order");
+                return false;
+            }else
+            {
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("SaveDesignation", "LookupDesignation", "http")',
+                        type: "GET",
+                        dataType: 'json',
+                        async: true,
+                        data: { Designation: $("#txtDesignation").val(), ShortName: $("#txtShortName").val(), DesignationId: $("#hdnDesignationId").val(), JobTypeId: $("#JobTypeList").val(), desg_reportorder: $("#txtDisplayOrder").val() },
+                        success: function (data) {
+                            if (data.result == true) {
+                                $("#txtDesignation").val("");
+                                $('#txtShortName').val("");
+                                $("#hdnDesignationId").val("0");
+                                $("#JobTypeList").val("");
+                                $("#txtDisplayOrder").val();
+                                //$(".success").show(800).fadeToggle(3000);
+                                $.alert.open("success", data.message, function () {
+                                    //window.location.reload();
+                                    GetDesignation();
+                                    $("#txtShortName").prop('disabled', false);
+                                });
+                                //GetDesignation();
+                            }
+                            else {
+                                $.alert.open("error", data.message, function () { window.location.reload(); });
+                            }
+                        },
+                        error: function () {
+                            // alert("Fail to save");
+                            $.alert.open("error", data.message, function () { window.location.reload(); });
+                        }
+                    });
+
+
+                }
+        });
+        $("#btnReset").click(function (e) {
+            e.preventDefault();
+            $("#txtDesignation").val("");
+            $('#txtShortName').val("");
+            $("#hdnDesignationId").val("0");
+            $("#JobTypeList").val("");
+            $("#txtDisplayOrder").val("");
+            $("#txtShortName").prop('disabled', false);//.attr("disabled");
+        });
+    });
+</script>
+
+
+@using (Html.BeginForm("Index", "LookupDesignation", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal form-label-left", id = "LookupDesignationForm" }))
+{
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">Designation Information Setup</div>
+                <div class="panel-body">
+                    <div class="item form-group">
+                        <input type="hidden" id="hdnDesignationId" />
+                        @Html.Label("Designation", htmlAttributes: new { @class = "control-label col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("Designation", new { htmlAttributes = new { @class = "form-control", @id = "txtDesignation" } })
+                        </div>
+                        @Html.Label("Short Name", htmlAttributes: new { @class = "control-label col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("ShortName", new { htmlAttributes = new { @class = "form-control", @id = "txtShortName" } })
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        @Html.Label("Job Type", htmlAttributes: new { @class = "control-label col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-md-4 col-sm-4 col-xs-12">
+                            @Html.DropDownList("JobTypeList", new SelectList(ViewBag.JobTypeList, "JobTypeId", "JobTypeName"), "Please select", new { @class = "form-control bordercss" })
+                        </div>
+                        @Html.Label("Display Order", htmlAttributes: new { @class = "control-label col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("DisplayOrder", new { htmlAttributes = new { @class = "form-control", @id = "txtDisplayOrder" } })
+                        </div>
+                    </div>
+                    <div class="item form-group">
+                        <div class="col-md-3 col-sm-6 col-xs-12 col-md-offset-5">
+                            <button type="submit" id="btnSave" class="btn btn-success">Save</button>
+                            <button id="btnReset" class="btn btn-default">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row form-group">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 table-responsive">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="grid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+

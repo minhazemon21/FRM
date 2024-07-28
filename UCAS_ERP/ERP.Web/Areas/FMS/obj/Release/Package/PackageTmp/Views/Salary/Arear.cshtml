@@ -1,0 +1,385 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@{
+    ViewBag.Title = "Salary";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var yearMonthList = (List<SalaryController.SalaryAllowance>)ViewBag.YearMonthList;
+    var branchList = (List<SalaryController.SalaryAllowance>)ViewBag.BranchList;
+    var departmentList = (List<SalaryController.SalaryAllowance>)ViewBag.DepartmentList;
+    var transactionList = (List<SalaryController.SalaryAllowance>)ViewBag.TransactionList;
+
+    
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    #tblEmployeeList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblEmployeeList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblEmployeeList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmployeeList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmployeeList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+
+<script type="text/javascript">
+
+    function GetEmployeeForArearProcess() {
+
+        var yearMonth = "";
+        $(".csMonthyear").each(function () {
+
+            if ($(this).is(":checked") == true) {
+                yearMonth = yearMonth + "~" + $(this).val();
+            }
+
+        });
+
+        // = $("#ddlSalYear").val() == "" ? "0" : $("#ddlSalYear").val();
+
+        var empCode = $("#txtExceptEmpCode").val().trim();
+        var inExCode = "I";// $("#chkExceptEmpCode").is(":checked") == true ? "E" : "I";
+        var branchId = $("#ddlBranchList").val();
+        var departmentId = 0;//$("#ddldepartmentList").val();
+        var transactionId = $("#ddlTransaction").val();
+
+        if (yearMonth == "") {
+            $.alert.open("error", "Please select salary month");
+            return false;
+        }
+        else {
+
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("Get_Employee_For_Arear_Process", "Salary", "http")',
+                data: {
+                    YearMonth: yearMonth
+                        , EmpCode: empCode
+                        , InExCode: inExCode
+                        , BranchId: branchId
+                        , DepartmentId: departmentId
+                        , transactionId: transactionId
+                },
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    var dtTable = $('#tblEmployeeList').find('tbody');
+                    $('#tblEmployeeList tbody tr').empty();
+                    if (data.Status == true) {
+                        if (data.Result.length < 1) {
+                            $("#lblgrandTotal").html(0);
+                        }
+                        $.each(data.Result, function (id, e) {
+                            dtTable.append(
+                                '<tr>'
+                                        + '<td>' + e.RowSl + '</td>'
+                                        + '<td>' + e.emp_office_code + '</td>'
+                                        + '<td>' + e.emp_name + '</td>'
+                                        + '<td>' + e.DesignationShortName + '</td>'
+                                        + '<td>' + e.SalaryPaymentMode + '</td>'
+                                        + '<td style="text-align:right">' + e.ArearAmount + '</td>'
+                                        + '<td><input type="checkbox"class="csArear" value="' + e.ArearAmount + '" data-salarymasterid="' + e.MasterIds + '" /></td>'
+                                + '</tr>'
+
+                            );
+                            $("#lblgrandTotal").html(e.GrandTotalArear);
+                        });
+
+                        $("#chkAll").on("click", function () {
+                            if ($(this).is(":checked") == true) {
+                                $(".csArear").prop("checked", true);
+                            }
+                            else {
+                                $(".csArear").prop("checked", false);
+                            }
+                        });
+                    }
+                    else {
+                        $.alert.open("error", data.Message);
+                    }
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+
+
+
+    function SaveEmployeewiseSalaryArear() {
+        var allsalarymasterid = "";
+        var arearDate = $("#txtArearDate").val();
+        var remarks = $("#txtRemarks").val();
+        var monthNames = "";
+        $(".csMonthyear").each(function () {
+
+            if ($(this).is(":checked") == true) {
+                monthNames = monthNames + "~" + $(this).attr("data-monthname");
+            }
+
+        });
+
+        $(".csArear").each(function () {
+            if ($(this).is(":checked") == true) {
+
+                var arearAmount = $(this).val() == "" ? "0" : $(this).val();
+                var salarymasterid = $(this).attr("data-salarymasterid"); //581~17877.00|1611~17877.00|1641~40731.00
+                if (arearAmount != "0") {
+                    allsalarymasterid += salarymasterid + "|";
+                }
+            }
+        });
+
+        if (allsalarymasterid == "") {
+            $.alert.open("error", "Please select employee.");
+            return false;
+        }
+        if (arearDate == "") {
+            $.alert.open("error", "Please insert process date.");
+            return false;
+        }
+        else {
+            $("#AjaxLoader").show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveEmployeewiseSalaryArear", "Salary", "http")',
+                data: JSON.stringify({
+                    allsalarymasterIds: allsalarymasterid,
+                    ArearDate: arearDate,
+                    Remarks: remarks,
+                    MonthNames: monthNames
+                }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if (data.Status == true) {
+                        $.alert.open(data.Result, data.Message, function () {
+                            window.location = "@Url.Action("Arear", "Salary")";
+                        });
+                    }
+                    else {
+                        $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#AjaxLoader").hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+
+    function GET_Salary_MonthYear() {
+        var transactionId = $("#ddlTransaction").val();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GET_Salary_MonthYear", "Salary", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: { transactionId: transactionId },
+            success: function (data) {
+                $("#divYearMonth").html("");
+                var html = "";
+                $.each(data.Result, function (id, e) {
+                    html += '<li><input type="checkbox" class="flat csMonthyear" value="' + e.YearMonth + '" data-monthname="' + e.YearMonthName + '">&nbsp;' + e.YearMonthName + '</li>'
+                   // html += '<div class="col-md-3" style="float:left;color:black"><input type="checkbox" class="flat csMonthyear" value="' + e.YearMonth + '" data-monthname="' + e.YearMonthName + '">&nbsp;' + e.YearMonthName + '<br /></div>';
+                });
+                $("#divYearMonth").append(html);
+            },
+            failure: function () {
+                $.alert.open("error", "Failed!");
+            }
+        });
+    }
+    $(document).ready(function () {
+
+        GET_Salary_MonthYear();
+        $("#ddlTransaction").on("change", function () {
+            GET_Salary_MonthYear();
+            $('#tblEmployeeList tbody tr').empty();
+            $("#lblgrandTotal").html(0);
+        });
+
+
+        $("#btnSearch").on("click", function () {
+            GetEmployeeForArearProcess();
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseSalaryArear();
+        });
+
+        $(".csMonthyear").on("click", function () { $('#tblEmployeeList tbody tr').empty(); });
+
+        //if ($("#txtinExCode").val() == "E") {
+        //    $("#chkExceptEmpCode").prop("checked", true);
+        //    $("#lblEmpCode").html("Exclude Employee Code");
+        //}
+        //else {
+        //    $("#chkExceptEmpCode").prop("checked", false);
+        //    $("#lblEmpCode").html("Employee Code");
+        //}
+
+        $("#chkExceptEmpCode").on("click", function () {
+            if ($("#chkExceptEmpCode").is(":checked") == true) {
+                $("#lblEmpCode").html("Exclude Employee Code");
+            }
+            else {
+                $("#lblEmpCode").html("Employee Code");
+            }
+        });
+    });
+
+
+
+</script>
+
+<div role="main">
+   
+   
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Arear Process</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset>
+                        @*<div class="row form-group">*@
+                            @*<div class="col-md-1">
+
+                            </div>
+                            <div class="col-md-11" id="divYearMonthw" style="width:200px">
+                                
+                                    @foreach (var r in yearMonthList)
+                                    {
+                                        <div class="col-md-3" style="float:left;color:black"><input type="checkbox" class="flat csMonthyear" value="@r.YearMonth" data-monthname="@r.YearMonthName"> @r.YearMonthName</div>
+                                    }
+                            </div>*@
+                            
+                            <div class="col-md-8" style="text-align:right">
+                                <br />
+                                <div class="row form-group">
+                                    @Html.Label("Transaction", new { @class = "control-label col-md-4" })
+                                    <div class="col-md-8">
+                                        <select class="form-control" id="ddlTransaction">
+                                            <option value="0">Please select</option>
+                                            @foreach (var b in transactionList)
+                                            {
+                                                <option value="@b.TransactionTypeId">@b.TransactionTypeName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                   
+                                    @*@Html.Label("Department", new { @class = "control-label col-md-2" })
+                                    <div class="col-md-4">
+                                        <select class="form-control" id="ddldepartmentList">
+                                            <option value="0">Please select</option>
+                                            @foreach (var d in departmentList)
+                                            {
+                                                <option value="@d.Id">@d.DepartmentName</option>
+                                            }
+                                        </select>
+                                    </div>*@
+                                </div>
+                                <div class="row form-group">
+                                    @Html.Label("Branch", new { @class = "control-label col-md-4" })
+                                    <div class="col-md-8">
+                                        <select class="form-control" id="ddlBranchList">
+                                            <option value="0">Please select</option>
+                                            @foreach (var b in branchList)
+                                            {
+                                                <option value="@b.Id">@b.BranchName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    @Html.Label("Employee Code",  new { @class = "control-label col-md-4", @id = "lblEmpCode" })
+                                    <div class="col-md-8">
+                                        <input type="text" id="txtExceptEmpCode" class="form-control" value="@ViewData["exceptempcode"]" />
+                                        @*<input type="checkbox" title="Except Employee Code" id="chkExceptEmpCode" />
+                                        <input type="text" value="@ViewData["inExCode"]" style="display:none" id="txtinExCode" />*@
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <div class="col-md-8 col-sm-offset-4">
+                                        <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <ul id="divYearMonth" style="list-style-type:none;"></ul>
+                            </div>
+                        @*</div>*@
+                    </fieldset>
+                </div>
+                <div class="row form-group">
+                    <table id="tblEmployeeList">
+                        <thead>
+                            <tr>
+                                <th>&nbsp; Sl</th>
+                                <th>Code</th>
+                                <th>Employee Name</th>
+                                <th>Desg</th>
+                                <th>Pay. Mode</th>
+                                <th>Arear Amount</th>
+                                <th><input type="checkbox" id="chkAll"/> Select</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr><td colspan="6" style="text-align:right"> <label id="lblgrandTotal"></label></td><td></td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="row form-group" style="text-align:right">
+                    @Html.Label("Payment Date", new { @class = "control-label col-md-2 required" })
+                    <div class="col-md-4">
+                        <input type="text" id="txtArearDate" class="form-control DateInput check-date" />
+                    </div>
+                    @Html.Label("Remarks", new { @class = "control-label col-md-2" })
+                    <div class="col-md-4">
+                        <input type="text" id="txtRemarks" class="form-control" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-offset-6 col-md-2">
+                        <button type="submit" class="btn btn-success" id="btnSave">Process</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,235 @@
+﻿@using ERP.Web.Helpers;
+@{
+    ViewBag.Title = "RegisterIndex";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .panel-success {
+        border-color: #1ABB9C !important;
+    }
+
+    .panel-heading {
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: white !important;
+        background-color: #1ABB9C !important;
+        border-color: #1ABB9C !important;
+    }
+
+    /*.panel-footer {
+        padding: 10px 0px!important;
+    }*/
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .k-grid .k-grouping-header {
+        color: white;
+    }
+</style>
+<script type="text/javascript">
+    var logInRoleName = '@SessionHelper.RoleName';
+
+    function GetEditDataById(UserId) {
+        window.location.href = '@Url.Action("RegisterEdit", "Account")?UserId=' + UserId ;
+    }
+
+    function RegisterResetPassword(UserId) {
+        $.alert.open('confirm', 'Are you sure you want to reset this password?', function (button) {
+            if (button == 'yes') {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("RegisterInfoResetPassword", "Account", "http")',
+                    data: { UserId: UserId },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        $("#grid").data("kendoGrid").dataSource.read();
+                        if (data.Result == 'Ok')
+                            $.alert.open("info", "Password reset successfully.");
+                        else
+                            $.alert.open("error", data.Message);
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        $.alert.open("error", request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    function RegisterDelete(UserId) {
+        $.alert.open('confirm', 'Are you sure you want to delete this user?', function (button) {
+            if (button == 'yes') {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("RegisterInfoDelete", "Account", "http")',
+                    data: { UserId: UserId },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        $("#grid").data("kendoGrid").dataSource.read();
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    function GetRegisterInformation()
+    {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetRegisterInformation", "Account", "http")',
+                    data: { UserCode: $("#txtEmployeeCode").val() },
+                    dataType: "json"
+                }
+            },
+            pageSize: 100,
+        });
+
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 1000,
+            groupable: true,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            resizable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            noRecords: {
+                template: "No data available."
+            },
+            columns: [
+                 {
+                     field: "UserId",
+                     title: "UserId",
+                     hidden: true
+                 },
+             {
+                 field: "RowSl",
+                 title: "SL",
+                 width: "8%"
+             },
+              {
+                  field: "EmployeeCode",
+                  title: "Code",
+                  width: "10%"
+              },
+            {
+                field: "EmployeeName",
+                title: "Name",
+                width: "25%"
+            },
+            {
+                field: "Email",
+                title: "Email",
+                groupable: false,
+                width: "20%"
+            },
+            {
+                field: "UserName",
+                title: "User Name",
+                groupable: false,
+                width: "20%"
+            },
+            {
+                field: "RoleName",
+                title: "Role",
+                width: "12%"
+            },
+            {
+
+                title: "Commands",
+                width: "15%",
+                template: function (dataItem) {
+                    if (logInRoleName.toLowerCase() == 'supper admin') {
+                        return '<a href="#"  onclick="GetEditDataById(' + dataItem.UserId + ')"  title="Edit" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>' +
+                            '<a href="#" title="Change password" onclick="RegisterResetPassword(' + dataItem.UserId + ')" class="btn btn-primary btn-xs"><i class="fa fa-unlock-alt" aria-hidden="true"></i></a>' +
+                            '<a href="#" title="Delete" onclick="RegisterDelete(' + dataItem.UserId + ')" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i></a>';
+                    } else {
+                        if (logInRoleName.toLowerCase() == 'admin' && (dataItem.RoleName.toLowerCase() == "supper admin" || dataItem.RoleName.toLowerCase() == "hr & accounts")) {
+                            return '<a href="javascript:void();" title="Not Eligiable" class="btn btn-primary btn-xs">No Action</a>';
+                        } else if (logInRoleName.toLowerCase() == 'hr & accounts' && (dataItem.RoleName.toLowerCase() == "supper admin" || dataItem.RoleName.toLowerCase() == "admin")) {
+                            return '<a href="javascript:void();" title="Not Eligiable" class="btn btn-primary btn-xs">No Action</a>';
+                        } else {
+                            return '<a href="#"  onclick="GetEditDataById(' + dataItem.UserId + ')"  title="Edit" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>' +
+                                '<a href="#" title="Change password" onclick="RegisterResetPassword(' + dataItem.UserId + ')" class="btn btn-primary btn-xs"><i class="fa fa-unlock-alt" aria-hidden="true"></i></a>' +
+                                '<a href="#" title="Delete" onclick="RegisterDelete(' + dataItem.UserId + ')" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i></a>';
+                        }
+                    }
+                }
+            }
+            ]
+        });
+    }
+
+    $(document).ready(function () {
+        GetRegisterInformation();
+
+        $("#btnSearch").click(function (e) {
+            e.preventDefault();
+            GetRegisterInformation();
+        });
+
+    });
+</script>
+
+@Html.ActionLink("Add New", "Register", null, new { @class = "btn btn-primary btn-sm pull-right" })
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">Register Information</div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    @Html.Label("User Code", htmlAttributes: new { @class = "control-label col-md-1",@style="padding: 0px;text-align: right;" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("txtEmployeeCode", new { htmlAttributes = new { @class = "form-control" } })
+                    </div>
+
+                    <div class="col-md-2 col-sm-6 col-xs-12">
+                        <input type="submit" class="btn btn-info" id="btnSearch" value="Search" />
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row form-group">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 table-responsive">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="grid">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

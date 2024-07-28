@@ -1,0 +1,294 @@
+﻿
+@{
+    ViewBag.Title = "Attentance Modify";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<link href="~/Content/css/timePicker.css" rel="stylesheet" />
+<script src="~/Scripts/timePicker.js"></script>
+
+<style>
+   
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .row label{
+        text-align:right;
+    }
+
+
+</style>
+
+
+
+
+<script type="text/javascript">
+
+    function GetEmployeeSalaryAccountInfo() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetEmployeeAccountInfo", "Attendance", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Result == "Success") {
+                    $.each(data.EmpAccInfoList, function (id, option) {
+                        $("#EmployeeCode").val(option.empcode);
+                        $("#EmployeeCode").attr("data-empid", option.emp_id);
+                        $("#EmployeeCode").attr("data-barcode", option.bar_code);
+                        $("#EmployeeName").val(option.empname);
+                        $("#EmpDesignation").val(option.desgname);
+                        $("#HdneEp_dept_id").val(option.emp_dept_id);
+                        $("#EmpDepartment").val(option.deptname);
+                        $("#EmpBranchName").val(option.branchname);
+                        $("#empJoiningDate").val(option.JoiningDate);
+                        $("#empDateOfBirth").val(option.DateOfBirth);
+                    });
+                }
+                else {
+                    $.alert.open("error", data.Message);
+                }
+
+
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+
+        $(document).on("click", "#AttendanceDate", function () {
+            $(this).datepicker({
+                dateFormat: "dd/mm/yy",
+                showAnim: "scale",
+                changeMonth: true,
+                changeYear: true,
+              //  minDate: "+1M",
+                maxDate: "0"
+            }).focus();
+        });
+        $("#txtAttenTime").timepicker({
+            timeFormat: 'h:mm p',
+            interval: 15,
+            defaultTime: '09',
+            startTime: '08:00',
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
+        });
+
+        $("#AttendanceDate").on("change", function () {
+
+            var barCode = $("#EmployeeCode").attr("data-barcode");
+            var attenDate = $("#AttendanceDate").val();
+            if (barCode == "")
+            {
+                $("#AttendanceDate").val("");
+                $.alert.open("error", "Please select employee.");
+                return false;
+            }
+            if (attenDate == "") {
+                $.alert.open("error", "Please insert attendance date.");
+                return false;
+            }
+
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("Get_Emp_Attendance_By_Date", "Attendance", "http")',
+                data: { barCode: barCode, attenDate: attenDate},
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.Status == true)
+                    {
+                       // alert(data.empAtten.attendance_time);
+                        $("#txtAttenTime").val(data.empAtten.attendance_time);
+                    }
+                    else
+                    {
+                        $.alert.open("error", data.Message);
+                    }
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        });
+
+
+        $("#btnSave").on("click", function () {
+
+            var employeeCode = $("#EmployeeCode").val();
+            var barCode = $("#EmployeeCode").attr("data-barcode");
+            var attenDate = $("#AttendanceDate").val();
+            var attenTime = $("#txtAttenTime").val();
+
+            if (employeeCode == "") {
+                $.alert.open("error", "Please select employee.");
+                return false;
+            }
+            if (barCode == "") {
+                $.alert.open("error", "Please select employee.");
+                return false;
+            }
+            if (attenDate == "") {
+                $.alert.open("error", "Please insert attendance date.");
+                return false;
+            }
+            if (attenTime == "") {
+                $.alert.open("error", "Please insert attendance time.");
+                return false;
+            }
+            $.ajax({
+                type: 'GET',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("ModifyAttendanceInTime", "Attendance", "http")',
+                data: { barCode: barCode, attenDate: attenDate, attenTime: attenTime },
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    if (data.Status == true)
+                    {
+                        $.alert.open("success", data.Message, function () { window.location.reload(); });
+                    }
+                    else
+                    {
+                        $.alert.open("error", data.Message);
+                    }
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        });
+
+        $("#EmployeeCode").blur(function () {
+
+            if ($("#EmployeeCode").val() != "") {
+                GetEmployeeSalaryAccountInfo();
+            }
+        });
+
+        $("#btnRefresh").on("click", function () {
+            window.location.reload();
+        });
+    });
+</script>
+
+    <div role="main">
+        <div class="">
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+            <div class="page-title">
+                <div class="title_left PageHeader" style="width:90%;">
+                    <h3 style="color: white;padding:2px">&nbsp;Attendance Modify</h3>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <ul class="list-unstyled timeline">
+                            <li>
+                                <div class="block">
+                                    <div class="tags">
+                                        <a href="" class="tag">
+                                            <span>Basic Info</span>
+                                        </a>
+                                    </div>
+                                    <div class="block_content">
+                                        <div class="row form-group">
+                                            @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                <input type="text" class="form-control" id="EmployeeCode" data-empid="" data-barcode="" />
+                                            </div>
+                                            @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                            </div>
+                                        </div>
+
+                                        <div class="row form-group">
+                                            @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.Editor("EmpDesignation", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                            </div>
+                                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.Editor("EmpDepartment", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                                <input type="hidden" id="HdneEp_dept_id" />
+                                            </div>
+                                        </div>
+
+                                        <div class="row form-group">
+                                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.Editor("EmpBranchName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                            </div>
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="block">
+                                    <div class="tags">
+                                        <a href="" class="tag">
+                                            <span>Attendance</span>
+                                        </a>
+                                    </div>
+                                    <div class="block_content">
+                                        <div class="row form-group">
+                                            <div class="col-md-6">
+                                                <div class="row form-group">
+                                                    @Html.Label("Attendance Date ", htmlAttributes: new { @class = "control-label col-md-4 required" })
+                                                    <div class="col-md-8 col-sm-6 col-xs-12">
+                                                        @Html.Editor("AttendanceDate", new { htmlAttributes = new { @class = "form-control" } })
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                @Html.Label("Attendance Time ", htmlAttributes: new { @class = "control-label col-md-4 required" })
+                                                <div class="col-md-8 col-sm-6 col-xs-12">
+                                                    <input type="text" class="form-control input-sm" id="txtAttenTime" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class=" row form-group">
+                                            <div class="col-md-4 col-sm-offset-2">
+                                                <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                                <button type="submit" class="btn btn-info" id="btnRefresh">Reset</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+

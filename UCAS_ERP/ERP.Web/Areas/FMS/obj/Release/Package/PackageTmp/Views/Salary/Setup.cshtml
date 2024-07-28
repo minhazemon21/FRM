@@ -1,0 +1,767 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@{
+    ViewBag.Title = "Salary";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+
+<script type="text/javascript">
+
+    function SaveEmployeewiseSalarySetup() {
+        var allowanceIdAmt = "";
+        var pfAmt = "";
+        var incentiveAmt = "";
+        var bonusAmt = "";
+        var directorAmt = "";
+        var basicAmt = $("#Basic").val() == "" ? "0" : $("#Basic").val();
+        var TransactionMode = $("#ddlPaymentMode").val();
+        var remarks = $("#txtRemarks").val();
+        var SalaryDeductForAbsentSts = "1";//$("#chkSalaryDeductForAbsent").is(":checked") == true ? "1" : "0";
+        // '1,1000/2,600/4,200/56,50000000/1000,155202565455'
+        $(".salaryNew").each(function () { //Salary
+            var allowance = $(this).attr("id");
+            var amount = $(this).val() == "" ? "0" : $(this).val();
+            var rmk = $("#txt-" + allowance).val();
+
+            allowanceIdAmt = allowance + "~" + amount + "~" + rmk + "|" + allowanceIdAmt;
+        });
+
+        $(".PfNew").each(function () { //PF
+            var allowance = $(this).attr("id");
+            var amount = $(this).html() == "" ? "0" : $(this).html();
+            var rmk = $("#txt-" + allowance).val();
+            pfAmt = allowance + "~" + amount + "~" + rmk + "|" + pfAmt;
+        });
+
+        $(".IncentiveNew").each(function () { //Incentive
+            var allowance = $(this).attr("id");
+            var amount = $(this).html() == "" ? "0" : $(this).html();
+            var rmk = $("#txt-" + allowance).val();
+            incentiveAmt = allowance + "~" + amount + "~" + rmk + "|" + incentiveAmt;
+        });
+
+        $(".BonusNew").each(function () { //Bonus
+            var allowance = $(this).attr("id");
+            var amount = $(this).html() == "" ? "0" : $(this).html();
+            var rmk = $("#txt-" + allowance).val();
+            bonusAmt = allowance + "~" + amount + "~" + rmk + "|" + bonusAmt;
+        });
+
+        $(".DirectorAlNew").each(function () { //Director
+            var allowance = $(this).attr("id");
+            var amount = $(this).val() == "" ? "0" : $(this).val();
+            var rmk = $("#txt-" + allowance).val();
+            directorAmt = allowance + "~" + amount + "~" + rmk + "|" + directorAmt;
+        });
+
+        var empCode = $("#EmployeeCode").val().trim();
+        var bankAmount = parseFloat($("#txtBankAmount").val().trim() == "" ? "0" : $("#txtBankAmount").val().trim());
+        var cashAmount = parseFloat($("#lblCashAmount").html() == "" ? "0" : $("#lblCashAmount").html());
+        var effectiveDate = $("#EffectiveDate").val();
+
+        if (empCode == "" || empCode == "0") {
+            $.alert.open("error", "Please insert employee code.");
+            return false;
+        }
+        else if (effectiveDate == "") {
+            $.alert.open("error", "Please insert effective date.");
+            return false;
+        }
+        else if (basicAmt == "0") {
+            $.alert.open("error", "Please insert basic salary.");
+            return false;
+        }
+        else {
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveEmployeewiseSalarySetup", "Salary", "http")',
+                data: JSON.stringify({
+                    allowanceIdAmt: allowanceIdAmt
+                    , pfAmt: pfAmt
+                    , incentiveAmt: incentiveAmt
+                    , bonusAmt: bonusAmt
+                    , directorAmt: directorAmt
+                    , empCode: empCode
+                    , effectiveDate: effectiveDate
+                    , basicAmt: basicAmt
+                    , TransactionMode: TransactionMode
+                    , SalaryDeductForAbsentSts: SalaryDeductForAbsentSts
+                    , Remarks: remarks
+                    , bankAmount: bankAmount
+                    , cashAmount: cashAmount
+                }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                },
+                error: function (request, status, error) {
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+
+        }
+    }
+
+    function GetEmployeewiseSalarySetup(EmployeeCode, effectiveDate) {
+
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetEmployeewiseSalarySetup", "Salary", "http")',
+            data: { EmployeeCode: EmployeeCode, effectiveDate: effectiveDate },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Status == true) {
+                    if (data.Result.length != 0) {
+                        
+                        var addsl = 0;
+                        var dedsl = 0;
+                        $.each(data.Result, function (id, option) {
+                            $("#EmployeeCode").val(option.emp_office_code);
+                            $("#DateOfBirth").val(option.emp_datetimeof_birth);
+                            $("#EmployeeName").val(option.emp_name);
+                            $("#hdnjobtypecode").val(option.JobTypeCode);
+
+                            if (option.JobTypeCode != "1")
+                            {
+                                //alert(1);
+                                $(".PfPerc").each(function () {
+                                    $(this).html(0);
+                                });
+                            }
+
+                            //
+                            if (option.EffectiveDateSts != 0)
+                            {
+                                $("#hdnEligibleForIncentive").val(option.EligibleForIncentive);
+                                $("#EmpDesignation").val(option.DesignationName);
+                                $("#EmpDepartment").val(option.DepartmentName);
+                                $("#EmpBranchName").val(option.BranchName);
+                                $("#JoiningDate").val(option.JoiningDate);
+                                $("#ddlPaymentMode").val(option.SalaryPaymentMode);
+
+                                $("#ConfirmationDate").val(option.ConfirmationDate);
+                                $("#lblEffectiveDate").html(option.EffectiveDate);
+                               // $("#EffectiveDate").val(option.LastSalaryDate);
+                                $("#hdnLastSalaryDate").val(option.LastSalaryDate);
+                                //  console.log(option.LastSalaryDate)
+                                $("#salary-" + option.SalaryAllowanceId).html(option.Amount);
+
+                                $("#Percent-" + option.SalaryAllowanceId).html(option.Percentage);
+                                $("#txt-" + option.AllowanceShortName).val(option.Remarks);
+
+                                if ((option.TransactionTypeId == 1) && option.IsAddition == 1) {
+                                    addsl = addsl + option.Amount
+                                }
+                                if ((option.TransactionTypeId == 1) && option.IsAddition == 2) {
+                                    dedsl = dedsl + option.Amount
+                                }
+                            }
+                            else
+                            {
+                                $("#lblTotalPresent").html("");
+                                $("#lblTotalPresent_Payable").html("");
+                                $.alert.open("Error", "Effective date must be greater than last salary date (" + option.LastSalaryDate + "),");
+                                return false;
+                            }
+                           
+                            //if (option.SalaryDeductForAbsent == 1)
+                            //{
+                            //    $("#chkSalaryDeductForAbsent").prop("checked",true);
+                            //}
+                            //else
+                            //{
+                            //    $("#chkSalaryDeductForAbsent").prop("checked", false);
+                            //}
+                            
+                        });
+
+                        $("#lblTotalPresent").html(addsl);
+                        $("#lblTotalPresent_Payable").html(addsl - dedsl);
+                       
+
+                      
+                    }
+                    else {
+
+                            //$("#EmployeeCode").val("");
+                            //$("#DateOfBirth").val("");
+                            //$("#EmployeeName").val("");
+                            //$("#EmpDesignation").val("");
+                            //$("#EmpDepartment").val("");
+                            //$("#EmpBranchName").val("");
+                            //$("#JoiningDate").val("");
+                            //$("#ddlPaymentMode").val("B");
+                            //$("#lblTotalPresent").html("");
+                            //$("#lblTotalPresent_Payable").html("");
+                        $.alert.open("error", "Invalid employee code.", function () { window.location.reload(); });
+                    }
+                }
+                else {
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SalaryClc(allwName) {
+        var basic = parseFloat($("#Basic").val() == "" ? "0" : $("#Basic").val());
+        var eligibleForIncentive = $("#hdnEligibleForIncentive").val();
+
+        if (allwName == "Basic") // When change basic salary.
+        {
+            var newPf = 0;
+            if (basic != "" && basic != "0") {
+                $(".salaryNew:not(#Basic)").each(function () {
+
+                    var allow = $(this).attr("id");
+
+                  
+
+                    var perc = parseFloat($("#Percent-" + allow).html() == "" ? "0" : $("#Percent-" + allow).html());
+
+                   
+                    //var amt = ((basic * perc) / 100).toFixed(4);
+                    var amt = Math.round(((basic * perc) / 100));// Added on 5 Feb 2022
+                   
+
+                    //alert($("#hdnjobtypecode").val());
+
+                    //alert(amt);
+                    //var amt = Math.round(((basic * perc) / 100));
+                   
+                    if (allow != "PFDeduct") //&& allow != "Atten"
+                    {
+                        $("#" + allow).val(amt);
+                    }
+                    else
+                    {
+                        $("#" + allow).val(0);
+                    }
+                });
+            }
+        }
+        
+        var gSalary = 0;
+        var slAdd = 0;
+        var slDed = 0;
+        
+        $(".salaryNew").each(function () {
+
+            if ($(this).attr("id") != "PFDeduct")
+            {
+                var allw = parseFloat($(this).val() == "" ? "0" : $(this).val());
+                if ($(this).attr("name") == 1) {
+                    slAdd = slAdd + allw;
+                }
+                if ($(this).attr("name") == 2) {
+                    slDed = slDed + allw;
+                }
+            }
+        });
+
+
+        $("#lblTotalNew").html(slAdd.toFixed(4)); // Gross
+
+        // Increment
+        var preSalary = parseFloat($("#lblTotalPresent").html() == "" ? "0" : $("#lblTotalPresent").html());
+        var totInc = parseFloat(slAdd) - preSalary;
+        if (preSalary == 0)
+        {
+            //$("#lblIncrement").html(Math.round(0));
+            $("#lblIncrement").html(0);
+        }
+        else
+        {
+            var perInc = parseFloat(((totInc * 100) / preSalary)).toFixed(4);
+            //$("#lblIncrement").html(Math.round(perInc));
+            $("#lblIncrement").html(perInc);
+        }
+
+        var gsl = parseFloat($("#lblTotalNew").html() == "" ? "0" : $("#lblTotalNew").html()); // Gross
+
+        // PF
+        var TotPf = 0;
+
+        $(".PfPerc").each(function () {
+            var calcBs = $(this).attr("data-clc");
+            var allwname = $(this).attr("for");
+            var percent = parseFloat($(this).html() == "" ? "0" : $(this).html());
+            // var pf = calcBs == "B"?Math.round(((basic * percent) / 100)):Math.round(((gsl * percent) / 100));
+            if (percent == 0)
+            {
+                var dedpf = $("#PFDeduct").val();
+                $("#" + allwname).html(dedpf);
+
+                TotPf = TotPf + parseFloat(dedpf);
+            }
+            else
+            {
+                var pf = calcBs == "B" ? ((basic * percent) / 100).toFixed(4) : ((gsl * percent) / 100).toFixed(4);
+                $("#" + allwname).html(pf);
+
+                TotPf = TotPf + parseFloat(pf);
+            }
+        });
+
+        //$("#lblTotal_PF_New").html(Math.round(TotPf));
+        $("#lblTotal_PF_New").html(TotPf.toFixed(4));
+
+
+        // Incentive
+
+
+        $(".lblEligibleIncPercent").each(function () {
+            var allwShort = $(this).attr("for");
+            if (eligibleForIncentive == 1)
+            {
+                $("#msg-" + allwShort).html("");
+                var InCalcBs = $(this).attr("data-clc");
+                var percent = parseFloat($(this).html() == "" ? "0" : $(this).html());
+                //var IncAmt = InCalcBs == "B" ? Math.round(((basic * percent) / 100)) : Math.round(((gsl * percent) / 100));
+                var IncAmt = InCalcBs == "B" ? ((basic * percent) / 100).toFixed(4) : ((gsl * percent) / 100).toFixed(4);
+
+                $("#" + allwShort).html(IncAmt);
+            }
+            else
+            {
+                $("#" + allwShort).html(0);
+                $("#msg-" + allwShort).html("No eligible");
+            }
+
+           
+        });
+
+        // Bonus
+        $(".lbleidBonusEligiblePercent").each(function () {
+
+            var allwShortname = $(this).attr("for");
+            var BnCalcBs = $(this).attr("data-clc");
+            var percent = parseFloat($(this).html() == "" ? "0" : $(this).html());
+
+           // var bonus = BnCalcBs == "B" ? Math.round(((basic * percent) / 100)) : Math.round(((gsl * percent) / 100));
+            var bonus = BnCalcBs == "B" ? ((basic * percent) / 100).toFixed(4) : ((gsl * percent) / 100).toFixed(4);
+            $("#" + allwShortname).html(bonus);
+        });
+
+
+        $("#PFDeduct").val(Math.round($("#PFPersonal").html()));
+
+       // $("#Atten").val((gsl/30).toFixed(4));
+
+        slDed = slDed + parseFloat($("#PFPersonal").html());
+       // gSalary = Math.round(parseFloat(slAdd) - parseFloat(slDed));
+        gSalary = (parseFloat(slAdd) - parseFloat(slDed)).toFixed(4);
+        $("#lblTotalNew_Payable").html(gSalary);
+        $("#txtBankAmount").val(gSalary);
+        $("#lblCashAmount").html("");
+       // $("#lblDeduction").html(Math.round(slDed));
+        $("#lblDeduction").html(slDed.toFixed(4));
+      
+    }
+
+    $(document).ready(function () {
+
+        $("#txtBankAmount").on("keyup", function () {
+
+            var payable = parseFloat($("#lblTotalNew_Payable").html() == "" ? "0" : $("#lblTotalNew_Payable").html());
+            var bankamt = parseFloat($("#txtBankAmount").val() == "" ? "0" : $("#txtBankAmount").val());
+            var TransactionMode = $("#ddlPaymentMode").val();
+
+            if (bankamt > payable)
+            {
+                $("#txtBankAmount").val(0);
+                $("#lblCashAmount").html('');
+                $.alert.open("error", "Bank amount is greater than payable.");
+            }
+            else
+            {
+                if (TransactionMode != "B")
+                {
+                    var cashamt = payable - bankamt;
+                    $("#lblCashAmount").html(cashamt);
+                }
+               
+            }
+        });
+
+        $("#ddlPaymentMode").on("change", function () {
+
+            var payable = parseFloat($("#lblTotalNew_Payable").html() == "" ? "0" : $("#lblTotalNew_Payable").html());
+            var tMode = $(this).val();
+            if (tMode == "B") {
+                $("#lblCashAmount").html("");
+                $("#txtBankAmount").val(payable);
+                $("#txtBankAmount").prop("readonly",true);
+            }
+            else if (tMode == "C")
+            {
+                $("#lblCashAmount").html(payable);
+                $("#txtBankAmount").val(0);
+                $("#txtBankAmount").prop("readonly", false);
+            }
+            else
+            {
+                $("#lblCashAmount").html("");
+                $("#txtBankAmount").val(payable);
+                $("#txtBankAmount").prop("readonly", false);
+            }
+        });
+
+
+        $("#EmployeeCode").blur(function () {
+            var EmployeeCode = $("#EmployeeCode").val().trim();
+            var effectiveDate = $("#EffectiveDate").val();
+            if (effectiveDate== "")
+            {
+                $.alert.open("error","Please insert effective date.");
+            }
+            else if (EmployeeCode == "" || EmployeeCode == "0")
+            {
+                $.alert.open("error", "Please insert employee code.");
+            }
+            else
+            {
+                GetEmployeewiseSalarySetup(EmployeeCode, effectiveDate);
+            }
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseSalarySetup();
+        });
+
+        $(".salaryNew").keyup(function () { //:not(#1)
+            var allwName = this.id;
+            SalaryClc(allwName);
+        });
+        $(".salaryNew").blur(function () { //:not(#1)
+            var allwName = this.id;
+            SalaryClc(allwName);
+        });
+
+        $(".Remarks").keypress(function(e){
+            var charCode = !e.charCode ? e.which : e.charCode;
+           // alert(charCode);
+            if (charCode == 124 || charCode == 126) /// 124 = | and 126 = ~
+                e.preventDefault();
+        })
+
+        //$("#EffectiveDate").on("keyup", function () {
+        //    var lastDate = $("#hdnLastSalaryDate").val();
+
+        //    $("#EffectiveDate").datepicker('option', { minDate: lastDate });
+        //});
+    });
+
+</script>
+
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Salary Setup</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Effective Date ", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EffectiveDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control" } })
+                            </div>
+                            @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                <input type="hidden" id="hdnEligibleForIncentive" />
+                                <input type="hidden" id="hdnjobtypecode" />
+                                
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpDesignation", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpDepartment", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("EmpBranchName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Date Of Birth", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("DateOfBirth", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Joining Date ", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("JoiningDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                            @Html.Label("Confirmation Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("ConfirmationDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Payment Mode", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlPaymentMode">
+                                    <option value="B">Bank</option>
+                                    <option value="C">Cash</option>
+                                    <option value="A">Bank &amp; Cash</option>
+                                </select>
+                            </div>
+                            @Html.Label("Remarks",  new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <input type="text" class="form-control" id="txtRemarks" />
+                            </div>
+                        </div>
+                        <div class="row form-group" style="display:none">
+                            @Html.Label("Salary Deduct For Absent", htmlAttributes: new { @class = "control-label col-md-3" })
+                            <div class="col-md-2 col-sm-6 col-xs-12" style="text-align:left">
+                                <input id="chkSalaryDeductForAbsent" type="checkbox" />
+                                <input type="text"  id="hdnLastSalaryDate"  style="display:none"/>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <table id="tblAllowanceList">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center;width:10%">SL</th>
+                                    <th style="text-align: center; width: 30%">Allowance</th>
+                                    <th style="text-align: center; width: 15%">Present <br /></th>
+                                    <th style="text-align: center; width: 10%">Percentage</th>
+                                    <th style="text-align: center; width: 15%">Amount</th>
+                                    <th style="text-align: center; width: 20%"></th> @*Remaks*@
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var sl = 0; // default 2 for PF
+                                    var pf = 0;
+                                }
+                                @foreach (var r in allowanceList)
+                                {
+
+
+                                    if (r.TransactionTypeId == 1) // Salary
+                                    {
+                                        sl = sl + 1;
+
+                                        if (r.AllowanceShortName != "PFDeduct" ) //&& r.AllowanceShortName != "Atten"
+                                        {
+
+                                            <tr @(r.IsAddition == 1 ? "" : r.IsAddition == 2 ? "style=color:red" : "style=color:blueviolet")>
+                                                <td>@r.RowSl</td>
+                                                <td>@r.AllowanceName</td>
+                                                <td><label class="salaryPresent" id="salary-@r.Id"></label></td>
+                                                <td><label id="Percent-@r.AllowanceShortName">@r.Percentage</label></td>
+                                                <td><input type="number" class="salaryNew" name="@r.IsAddition" id="@r.AllowanceShortName" /></td>
+                                                <td><input type="text" style="display:none" class="Remarks" id="txt-@r.AllowanceShortName" /></td>
+                                            </tr>
+
+                                        }
+                                        else
+                                        {
+
+                                            <tr @(r.IsAddition == 1 ? "" : r.IsAddition == 2 ? "style=color:red" : "style=color:blueviolet")>
+                                                <td>@r.RowSl</td>
+                                                <td>@r.AllowanceName</td>
+                                                <td><label class="salaryPresent" id="salary-@r.Id"></label></td>
+                                                <td><label id="Percent-@r.AllowanceShortName">@r.Percentage</label></td>
+                                                <td><input type="number" @(r.IsPercentage == 0 ? "" : "readonly:readonly")  class="salaryNew" name="@r.IsAddition" id="@r.AllowanceShortName" /></td>
+                                                <td><input type="text" style="display:none" class="Remarks" id="txt-@r.AllowanceShortName" /></td>
+                                            </tr>
+
+
+                                        }
+                                        if (sl == r.TCount)
+                                        {
+                                            <tr>
+                                                <td colspan="2" style="text-align:right"> Salary</td>
+                                                <td style="text-align:right"><label style="font-size:x-small">Effective Date:</label><label style="font-size:x-small" id="lblEffectiveDate"></label><br /><label>Gross &nbsp;&nbsp;</label><label id="lblTotalPresent"></label><br /><label>Payable&nbsp;&nbsp;</label><label id="lblTotalPresent_Payable"></label></td>
+                                                <td></td>
+                                                <td style="text-align:right">
+                                                    <label>Gross&nbsp;&nbsp;</label><label id="lblTotalNew"></label>
+                                                    <br /><label style="color:red">Deduction &nbsp;&nbsp;</label><label id="lblDeduction" style="color:red"></label>
+                                                    <br />(<label style="font-size:x-small">Increment</label> <label style="font-size:x-small" id="lblIncrement"></label>%)
+                                                </td>
+                                                <td>
+                                                    <label style="color:green"><b>Payable</b>&nbsp;&nbsp;</label><b><label style="color:green" id="lblTotalNew_Payable"></label></b>
+                                                   <br />
+                                                     <label style="color:red">Bank&nbsp;&nbsp;</label><input type="number" readonly="readonly" id="txtBankAmount" style="width:70%" /> 
+                                                    <br />
+                                                    <label style="color:red">Cash&nbsp;&nbsp;</label><label id="lblCashAmount"></label> 
+                                                </td>
+                                            </tr>
+                                        }
+
+                                    }
+                                    else if (r.TransactionTypeId == 2) //PF
+                                    {
+                                        pf = pf + 1;
+                                        <tr style="color:green">
+                                            <td>@r.RowSl</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td><label class="PfPresent" id="salary-@r.Id"></label></td>
+                                            <td><label class="PfPerc" for="@r.AllowanceShortName" data-clc="@r.CalculationBasisOn" id="Percent-@r.Id">@r.Percentage</label></td>
+                                            <td><label class="PfNew" id="@r.AllowanceShortName"></label></td>
+                                            @*<td><input class="PfNew" id="@r.AllowanceShortName" /></td>*@
+                                            <td><input class="Remarks" style="display:none" type="text" id="txt-@r.AllowanceShortName" /></td>
+                                        </tr>
+                                        if (pf == r.TCount)
+                                        {
+                                            <tr style="color:green">
+                                                <td colspan="2" style="text-align:right"> Total PF</td>
+                                                <td style="text-align:right"><label id="lblTotal_PF_Present"></label></td>
+                                                <td></td>
+                                                <td style="text-align:right"><label id="lblTotal_PF_New"></label></td>
+                                                <td></td>
+                                            </tr>
+                                        }
+
+                                    }
+                                    else if (r.TransactionTypeId == 3) // Incentive
+                                    {
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td><label class="IncentivePresent" id="salary-@r.Id"></label></td>
+                                            <td><label class="lblEligibleIncPercent" for="@r.AllowanceShortName" data-clc="@r.CalculationBasisOn" id="Percent-@r.Id">@r.Percentage</label></td>
+                                            <td><label class="IncentiveNew" id="@r.AllowanceShortName"></label>&nbsp;&nbsp;&nbsp;<label id="msg-@r.AllowanceShortName"></label></td>
+                                            <td><input class="Remarks" style="display:none" type="text" id="txt-@r.AllowanceShortName" /></td>
+                                        </tr>
+                                    }
+                                    else if (r.TransactionTypeId == 4) // Bonus
+                                    {
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td><label class="eidBonus" id="salary-@r.Id"></label></td>
+                                            <td><label class="lbleidBonusEligiblePercent" for="@r.AllowanceShortName" data-clc="@r.CalculationBasisOn" id="Percent-@r.Id">@r.Percentage</label></td>
+                                            <td><label class="BonusNew" id="@r.AllowanceShortName"></label></td>
+                                            <td><input class="Remarks" style="display:none" type="text" id="txt-@r.AllowanceShortName" /></td>
+                                        </tr>
+                                    }
+                                    else if (r.TransactionTypeId == 7) // Director Allowance
+                                    {
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td><label class="Director" id="salary-@r.Id"></label></td>
+                                            <td><label class="lblDirectorEligiblePercent" for="@r.AllowanceShortName" id="Percent-@r.Id">@r.Percentage</label></td>
+                                            <td><input type="number" class="DirectorAlNew" name="@r.IsAddition" id="@r.AllowanceShortName" /></td>
+                                            <td><input class="Remarks" style="display:none" type="text" id="txt-@r.AllowanceShortName" /></td>
+                                        </tr>
+                                    }
+                                    @*else if (r.TransactionTypeId == 7) // Director Allowance
+                                        {
+                                            <tr>
+                                               <td>@r.RowSl</td>
+                                               <td>@r.AllowanceName</td>
+                                               <td><label id="Percent-@r.Id">@r.Percentage</label></td>
+                                               <td></td>
+                                               <td></td>
+                                               <td></td>
+                                             </tr>
+                                        }*@
+                                }
+                            </tbody>
+                        </table>
+                    </fieldset>
+                    <br />
+                    <div class="row form-group">
+                        <div class="col-md-offset-4 col-md-10">
+                            <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

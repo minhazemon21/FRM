@@ -1,0 +1,407 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Investment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var declarationList = (List<Hrms.Data.HRMSDataModel.IPODeclaration>)ViewBag.DeclarationList;
+    var bankList = (List<Common.Data.CommonDataModel.LookupBank>)ViewBag.BankList;
+    var shareApplicationList = (List<Hrms.Controllers.PFController.PFModel>)ViewBag.ShareApplicationList;
+
+    
+}
+
+<style>
+   
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblEmpList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblEmpList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmpList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmpList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+
+
+    function GetBankBranchList(BranchId) {
+        var bankId = $("#ddlBankList").val();
+        var bankBranch = $("#ddlBankBranchList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBankBranchList", "Salary", "http")',
+            data: { BankId: bankId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                bankBranch.html("");
+                if (data.Status == true) {
+                    bankBranch.append($('<option></option>').val("0").html("Please select"));
+                    $.each(data.Result, function (id, e) {
+                        bankBranch.append($('<option></option>').val(e.Id).html(e.BranchName));
+                    });
+                    if (BranchId > 0) {
+                        $("#ddlBankBranchList").val(BranchId);
+                    }
+                }
+                else {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+    function ShareApplicationEdit(Id, IPODeclarationId, BankId, BankBranchId, BiddingPrice, ApplyAmount, ApplyQty,PayorderCharge, DSEApplyAmount, ApplyDateMsg, DDNo, BOID, TradeCode) {
+    
+        
+        $("#hdnApplicationId").val(Id);
+        $("#ddlDeclarationList").val(IPODeclarationId);
+        $("#txtApplyDate").val(ApplyDateMsg);
+        $("#ddlBankList").val(BankId);
+        $("#txtDDNo").val(DDNo);
+        $("#txtBOID").val(BOID);
+        $("#txtTradeCode").val(TradeCode);
+        $("#txtBiddingPrice").val(BiddingPrice);
+        $("#txtAppAmount").val(ApplyAmount);
+        $("#txtAppQty").val(ApplyQty);
+        $("#txtPayorderCharge").val(PayorderCharge);
+        $("#txtDseApplyCharge").val(DSEApplyAmount);
+
+        GetBankBranchList(BankBranchId)
+        
+    }
+
+
+    function ShareLossDistribution(Id,TotalInitialExpense)
+    {
+        $.alert.open('confirm', 'Are you sure you want to distribution loss tk. ' + TotalInitialExpense + '?', function (button) {
+            if (button == 'yes') {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("ShareLossDistribution", "PF", "http")',
+                    data: { Id: Id, TotalInitialExpense: TotalInitialExpense},
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        if (data.Status == true) {
+                            $.alert.open("success", data.Message, function () { window.location.reload(); });
+                        }
+                        else {
+                            $.alert.open("Error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+        $("#btnSave").on("click", function () {
+
+            var applicationId = $("#hdnApplicationId").val();
+            var declarationId = $("#ddlDeclarationList").val();
+            var applyDate = $("#txtApplyDate").val().trim();
+            var bankId = $("#ddlBankList").val();
+            var bankBranchId = $("#ddlBankBranchList").val();
+            var dDNo = $("#txtDDNo").val().trim();
+            var bOID = $("#txtBOID").val().trim();
+            var tradeCode = $("#txtTradeCode").val().trim();
+            var biddingPrice = $("#txtBiddingPrice").val() == "" ? "0" : $("#txtBiddingPrice").val().trim();
+            var appAmount = $("#txtAppAmount").val() == "" ? "0" : $("#txtAppAmount").val().trim();
+            var appQty = $("#txtAppQty").val() == "" ? "0" : $("#txtAppQty").val().trim();
+            var payorderCharge = $("#txtPayorderCharge").val() == "" ? "0" : $("#txtPayorderCharge").val().trim();
+            var dseApplyCharge = $("#txtDseApplyCharge").val() == "" ? "0" : $("#txtDseApplyCharge").val().trim();
+
+
+            if (declarationId == "0") {
+                $.alert.open("error", "Please select company.");
+                return false;
+            }
+            else if (applyDate == "") {
+                $.alert.open("error", "Please insert apply date.");
+                return false;
+            }
+            else if (bankId == 0) {
+                $.alert.open("error", "Please select bank.");
+                return false;
+            }
+            else if (bankBranchId == 0) {
+                $.alert.open("error", "Please select bank branch.");
+                return false;
+            }
+            else if (bOID == "") {
+                $.alert.open("error", "Please insert BO ID.");
+                return false;
+            }
+            else if (tradeCode == "") {
+                $.alert.open("error", "Please insert trading code.");
+                return false;
+            }
+            else if (biddingPrice == "0") {
+                $.alert.open("error", "Please insert bidding price.");
+                return false;
+            }
+            else if (appAmount == "0") {
+                $.alert.open("error", "Please insert amount.");
+                return false;
+            }
+            else if (appQty == "0") {
+                $.alert.open("error", "Please insert qty.");
+                return false;
+            }
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("InsertShareApplication", "PF", "http")',
+                    data: JSON.stringify({
+                        ApplicationId:applicationId,
+                        DeclarationId: declarationId,
+                        ApplyDate: applyDate,
+                        BankId: bankId,
+                        BankBranchId:bankBranchId,
+                        DDNo: dDNo,
+                        BOID: bOID,
+                        TradeCode: tradeCode,
+                        BiddingPrice: biddingPrice,
+                        AppAmount: appAmount,
+                        AppQty: appQty,
+                        PayorderCharge: payorderCharge,
+                        DseApplyCharge: dseApplyCharge
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $("#hdnApplicationId").val(0);
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("Apply", "PF")"; });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Share Application</h3>
+                        </div>
+                        @*@Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Company</label>
+                                <input type="hidden" value="0" id="hdnApplicationId" />
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlDeclarationList">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in declarationList.OrderBy(x=>x.CompanyName))
+                                        {
+                                            <option value="@r.Id">@r.CompanyName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2 required">Apply Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtApplyDate" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Bank</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlBankList" onchange="GetBankBranchList(BranchId = 0);">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in bankList)
+                                        {
+                                            <option value="@r.Id">@r.BankName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2 required">Bank Branch</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlBankBranchList"></select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Pay Order No</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtDDNo" />
+                                </div>
+                                <label class="control-label col-md-2 required">BO ID</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtBOID" /> 
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Trade Code</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtTradeCode" />
+                                </div>
+                                <label class="control-label col-md-2 required">Bidding Price</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtBiddingPrice" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Apply Amount</label> 
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtAppAmount" />
+                                </div>
+                                <label class="control-label col-md-2 required">Apply Qty</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtAppQty" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Payorder Charge</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtPayorderCharge" />
+                                </div>
+                                <label class="control-label col-md-2 ">DSE Apply Charge</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtDseApplyCharge" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-md-offset-5 col-md-4">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Company</th>
+                                        <th>Apply Date</th>
+                                        <th>Bank</th>
+                                        <th>Bank Branch</th>
+                                        <th>Pay Order No</th>
+                                        @*<th>BO ID</th>*@
+                                        <th>Trading Code</th>
+                                        <th>Bidding Price</th>
+                                        <th>Amount</th>
+                                        <th>Qty</th>
+                                        <th>Payorder Charge </th>
+                                        <th>DSE Charge</th>
+                                        <th>Edit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach(var r in shareApplicationList )
+                                    {
+                                        if (r.InvestmentStatus == 1)
+                                        {
+                                             <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.CompanyName</td>
+                                            <td>@r.ApplyDateMsg</td>
+                                            <td>@r.BankName</td>
+                                            <td>@r.BankBranchName</td>
+                                            <td>@r.DDNo</td>
+                                            @*<td>@r.BOID</td>*@
+                                            <td>@r.TradeCode</td>
+                                            <td>@r.BiddingPrice</td>
+                                            <td>@r.ApplyAmount</td>
+                                            <td>@r.ApplyQty</td>
+                                            <td>@r.PayorderCharge</td>
+                                            <td>@r.DSEApplyAmount</td>
+                                            <td><a href="#" title="Edit" onclick="ShareApplicationEdit(@r.Id,@r.IPODeclarationId,@r.BankId,@r.BankBranchId,@r.BiddingPrice,@r.ApplyAmount,@r.ApplyQty,@r.PayorderCharge,@r.DSEApplyAmount,'@r.ApplyDateMsg','@r.DDNo','@r.BOID','@r.TradeCode')" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a>
+                                                <a href="#" title="Loss Distribution" onclick="ShareLossDistribution(@r.Id,@r.TotalInitialExpense)" class="btn btn-danger btn-xs"> <i class="fa fa-caret-square-o-down"></i></a>
+                                                 </td>
+                                        </tr>
+                                        }
+                                        else
+                                        {
+                                             <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.CompanyName</td>
+                                            <td>@r.ApplyDateMsg</td>
+                                            <td>@r.BankName</td>
+                                            <td>@r.BankBranchName</td>
+                                            <td>@r.DDNo</td>
+                                            <td>@r.BOID</td>
+                                            <td>@r.TradeCode</td>
+                                            <td>@r.BiddingPrice</td>
+                                            <td>@r.Amount</td>
+                                            <td>@r.ApplyQty</td>
+                                            <td>@r.PayorderCharge</td>
+                                            <td>@r.DSEApplyAmount</td>
+                                            <td></td>
+                                        </tr>
+                                        }
+                                       
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

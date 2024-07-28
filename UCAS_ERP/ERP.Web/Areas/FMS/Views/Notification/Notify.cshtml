@@ -1,0 +1,248 @@
+﻿@using System.Data
+@{
+    ViewBag.Title = "Notify";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+
+    var department = ((DataTable)ViewBag.Department).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        DepartmentName = x.Field<string>("DepartmentName"),
+    }).ToList();
+}
+<style type="text/css">
+    .panel-success .panel-body .row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+    .panel-success .panel-body .radio {
+        margin-top: 0px;
+    }
+    .panel-success .label-container {
+        text-align: left;
+    }
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+    #error > .panel {
+        margin-bottom: 20px;
+    }
+    #error > .panel > .panel-heading {
+        padding: 0px 5px 0px 15px;
+    }
+    .radio-container label {
+        cursor: pointer;
+        padding: 5px;
+    }
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        /*margin-left: 10px;*/
+    }
+    .radio-container label.active span.radio-text {
+        color: #FFFFFF;
+    }
+    #divSlabContainer #tblSlab td {
+        padding: 5px;
+    }
+    #lblInvestorName .well-sm {
+        padding: 5px;
+        display: inline-block;
+        margin-bottom: 0px;
+    }
+    .market {
+        width: 70px;
+    }
+    .account-type {
+        width: 170px;
+    }
+    .panel-body span, .panel-body input[type=text], .panel-body input[type=number] {
+        color: #000000 !important;
+    }
+    #tblexec {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    #tblexec tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    #tblexec tr:hover {
+        background-color: #ddd;
+    }
+    #tblexec th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #1ABB9C;
+        color: white;
+    }
+    .panel-success {
+        border-color: #1ABB9C !important;
+    }
+    .panel-heading {
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: white !important;
+        background-color: #1ABB9C !important;
+        border-color: #1ABB9C !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Send Notification</h3>
+            </div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                        <label class="control-label">Department</label>
+                    </div>
+                    <div class="col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control" id="ddlDepartment">
+                            @if (department.Count > 1)
+                            {
+                                <option value="0">Please Select</option>
+                            }
+                            @foreach (var m in department)
+                            {
+                                <option value="@m.Id">@m.DepartmentName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-2 col-sm-2 col-xs-12 label-container">
+                        <label class="control-label">Message</label>
+                    </div>
+                    <div class="col-md-10 col-sm-10 col-xs-12">
+                        <textarea class="form-control" cols="4" id="txtmessage"></textarea>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-12 col-sm-12 col-xs-12 text-center">
+                        <input type="button" name="btnSaveNoti" id="btnSaveNoti" class="btn btn-sm btn-success" value="Send Notification" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-12 col-sm-12 col-xs-12 table-responsive">
+                        <table id="tblexec" class="table">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp;&nbsp;SL</th>
+                                    <th>Employee Name</th>
+                                    <th>Department</th>
+                                    <th>Designation</th>
+                                    <th>&nbsp;&nbsp;<input type="checkbox" id="chkall" /></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="loader" id="divLoader" style="display: none;"></div>
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        GetExecutiveList();
+        $("#ddlDepartment").on("change", function () { GetExecutiveList(); });
+    });
+    $(document).on("click", "#btnSaveNoti", function () {
+        var message = $("#txtmessage").val().trim();
+        var executiveId = [];
+
+        if (message == "") {
+            $.alert.open("info", "Please insert message.");
+            return false;
+        }
+
+        $(".clreassign").each(function () {
+            if ($(this).is(":checked") == true) {
+                var id = $(this).attr("id");
+                executiveId.push(id);
+            }
+        });
+
+        if (executiveId.length == 0) {
+            $.alert.open("error", "No Employee selected for notification.");
+            return false;
+        }
+        var ids = executiveId.join(",");
+
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("SaveNotification", "Notification")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ executiveIds: ids, message: message }),
+            dataType: "json",
+            success: function (dt) {
+                if (dt.Status == true) {
+                     $.alert.open("Successfull!!", dt.Message, function () {
+                    window.location.reload();
+                     });
+                } else {
+                    $.alert.open("Error!!", dt.Message);
+                }
+            }
+        });
+        return true;
+    });
+    function GetExecutiveList()
+    {
+        var deptId = $("#ddlDepartment").val();
+        $("#AjaxLoader").show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetDepartmentwiseExecutive", "Notification", "http")',
+            data: { deptId: deptId},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+
+                if (data.Status == true) {
+                    var html = "";
+                    if (data.data.length == 0)
+                    {
+                        $("#AjaxLoader").hide();
+                        $.alert.open("info", "Data not found");
+                    }
+                    var sl = 1;
+                    $("#tblexec tbody").html("");
+                    $.each(data.data, function (id, e) {
+
+                        html = html + '<tr id="tr' + e.Id + '">'
+                           + '<td>' + sl + '</td>'
+                           + '<td>' + e.ExecutiveName + '</td>'
+                           + '<td>' + e.DepartmentName + '</td>'
+                           + '<td>' + e.DesignationName + '</td>'
+                           + '<td>&nbsp;&nbsp;<input type="checkbox" class="clreassign" id="' + e.Id + '"/>'
+                           + '</td>'
+                           + '</tr>';
+
+                        sl = sl + 1;
+                    });
+                    $("#chkall").on("click", function () {
+                        $(".clreassign").prop("checked", $("#chkall").is(":checked"));
+                    })
+                    $("#AjaxLoader").hide();
+                    $("#tblexec tbody").html(html);
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+</script>
+

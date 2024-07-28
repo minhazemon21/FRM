@@ -1,0 +1,266 @@
+﻿@model ERP.Web.Models.RegisterModel
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    //var personTypList = ViewBag.PersontTypList as IEnumerable<SelectListItem>;
+    //var personList = ViewBag.PersonList as IEnumerable<SelectListItem>;
+}
+
+
+<style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 29px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+        border-radius: 34px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+</style>
+
+<script type="text/javascript">
+
+    function GetEmployeeListForAccessControl() {
+        var EmployeeCode = $("#txtEmployeeCode").val();
+        var EmployeeName = $("#txtEmployeeName").val();
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetEmployeeListForAccessControl", "Account", "http")',
+                    dataType: "json",
+                    data: { EmployeeCode: EmployeeCode, EmployeeName: EmployeeName }
+                }
+            },
+            pageSize: 50,
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 800,
+            groupable: false,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            resizable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "emp_id",hidden: true,filterable: false},
+
+            {
+                field: "RowSl",
+                title: "SL",
+                width: "10%"
+            },
+            {
+                field: "emp_office_code",
+                title: "Code",
+                width: "15%"
+            },
+            {
+                field: "emp_name",
+                title: "Name"
+            },
+             {
+                 field: "DesignationName",
+                 title: "Designation",
+                 width: "15%",
+
+             },
+             {
+                 //field: "IsAllInvestorAccessable",
+                 title: "All Investor Accessable",
+                 width: "15%",
+                 template: function (dataItem)
+                 {
+                     if (dataItem.IsAllInvestorAccessable == "1")
+                     {
+                         return '<label class="switch"><input type="checkbox" checked onchange="SaveAccessControlInvestor(EmpId = ' + dataItem.emp_id + ' )"><span class="slider round"></span></label>'
+                         //return '<input type="checkbox" class="js-switch" checked  onchange="SaveAccessControlInvestor(EmpId = ' + dataItem.emp_id + ' )"/>';
+                     }
+                     else
+                     {
+                         return '<label class="switch"><input type="checkbox"  onchange="SaveAccessControlInvestor(EmpId = ' + dataItem.emp_id + ' )"><span class="slider round"></span></label>'
+                         //return '<input type="checkbox" class="js-switch"   onchange="SaveAccessControlInvestor(EmpId = ' + dataItem.emp_id + ' )"/>';
+                     }
+
+                 }
+             },
+            {
+               // field: "IsMISManagement",
+                title: "MIS Management",
+                width: "15%",
+                template: function (dataItem) {
+                    if (dataItem.IsMISManagement == "1") {
+                        return '<label class="switch"><input type="checkbox"  checked onchange="SaveAccessControlMIS(EmpId = ' + dataItem.emp_id + ' )"><span class="slider round"></span></label>'
+                        //return '<input type="checkbox" class="js-switch" checked  onchange="SaveAccessControlMIS(EmpId = ' + dataItem.emp_id + ' )"/>';
+                    }
+                    else {
+                        return '<label class="switch"><input type="checkbox"  onchange="SaveAccessControlMIS(EmpId = ' + dataItem.emp_id + ' )"><span class="slider round"></span></label>'
+                        //return '<input type="checkbox" class="js-switch"   onchange="SaveAccessControlMIS(EmpId = ' + dataItem.emp_id + ' )"/>';
+                    }
+
+                }
+            },
+            ]
+        });
+    }
+
+    
+
+    function SaveAccessControlMIS(EmpId) {
+
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("SaveAccessControlMIS", "Account", "http")',
+            data: { EmpId: EmpId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Result == "Success") {
+                    GetEmployeeListForAccessControl();
+                }
+                else {
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SaveAccessControlInvestor(EmpId) {
+
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("SaveAccessControlInvestor", "Account", "http")',
+            data: { EmpId: EmpId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Result == "Success")
+                {
+                    GetEmployeeListForAccessControl();
+                }
+                else
+                {
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        GetEmployeeListForAccessControl();
+        $("#btnSearch").click(function (e) {
+            e.preventDefault();
+            GetEmployeeListForAccessControl();
+        });
+
+    });
+
+</script>
+
+
+@using (Html.BeginForm("AccessControl", "Account", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal form-label-left", @id = "RegisterForm" }))
+{
+    <div class="page-title">
+        <div class="title_left PageHeader" style="width:90%;">
+            <h3 style="color: white;padding:2px">Access Control</h3>
+        </div>
+    </div>
+    <div class="x_panel">
+        <div class="x_content">
+            @*<input type="checkbox" class="js-switch" id="ivn' + dataItem.emp_id + '" onchange="SaveAccessControl(Type='inv',empid=' + dataItem.emp_id + ' )" />*@
+            @*<input type="checkbox" onchange=""/>*@
+            <form id="demo-form2" data-parsley-validate>
+                <div class="item form-group">
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label" })
+                        </div>
+                        <div class="col-md-3">
+                            @Html.Editor("txtEmployeeCode", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="col-md-1" style="text-align:right">
+                            @Html.Label("Name", htmlAttributes: new { @class = "control-label" })
+                        </div>
+                        <div class="col-md-3">
+                            @Html.Editor("txtEmployeeName", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                        <div class="col-md-2" style="text-align:right">
+                            <button type="submit" id="btnSearch" class="btn btn-info">Search</button>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                       <div id="grid">
+                       </div>
+                    </div>
+                </div>
+                <div class="ln_solid"></div>
+            </form>
+        </div>
+    </div>
+}
+

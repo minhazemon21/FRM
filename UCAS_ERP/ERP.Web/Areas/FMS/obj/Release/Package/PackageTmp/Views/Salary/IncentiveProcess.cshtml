@@ -1,0 +1,533 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Salary";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<SalaryController.SalaryAllowance>)ViewBag.EmployeeList;
+    var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+    var companyList = (List<SalaryController.SalaryAllowance>)ViewBag.IPOCompany;
+    var branchList = (List<SalaryController.SalaryAllowance>)ViewBag.BranchList;
+    var departmentList = (List<SalaryController.SalaryAllowance>)ViewBag.DepartmentList;
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name"),
+        ShortName = r.Field<string>("ShortName")
+    });
+}
+
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    #tblEmployeeList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    #tblEmployeeList td, #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #tblEmployeeList tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    #tblEmployeeList tr:hover {
+        background-color: #ddd;
+    }
+
+    #tblEmployeeList th {
+        padding: 5px;
+        text-align: left;
+        background-color: #337ab7;
+        color: white;
+        border-radius:5px;
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function GetDepartmentList() {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function SaveEmployeewiseIncentiveBonus() {
+        var allEmployeeCodes = "";
+        var incentiveDate = $("#txtIncentiveDate").val().trim();
+        var processDate = $("#txtProcessDate").val().trim();
+        var allowanceName = $("#ddlTransaction option:selected").val();
+        var TrxId = $("#ddlTransaction option:selected").attr("data-traxId");
+        var companyId = $("#ddlIpoCompany").val();
+        var leaveYear = $("#ddlYear").val();
+
+        $(".clEmpIds").each(function () {
+            var empCode = $(this).attr("data-code");//chk-
+            if ($("#chk-" + empCode).is(":checked") == true) {
+                var payable = $(this).attr("data-payable") == "" ? "0" : $(this).attr("data-payable");
+                var paid = $(this).val() == "" ? "0" : $(this).val();
+                var remarks = $("#remarks-" + empCode).val();
+
+                // U030~No~32600~31100~test|U028~Yes~16000~14500~test2
+
+                allEmployeeCodes = allEmployeeCodes + "|" + empCode + "~" + payable + "~" + paid + "~" + remarks;
+            }
+        });
+
+        if (allEmployeeCodes == "")
+        {
+            $.alert.open("error", "Please select atleast 1 employee.");
+            return false;
+        }
+       else if  (processDate == "" || processDate == "0") {
+            $.alert.open("error", "Please insert process date.");
+            return false;
+        }
+        else if (allowanceName == "0") {
+            $.alert.open("error", "Please select transaction.");
+            return false;
+        }
+        else if (allowanceName != "EarnLeave" && incentiveDate == "") {
+            $.alert.open("error", "Please select incentive date.");
+            return false;
+        }
+        else if (allowanceName == "Incentive" && companyId == 0)
+        {
+            $.alert.open("error", "Please select IPO company.");
+            return false;
+        }
+        else if (allowanceName == "EarnLeave" && leaveYear == 0) {
+            $.alert.open("error", "Please select leave year.");
+            return false;
+        }
+        else {
+            $("#AjaxLoader").show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveEmployeewiseIncentiveBonus", "Salary", "http")',
+                data: JSON.stringify({
+                                          allEmployeeCodes: allEmployeeCodes
+                                        , incentiveDate: incentiveDate
+                                        , processDate: processDate
+                                        , allowanceName: allowanceName
+                                        , TrxId: TrxId
+                                        , CompanyId: companyId
+                                        , leaveYear: leaveYear
+
+                }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if (data.Status == true)
+                    {
+                        $("#txtIncentiveDate").val("");
+                        $("#txtProcessDate").val("");
+                        $("#txtExceptEmpCode").val("");
+                        $("#chkExceptEmpCode").prop("checked",false);
+                        $("#ddlTransaction").val(0);
+                        $("#ddlIpoCompany").val(0);
+
+                        $.alert.open(data.Result, data.Message, function () {  window.location = "@Url.Action("IncentiveProcess", "Salary")?IncentiveDate=&ProcessDate=&ExceptEmpCode=&inExCode=&transactionType=0&CompanyId="; });
+                    }
+                    else
+                    {
+                        $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#AjaxLoader").hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+    $(document).ready(function () {
+
+        $("#ddlCompanyList").on("change", function () {
+            GetDepartmentList();
+        });
+
+        $("#btnSearch").on("click", function () {
+
+            var incentiveDate = $("#txtIncentiveDate").val().trim();
+            var empCode = $("#txtExceptEmpCode").val().trim();
+            var inExCode = $("#chkExceptEmpCode").is(":checked") == true ? "E" : "I";
+            var transactionType = $("#ddlTransaction option:selected").attr("data-trx");
+            var allowanceName = $("#ddlTransaction").val();
+            var companyId = $("#ddlCompanyList").val();
+            var departmentId = $("#ddldepartmentList").val();
+            var branchId = $("#ddlBranchList").val();
+            var leaveYear = $("#ddlYear").val();
+
+            if (transactionType == "") {
+                $.alert.open("error", "Please select transaction type.");
+                return false;
+            }
+            else {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Get_Employeewise_Incentive_Info", "Salary", "http")',
+                    data: {
+                        IncentiveDate: incentiveDate
+                            , EmpCode: empCode
+                            , InExCode: inExCode
+                            , TransactionType: transactionType
+                            , AllowanceName: allowanceName
+                            , CompanyId: companyId
+                            , BranchId: branchId
+                            , DepartmentId: departmentId
+                            , LeaveYear: leaveYear
+                    },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        var dtTable = $('#tblEmployeeList').find('tbody');
+                        $('#tblEmployeeList thead').html("");
+                        $('#tblEmployeeList tbody tr').empty();
+                        var cnt = 0;
+                        if (data.Status == true) {
+                            $.each(data.Result, function (id, r) {
+                                if (r.TransactionType == "EarnLeave") {
+
+                                    if (cnt == 0) {
+                                        cnt = 1;
+                                        $('#tblEmployeeList').find('thead').append(
+                                       +'<tr>'
+                                       + '<th> Sl </th>'
+                                       + '<th>Code</th>'
+                                       + '<th>Employee Name</th>'
+                                       + '<th>Desg</th>'
+                                     //  + '<th>Pay. Mode</th>'
+                                       + '<th>Clc Basis On</th>'
+                                       + '<th>Total EL</th>'
+                                       + '<th>Average Per Day Basic</th>'
+                                       + '<th>Payable</th>'
+                                       + '<th style="width:12%">Paid</th>'
+                                       + '<th style="width:12%">Remarks</th>'
+                                       + '<th>Select</th>'
+                                       + '</tr>'
+                                       );
+                                    }
+                                    dtTable.append(
+                                       '<tr>'
+                                       + '<td>' + r.RowSl + '</td>'
+                                       + '<td>' + r.emp_office_code + '</td>'
+                                       + '<td>' + r.emp_name + '</td>'
+                                       + '<td>' + r.DesignationShortName + '</td>'
+                                      // + '<td>' + r.SalaryPaymentMode + '</td>'
+                                       + '<td>' + r.CalculationBasisOn + '</td>'
+                                       + '<td>' + r.TotalEarnLeave + '</td>'
+                                       + '<td>' + r.AveragePerDayBasic + '</td>'
+                                       + '<td><span id="pay-' + r.emp_office_code + '">' + r.Amount + '</span></td>'
+                                       + '<td><input type="number" class="clEmpIds" data-payable="' + r.Amount + '" data-code="' + r.emp_office_code + '" id="paid-' + r.emp_office_code + '" style="width:100%" value="' + r.Amount + '" onkeyup="CalcPaidAmount(' + "'" + r.emp_office_code + "'" + ');" /></td>'
+                                       + '<td><input id="remarks-' + r.emp_office_code + '" style="width:100%" type="text" /></td>'
+                                       + '<td><input id="chk-' + r.emp_office_code + '" type="checkbox" checked /></td>'
+                                   + '</tr>'
+
+                                   );
+                                }
+                                else {
+                                    if (cnt == 0) {
+                                        cnt = 1;
+                                        $('#tblEmployeeList').find('thead').append(
+                                       +'<tr>'
+                                       + '<th> Sl </th>'
+                                       + '<th>Code</th>'
+                                       + '<th>Employee Name</th>'
+                                       + '<th>Desg</th>'
+                                       + '<th>Pay. Mode</th>'
+                                       + '<th>Clc Basis On</th>'
+                                       + '<th>Percentage</th>'
+                                       + '<th>Payable</th>'
+                                       + '<th style="width:12%">Paid</th>'
+                                       + '<th style="width:12%">Remarks</th>'
+                                       + '<th>Select</th>'
+                                       + '</tr>'
+                                       );
+                                    }
+                                    dtTable.append(
+                                       '<tr>'
+                                       + '<td>' + r.RowSl + '</td>'
+                                       + '<td>' + r.emp_office_code + '</td>'
+                                       + '<td>' + r.emp_name + '</td>'
+                                       + '<td>' + r.DesignationShortName + '</td>'
+                                       + '<td>' + r.SalaryPaymentMode + '</td>'
+                                       + '<td>' + r.CalculationBasisOn + '</td>'
+                                       + '<td>' + r.Percentage + '</td>'
+                                       + '<td><span id="pay-' + r.emp_office_code + '">' + r.Amount + '</span></td>'
+                                       + '<td><input type="number" class="clEmpIds" data-payable="' + r.Amount + '" data-code="' + r.emp_office_code + '" id="paid-' + r.emp_office_code + '" style="width:100%" value="' + r.Amount + '" onkeyup="CalcPaidAmount(' + "'" + r.emp_office_code + "'" + ');" /></td>'
+                                       + '<td><input id="remarks-' + r.emp_office_code + '" style="width:100%" type="text" /></td>'
+                                       + '<td><input id="chk-'+r.emp_office_code+'" type="checkbox" checked /></td>'
+                                   + '</tr>'
+
+                                   );
+                                }
+                            });
+
+                            var totPayable = 0;
+                            $(".clEmpIds").each(function () {
+                                totPayable = totPayable + parseFloat($(this).attr("data-payable"));
+                            });
+                            $("#lblTotalAmount").html(totPayable);
+                            $("#lblPaidAmount").html(totPayable);
+                        }
+                        else {
+                            $.alert.open("error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseIncentiveBonus();
+        });
+
+
+        $("#ddlTransaction").on("change", function () {
+
+           $("#txtExceptEmpCode").val("");
+           $("#chkExceptEmpCode").prop("checked",false);
+           $("#ddlIpoCompany").val(0);
+           $("#ddldepartmentList").val(0);
+           $("#ddlBranchList").val(0);
+           $("#ddlYear").val(0);
+
+            var allowance = $("#ddlTransaction").val();
+            $("#divIncentiveDate").show();
+            if (allowance == "Incentive")
+            {
+                $("#divCompany").show();
+                $("#divYear").hide();
+            }
+            else if (allowance == "EarnLeave")
+            {
+                $("#divCompany").hide();
+                $("#divIncentiveDate").hide();
+                $("#divYear").show();
+            }
+            else
+            {
+                $("#divCompany").hide();
+                $("#divYear").hide();
+            }
+        });
+
+
+        if ($("#txtinExCode").val() == "E") {
+            $("#chkExceptEmpCode").prop("checked", true);
+            $("#lblEmpCode").html("Exclude Employee Code");
+        }
+        else {
+            $("#chkExceptEmpCode").prop("checked", false);
+            $("#lblEmpCode").html("Employee Code");
+        }
+
+        $("#chkExceptEmpCode").on("click", function () {
+            if ($("#chkExceptEmpCode").is(":checked") == true) {
+                $("#lblEmpCode").html("Exclude Employee Code");
+            }
+            else {
+                $("#lblEmpCode").html("Employee Code");
+            }
+        });
+
+    });
+
+    function CalcPaidAmount(EmpCode) {
+
+        var paid = parseFloat($("#paid-" + EmpCode).val() == "" ? "0" : $("#paid-" + EmpCode).val());
+        var payable = parseFloat($("#pay-" + EmpCode).html() == "" ? "0" : $("#pay-" + EmpCode).html());
+        var tot = 0;
+        if (paid <= payable) {
+            tot = 0;
+            $(".clEmpIds").each(function () {
+                var amt = parseFloat($(this).val() == "" ? "0" : $(this).val());
+               // alert(amt);
+                tot = tot + amt;
+            });
+
+            $("#lblPaidAmount").html(tot);
+            return false;
+        }
+        else {
+
+            $("#paid-" + EmpCode).val(payable);
+             tot = 0;
+            $(".clEmpIds").each(function () {
+                var amt = parseFloat($(this).val() == "" ? "0" : $(this).val());
+                tot = tot + amt;
+            });
+
+            $("#lblPaidAmount").html(tot);
+            $.alert.open("error", "Paid amount is grater then payable.");
+        }
+
+
+    }
+</script>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Bonus Process</div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    @Html.Label("Transaction Type", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlTransaction">
+                            <option value="0" data-trx="" data-traxId="0">Please select</option>
+                            @foreach (var r in allowanceList)
+                            {
+                                <option value="@r.AllowanceShortName" data-trx="@r.TransactionTypeShortName" data-traxId="@r.TransactionTypeId">@r.AllowanceName</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        @Html.Label("Company ", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <select id="ddlCompanyList" class="form-control bordercss">
+                                <option value="0">Please select</option>
+                                @foreach (var dt in sl)
+                                {
+                                    <option value="@dt.Id" data-sname="@dt.ShortName">@dt.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div id="divYear" style="display:none">
+                        @Html.Label("Leave Year", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <select class="form-control" id="ddlYear">
+                                @{
+                                    <option value="0">Select year</option>
+                                    for (var i = 2010; i < DateTime.Now.Year + 5; i++)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div id="divIncentiveDate">
+                        @Html.Label("Bonus Date", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <input type="text" id="txtIncentiveDate" class="form-control DateInput check-date" title="Incentive calculation date" />
+                        </div>
+                    </div>
+                    @Html.Label("Employee Code", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12", @id = "lblEmpCode" })
+                    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-11">
+                        <input type="text" id="txtExceptEmpCode" class="form-control" value="@ViewData["exceptempcode"]" />
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1" style="text-align:left">
+                        <input type="checkbox" title="Except Employee Code" id="chkExceptEmpCode" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    @Html.Label("Department", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddldepartmentList">
+                            <option value="0">Please select</option>
+                        </select>
+                    </div>
+                    @Html.Label("Branch", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlBranchList">
+                            <option value="0">Please select</option>
+                            @foreach (var b in branchList)
+                            {
+                                <option value="@b.Id">@b.BranchName</option>
+                            }
+                        </select>
+                    </div>
+                    @*@Html.Label("No of employee", htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-4">
+                            <input type="text" id="txtNoOfEmployee" class="form-control" readonly="readonly" />
+                        </div>*@
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-6 col-xs-offset-6 col-lg-2 col-md-2 col-sm-2 col-xs-2">
+                        <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-footer">
+                <div class="row form-group">
+                    <div class="table-responsive">
+                        <table class="table" id="tblEmployeeList">
+                            <thead>
+                            </thead>
+                            <tbody></tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="7"></td>
+                                    <td><label id="lblTotalAmount"></label></td>
+                                    <td><label id="lblPaidAmount"></label></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    @Html.Label("Process Date", new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtProcessDate" class="form-control DateInput check-date" title="Process date" />
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12">
+                        <button type="submit" class="btn btn-success" id="btnSave">Process</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

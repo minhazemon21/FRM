@@ -1,0 +1,271 @@
+﻿@{
+    ViewBag.Title = "GetAspNetSecurityModule";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+<style type="text/css">
+    th {
+        height: 40px;
+        vertical-align: top;
+        margin-top: 0px !important;
+        padding-top: 0px !important;
+    }
+
+
+    span.jtable-column-header-text {
+        margin-top: 0px !important;
+    }
+
+    .k-grid tbody .k-button, .k-ie8 .k-grid tbody button.k-button {
+        min-width: 0;
+    }
+
+    a.k-button.k-button-icontext.k-grid-Edit {
+        min-width: 0;
+    }
+
+    #grid a.k-button.k-button-icontext.k-grid-Edit {
+        min-width: 0;
+    }
+
+
+    /*.k-grid tbody .k-button, .k-ie8 .k-grid tbody button.k-button {
+        min-width: 0;
+    }*/
+    a.k-button.k-button-icontext.k-i-close {
+        min-width: 0;
+    }
+
+    #grid a.k-button.k-button-icontext.k-i-close {
+        min-width: 0;
+    }
+
+    table td .k-button {
+        padding: 0px;
+    }
+
+        table td .k-button span {
+            padding: 9px 14px;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+</style>
+
+<script type="text/javascript">
+    function SetupMenuPermission()
+    {
+        var allPermissionCancelIds = new Array();
+        var allRePermissionIds = new Array();
+        var allNewPermission = new Array();
+
+        $(".ClActiveMenu").each(function () {
+            if ($(this).is(":checked") == false)
+            {
+                allPermissionCancelIds[allPermissionCancelIds.length] = $(this).attr("id");
+            }
+        });
+
+
+        $(".ClPermissionDeleteMenu").each(function () {
+            if ($(this).is(":checked") == true) {
+                allRePermissionIds[allRePermissionIds.length] = $(this).attr("id");
+            }
+        });
+
+        $(".ClNewPermissionMenu").each(function () {
+            if ($(this).is(":checked") == true) {
+                allNewPermission[allNewPermission.length] = $(this).attr("id");
+            }
+        });
+
+        var allTrx = new Object();
+        allTrx.RoleId = $("#RoleList").val();
+        allTrx.allPermissionCancelIds = allPermissionCancelIds;
+        allTrx.allRePermissionIds = allRePermissionIds;
+        allTrx.allNewPermission = allNewPermission;
+
+        var json = JSON.stringify(allTrx);
+        $('#AjaxLoader').show();
+        if ($("#RoleList").val() != "" && $("#RoleList").val() != null)
+        {
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SetupMenuPermission", "AspNetSecurityModule", "http")',
+                type: "POST",
+                dataType: 'json',
+                async: true,
+                data: json,
+                success: function (data) {
+                    $('#AjaxLoader').hide();
+                    if (data.Result == "Success") {
+                        
+                        $(".success").show(800).fadeToggle(3000);
+                    }
+                    else {
+                        $.alert.open("error",data.Message);
+                       // $(".failed").show(800).fadeToggle(3000);
+                    }
+                },
+                error: function () {
+                    $('#AjaxLoader').hide();
+                    $("#dialog-message").html('<p>Error, Fail to Save.</p>');
+                    $("#dialog-message").dialog({
+                        modal: true,
+                        buttons: {
+                            Ok: function () {
+                                $(this).dialog("close");
+                            }
+                        }
+                    });
+                }
+
+            });
+        }
+        else
+        {
+            $.alert.open("Error","Select Role");
+        }
+    }
+    $(document).ready(function () {
+        $("#RoleList,#ProjectsList").on('change', function () {
+            var RoleId = $("#RoleList").val() == "" || $("#RoleList").val() == null ? "0" : $("#RoleList").val();
+            var projectShortName = $("#ProjectsList").val() == null ? "" : $("#ProjectsList").val();
+
+                var dataSource = new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: '@Url.Action("GetMenuAccessInformation", "AspNetSecurityModule", "http")',
+                            dataType: "json",
+                            data: { RoleId: RoleId, ProjectShortName: projectShortName }
+                        }
+                    },
+                    group: { field: "MenuHierarchy" }
+                });
+                $("#grid").kendoGrid({
+                    dataSource: dataSource,
+                    height: 1200,
+                    groupable: false,
+                    reorderable: true,
+                    filterable: true,
+                    sortable: true,
+                    columnMenu: true,
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: [
+                    {
+                        title: "Select",
+                        template: function (dataItem) {
+                            if (dataItem.PermissionStatus == "A")
+                            {
+                                return "<input type='checkbox' checked='checked' style='width:20px;height:20px;' id='" + dataItem.AspNetRoleModuleId + "' class='ClActiveMenu' />"
+                            }
+                            else if (dataItem.PermissionStatus == "D")
+                            {
+                                return "<input type='checkbox' style='width:20px;height:20px;' id='" + dataItem.AspNetRoleModuleId + "' class='ClPermissionDeleteMenu' />"
+                            }
+                            else
+                            {
+                                return "<input type='checkbox' style='width:20px;height:20px;' id='" + dataItem.AspNetSecurityModuleId + "' class='ClNewPermissionMenu' />"
+                            }
+                        }
+                    },
+                    {
+                        field: "AspNetSecurityModuleId",
+                        hidden: true,
+                        filterable: false
+                    },
+                    {
+                        field: "AspNetRoleModuleId",
+                        hidden: true,
+                        filterable: false
+                    },
+                    {
+                        field: "LinkText",
+                        title: "Menu Name",
+                    },
+                    {
+                        field: "MenuDescription",
+                        title: "Menu Description"
+                    },
+                    {
+                        field: "MenuHierarchy",
+                        title: "Parent Module",
+                        hidden: true,
+
+                    },
+                    ]
+                }).data("kendoGrid");
+            
+        });
+
+        $('#btnSave').click(function (e) {
+            SetupMenuPermission();
+        });
+    });
+
+</script>
+
+
+<div class="page-title">
+    <div class="title_left PageHeader" style="width:90%;">
+        <h3 style="color: white;padding:3px">Security role</h3>
+    </div>
+    <div class="clearfix"></div>
+</div>
+<br />
+<div class="x_content">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="col-md-2 text-right">
+        @Html.Label("Role", htmlAttributes: new { @class = "control-label" })
+    </div>
+    <div class="col-md-3">
+        @Html.DropDownList("RoleList", new SelectList(ViewBag.RoleList, "Id", "Name"), "Please select", new { @class = "form-control bordercss" })
+    </div>
+    <div class="col-md-1 text-right">
+        <label class="control-label">Project</label>
+    </div>
+    <div class="col-md-3">
+        @Html.DropDownList("ProjectsList", new SelectList(ViewBag.ProjectsList, "ProjectShortName", "ProjectName"), "All", new { @class = "form-control bordercss" })
+    </div>
+    <div class="col-md-2">
+        <button type="submit" id="btnSave" class="btn btn-success">Submit</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2">
+        </div>
+        <div class="col-md-6">
+            <div class="success" role="alert" style="display:none">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <p class="message-content">Saved Sucessfully</p>
+            </div>
+            <div class="failed" role="alert" style="display: none">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <p class="message-content">Fail to save</p>
+            </div>
+        </div>
+
+    </div>
+    <br />
+    <br />
+    <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="row">
+            <div class="col-sm-12">
+                <div id="grid"></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+

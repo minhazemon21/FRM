@@ -1,0 +1,592 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "ConveyanceAllowanceReProcess";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.EmployeeList;
+    var branchList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.BranchList;
+    var departmentList = (List<MobileAllowanceController.EmployeeInfoForMobileAllowance>)ViewBag.DepartmentList;
+
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name"),
+        ShortName = r.Field<string>("ShortName")
+    });
+    var mobileBillType = ViewBag.MobileBillType;
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #337ab7;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+
+    #tblAllowanceListPostpaid {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceListPostpaid td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceListPostpaid tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceListPostpaid tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceListPostpaid th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #337ab7;
+            color: white;
+        }
+</style>
+
+<script type="text/javascript">
+    var totalEmployee = 0;
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function SaveEmployeewiseMobileAllowance() {
+        var salYear = $("#ddlSalYear").val();
+        var salMonth = $("#ddlSalMonth").val();
+        var processDate = $("#txtProcessDate").val().trim();
+        var allConvId = new Array();
+        $(".clEmpIds").each(function () {
+            var empCode = $(this).attr("data-code");//chk-
+            if ($("#chk-" + empCode).is(":checked") == true) {
+                var Id = $(this).attr("data-MId")
+                var payable = $(this).attr("data-payable") == "" ? "0" : $(this).attr("data-payable");
+                var paid = $("#paid-" + empCode).val();
+                var remarks = $("#remarks-" + empCode).val();
+                var empId = $(this).attr("data-empid");
+
+
+                    var conveyanceId = new Object();
+                    conveyanceId.Id = Id;
+                    conveyanceId.payable = payable;
+                    conveyanceId.paid = paid;
+                    conveyanceId.remarks = remarks;
+                    conveyanceId.processDate = processDate;
+                    allConvId.push(conveyanceId);
+                
+            }
+        });
+        if (processDate == "" || processDate == "0") {
+            $.alert.open("error", "Please insert process date.");
+            return false;
+        }
+        else if (salYear == "0") {
+            $.alert.open("error", "Please select year.");
+            return false;
+        }
+        else if (salMonth == "0") {
+            $.alert.open("error", "Please select month.");
+            return false;
+        } 
+        else if (allConvId.length < 1) {
+            $.alert.open("error", "No Employee Found.");
+            return false;
+        }
+        else {
+
+            var json = JSON.stringify(allConvId)
+            $("#AjaxLoader").show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("UpdateEmployeewiseConveyanceAllowance", "ConveyanceAllowance", "http")',
+                data : json,
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if (data.Status == true) {
+                        $.alert.open(data.Result, data.Message, function () {
+                            window.location.reload();
+                        });
+                    }
+                    else {
+                        $.alert.open(data.Result, data.Message, function () {
+                            window.location.reload();
+                        });
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#AjaxLoader").hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+    function CalcPaidAmount(EmpCode, Payable, Paid) {
+        var paid = parseFloat($("#paid-" + EmpCode).val() == "" ? "0" : $("#paid-" + EmpCode).val());
+        var payable = parseFloat(Payable);
+        var AlreadyPaid = parseFloat(Paid);
+        var TotalPayable = parseFloat(payable - AlreadyPaid);
+        if (paid > TotalPayable) {
+            $.alert.open("error", "Total paid amount is grater then payable.", function () {
+                $("#paid-" + EmpCode).val(TotalPayable);
+            });
+            return false;
+        }
+    }
+    $(document).ready(function () {
+        var mobile_bill_type = '@mobileBillType';
+        $("#ddlCompanyList").val(@ViewData["CompanyId"]);
+
+        $("#ddlSalMonth").val(@ViewData["SalMonth"]);
+        $("#ddlSalYear").val(@ViewData["SalYear"]);
+        $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+
+        $("#ddlCompanyList").change(function () {
+            GetDepartmentList(0);
+        });
+
+        GetDepartmentList(0);
+        $("#all_chk").on("click", function () {
+            $(".chksig").prop("checked", $(this).is(":checked"));
+        });
+
+        $(".childTbl").find('thead').append(
+            '<tr style="padding-top: 12px; padding-bottom: 12px; text-align: left; color: green;">' +
+            '<td>SL</td>' +
+            '<td>Allowance Name</td>' +
+            '<td>Amount</td>' +
+            '<td>Calc base on</td></tr>'
+            );
+
+        $("#btnSearch").on("click", function () {
+            var SalYear = $("#ddlSalYear").val() == "" ? "0" : $("#ddlSalYear").val();
+            var SalMonth = $("#ddlSalMonth").val() == "" ? "0" : $("#ddlSalMonth").val();
+            var ProcessDate = $("#txtProcessDate").val().trim();
+            var exceptEmpCode = $("#txtExceptEmpCode").val().trim();
+            var inExCode = $("#chkExceptEmpCode").is(":checked") == true ? "E" : "I";
+            var branchId = $("#ddlBranchList").val();
+            var departmentId = $("#ddldepartmentList").val();
+            var companyId = $("#ddlCompanyList").val();
+
+            if (ProcessDate == "" || ProcessDate == "0") {
+                $.alert.open("error", "Please insert process date.");
+                return false;
+            }
+            else if (SalYear == "0") {
+                $.alert.open("error", "Please select year.");
+                return false;
+            }
+            else if (SalMonth == "0") {
+                $.alert.open("error", "Please select month.");
+                return false;
+            }
+            else {
+                     $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Get_Employeewise_Conveyance_Allowance_Reprocess", "ConveyanceAllowance", "http")',
+                    data: {
+                        SalMonth: SalMonth,
+                        SalYear: SalYear,
+                        ProcessDate: ProcessDate,
+                        ExceptEmpCode: exceptEmpCode,
+                        inExCode: inExCode,
+                        BranchId: branchId,
+                        DepartmentId: departmentId,
+                        CompanyId: companyId
+
+                    },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $("#divLoader").hide()
+                        if (data.Status == true) {
+                            if (mobile_bill_type == "postpaid")
+                            {
+                                var dtTable = $('#tblAllowanceListPostpaid');
+                                var tableBody = dtTable.find('tbody');
+                                tableBody.empty();
+                                $.each(data.Result, function (id, r) {
+                                    tableBody.append('<tr id="row' + id + '">'
+                                        + '<td>' + (id + 1) + '</td>'
+                                        + '<td>' + r.emp_office_code + '</td>'
+                                        + '<td>' + r.emp_name + '</td>'
+                                        + '<td>' + r.DepartmentName + '</td>'
+                                        + '<td>' + r.DesignationName + '</td>'
+                                        + '<td>' + r.TADABillAmount + '</td>'
+                                        + '<td>' + r.FuelBillAmount + '</td>'
+                                        + '<td>' + r.TotalConveyance + '</td>'
+                                        + '<td><input type="number" class="clEmpIds" data-payable="' + r.TotalConveyance + '" data-code="' + r.emp_office_code + '" data-companyid="' + r.companyId + '" data-desgId="' + r.designationId + '" data-deptId="' + r.departmentId + '" data-branchId="' + r.branchId + '" data-empid="' + r.emp_id + '" data-MId="' + r.MId + '" id="paid-' + r.emp_office_code + '" style="width:100%" value="' + r.PaidAmount + '"/></td>'
+                                        + '<td><input id="remarks-' + r.emp_office_code + '" style="width:100%" value="' + r.Remarks + '" type="text" /></td>'
+                                        + '<td><input id="chk-' + r.emp_office_code + '" type="checkbox" class="chksig" checked /></td>'
+                                        + '</tr>');
+                                    if ((id + 1) == 1) {
+                                        $("#txtTotalEmployee").val(r.NoOfEmployee);
+                                    }
+                                    //PaymentModeType(r.emp_office_code, r.TypeId);
+                                });
+                            }
+                            else
+                            {
+                                var dtTable = $('#tblAllowanceList');
+                                var tableBody = dtTable.find('tbody');
+                                tableBody.empty();
+                                $.each(data.Result, function (id, r) {
+                                    tableBody.append('<tr id="row' + id + '">'
+                                        + '<td>' + (id + 1) + '</td>'
+                                        + '<td>' + r.emp_office_code + '</td>'
+                                        + '<td>' + r.emp_name + '</td>'
+                                        + '<td>' + r.DepartmentName + '</td>'
+                                        + '<td>' + r.DesignationName + '</td>'
+                                        
+                                        + '<td>' + r.TADABillAmount + '</td>'
+                                        + '<td>' + r.FuelBillAmount + '</td>'
+                                        + '<td>' + r.TotalConveyance + '</td>'
+                                        + '<td><input type="number" class="clEmpIds" data-payable="' + r.TotalConveyance + '" data-code="' + r.emp_office_code + '" data-companyid="' + r.companyId + '" data-desgId="' + r.designationId + '" data-deptId="' + r.departmentId + '" data-branchId="' + r.branchId + '" data-empid="' + r.emp_id + '" data-MId="' + r.MId + '" id="paid-' + r.emp_office_code + '" style="width:100%" value="' + r.PaidAmount + '" onblur="CalcPaidAmount(' + "'" + r.emp_office_code + "'" + ',' + r.PaidAmount + ', ' + r.TotalPaidAmount + ');" /></td>'
+                                        + '<td><input id="remarks-' + r.emp_office_code + '" style="width:100%" value="' + r.Remarks + '" type="text" /></td>'
+                                        + '<td><input id="chk-' + r.emp_office_code + '" type="checkbox" class="chksig" checked /></td>'
+                                        + '</tr>');
+                                    if ((id + 1) == 1) {
+                                        $("#txtTotalEmployee").val(r.NoOfEmployee);
+                                    }
+                                    //PaymentModeType(r.emp_office_code, r.TypeId);
+                                });
+                            }
+                        }
+                        else {
+                            $.alert.open("error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+
+        $("#btnReset").on("click", function () {
+            window.location = "@Url.Action("Index", "MobileAllowance")";
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseMobileAllowance();
+        });
+
+
+        if ($("#txtinExCode").val() == "E") {
+            $("#chkExceptEmpCode").prop("checked", true);
+            $("#lblEmpCode").html("Exclude Employee Code");
+        }
+        else {
+            $("#chkExceptEmpCode").prop("checked", false);
+            $("#lblEmpCode").html("Employee Code");
+        }
+
+        $("#chkExceptEmpCode").on("click", function () {
+            if ($("#chkExceptEmpCode").is(":checked") == true) {
+                $("#lblEmpCode").html("Exclude Employee Code");
+            }
+            else {
+                $("#lblEmpCode").html("Employee Code");
+            }
+        });
+
+
+        $(".csTable").on("click", function () {
+
+            var nm = $(this).attr("name");
+            var bName = $(this).val();
+
+            if (bName == "-") {
+                $("#tr-" + nm).hide();
+                $(this).val("+");
+            }
+            else {
+                $("#tr-" + nm).show();
+                $(this).val("-");
+            }
+
+        });
+    });
+
+
+
+    @*function PaymentModeType(empcode,paymentType) {
+
+        var type = $("#ddlPaymentType" + empcode);
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("PaymentModeType", "MobileAllowance", "http")',
+            data: {},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                type.html('');
+                type.append($('<option></option>').val("0").html("Select"));
+                $.each(data.data, function (id, option) {
+                    type.append($('<option></option>').val(option.Id).html(option.Name));
+
+                });
+                if (paymentType != 0) {
+                    $("#ddlPaymentType" + empcode).val(paymentType);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }*@
+</script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width: 100%; background: #337ab7">
+                <h3 style="color: white;padding:2px">Conveyance Allowance Reprocess</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Month", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            @Html.Label("Year", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        var cYear = DateTime.Now.Year;
+                                        <option value="0">Select year</option>
+                                        for (var i = cYear - 12; i < DateTime.Now.Year + 12; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Process Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtProcessDate" class="form-control DateInput check-date" value="@ViewData["processdate"]" />
+                            </div>
+                            @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlBranchList">
+                                    <option value="0">Please select</option>
+                                    @foreach (var b in branchList)
+                                    {
+                                        <option value="@b.Id">@b.BranchName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id" data-sname="@dt.ShortName">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2", @id = "lblEmpCode" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" value="@ViewData["exceptempcode"]" />
+                                <input type="checkbox" title="Except Employee Code" id="chkExceptEmpCode" />
+                                <input type="text" value="@ViewData["inExCode"]" style="display:none" id="txtinExCode" />
+                            </div>
+                            @Html.Label("No Of Employee", htmlAttributes: new { @class = "control-label col-md-2", @id = "lblTotalEmployee" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtTotalEmployee" class="form-control" readonly="readonly" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary" id="btnReset">Reset</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                </div>
+                <div class="row form-group">
+                    @if (mobileBillType == "postpaid")
+                    {
+                        <table id="tblAllowanceListPostpaid">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Department Name</th>
+                                    <th>Designation Name</th>
+                                    <th>Conv(TA/DA)</th>
+                                    <th>Fual</th>
+                                    <th>Total Payable</th>
+                                    <th style="width:10%">Paid </th>
+                                    <th style="width:8%">Remarks</th>
+                                    <th><input type="checkbox" id="all_chk" checked="checked" /></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <table id="tblAllowanceList">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Department Name</th>
+                                    <th>Designation Name</th>
+                                   
+                                    <th>Conv(TA/DA)</th>
+                                    <th>Fual</th>
+                                    <th>Already Paid</th>
+                                    <th style="width:8%">Paid </th>
+                                    <th style="width:8%">Remarks</th>
+                                    <th><input type="checkbox" id="all_chk" checked="checked" /></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-offset-5 col-md-4">
+                        <button type="submit" class="btn btn-success" id="btnSave">Process</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

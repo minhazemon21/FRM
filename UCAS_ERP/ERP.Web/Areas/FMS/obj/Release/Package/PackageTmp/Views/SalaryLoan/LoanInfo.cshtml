@@ -1,0 +1,313 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Loan";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+  
+    var loanItemList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanItemList;
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblLoanList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblLoanList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblLoanList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblLoanList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblLoanList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+
+<script type="text/javascript">
+
+
+    var AllEmployeeList = [];
+
+    function GetEmployeeList() {
+
+        $('#txtExceptEmpCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: {},
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+
+        $('#txtExceptEmpCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#txtExceptEmpCode").val(ui.item.value); // display the selected text
+                // $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+                // $("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+
+    // ManualCollection(int LoanId)
+
+    function LoanManualCollection(Id)
+    {
+        window.location = "@Url.Action("ManualCollection", "SalaryLoan")?LoanId=" + Id;
+    }
+
+    function GetLoanInformation() {
+
+        var employeeCode = $('#txtExceptEmpCode').val().split("-")[0].trim();
+        var loanStatus = $("#ddlLoanStutas").val();
+        var loanItem = $("#ddlLoanItem").val();
+        var startDate = $("#txtStartDate").val();
+        var endDate = $("#txtEndDate").val();
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_Loan_Disbuse_Info", "SalaryLoan", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: {
+                Id: 0
+                , employeeCode: employeeCode
+                , loanStatus: loanStatus
+                , loanItem: loanItem
+                , startDate: startDate
+                , endDate: endDate
+            },
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblLoanList").find('tbody').empty();
+                    $.each(data.Result, function (id, e) {
+                        if (e.LoanStatus == "Approved") {
+                            $("#tblLoanList").find('tbody').append(
+                            '<tr>' +
+                                '<td>' + e.RowSl + '</td>' +
+                                '<td>' + e.emp_office_code + '</td>' +
+                                '<td>' + e.emp_name + '</td>' +
+                                '<td>' + e.DesignationShortName + '</td>' +
+                                '<td>' + e.LoanName + '</td>' +
+                                '<td>' + e.LoanDisburseDate + '</td>' +
+                                '<td>' + e.InterestRate + '</td>' +
+                                '<td>' + e.LoanDurationMonth + '</td>' +
+                                '<td>' + e.InstallmentAmount + '</td>' +
+                                '<td>' + e.LoanDisburseAmount + '</td>' +
+                                '<td>' + e.TotalCollection + '</td>' +
+                                '<td>' + e.LoanStatus + '</td>' +
+                                '<td><a href="#" title="Manual Collection" onclick="LoanManualCollection(' + e.Id + ')" class="btn btn-info btn-xs"> <i class="fa fa-history"></i></a></td>' +
+                            '</tr>'
+                        );
+                        }
+                        else {
+                            $("#tblLoanList").find('tbody').append(
+                            '<tr>' +
+                                '<td>' + e.RowSl + '</td>' +
+                                '<td>' + e.emp_office_code + '</td>' +
+                                '<td>' + e.emp_name + '</td>' +
+                                '<td>' + e.DesignationShortName + '</td>' +
+                                '<td>' + e.LoanName + '</td>' +
+                                '<td>' + e.LoanDisburseDate + '</td>' +
+                                '<td>' + e.InterestRate + '</td>' +
+                                '<td>' + e.LoanDurationMonth + '</td>' +
+                                '<td>' + e.InstallmentAmount + '</td>' +
+                                '<td>' + e.LoanDisburseAmount + '</td>' +
+                                '<td>' + e.TotalCollection + '</td>' +
+                                '<td>' + e.LoanStatus + '</td>' +
+                                '<td></td>' +
+                            '</tr>'
+                        );
+                        }
+                    });
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+
+    $(document).ready(function () {
+
+        GetEmployeeList();
+
+        $("#btnSearch").on("click", function () {
+            GetLoanInformation();
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Loan Information</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Loan Status", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlLoanStutas"> 
+                                    <option value="0">All Status</option>
+                                    <option value="1">Applied</option>
+                                    <option value="2">Approved</option>
+                                    <option value="3">Cancel</option>
+                                    <option value="4">Close</option>
+                                </select>
+                            </div>
+                           @Html.Label("Loan Item", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlLoanItem">
+                                    <option value="0">Please select</option>
+                                    @foreach (var r in loanItemList)
+                                    {
+                                        <option value="@r.Id">@r.LoanName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Start date", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("txtStartDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                            @Html.Label("End Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                             @Html.Editor("txtEndDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="control-label col-md-5">
+                                <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblLoanList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Code</th>
+                                        <th>Employee Name</th>
+                                        <th>Desg</th>
+                                        <th>Loan Item</th>
+                                        <th>Disbusement Date</th>
+                                        <th>Interest Rate</th>
+                                        <th>No. Of Ins:</th>
+                                        <th>Per Installment</th>
+                                        <th>Loan Amount</th>
+                                        <th>Collection</th>
+                                        <th>Loan Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                               <tbody></tbody>
+                               
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

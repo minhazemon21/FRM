@@ -1,0 +1,454 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Salary";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    var glAccountList = (List<PFController.PFModel>)ViewBag.GLAccountList;
+    var ipoCompany = (List<SalaryController.SalaryAllowance>)ViewBag.IPOCompany;
+    var signatoryList = (List<SalaryController.SalaryAllowance>)ViewBag.SignatoryList;
+    var departmentList = (List<BrokerDepartment>)ViewBag.DepartmentList;
+
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name"),
+        ShortName = r.Field<string>("ShortName")
+    });
+}
+
+<script type="text/javascript">
+    var dpcnt = 0;
+    function CheckDuplicationRefNo(RefYear, RefNo) {
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("CheckDuplicationRefNo", "ReportView", "http")',
+            data: { RefYear: RefYear, RefNo: RefNo },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Status == true) {
+                    if (data.Result > 0) {
+                        dpcnt = 0;
+                        $.alert.open("error", "Duplicate referance no.");
+
+                    }
+                    else {
+                        dpcnt = 1;
+                    }
+                }
+                else {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function GetReferance(year) {
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetReferance", "Salary", "http")',
+            data: { RfYear: year },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#txtReferanceNo").val(data.Result);
+                }
+                else {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function GetBranchGLAccountNoCompanyWise() {
+        var CompanyList = $("#ddlCompanyList").val();
+        var BankAccountList = $("#ddlBankAccountList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBranchGLAccountNoCompanyWise", "ReportView", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (GLAccountList) {
+                // $('#AjaxLoader').hide();
+                BankAccountList.html('');
+                BankAccountList.append($('<option></option>').val("0").html("Please select"));
+                $.each(GLAccountList, function (id, option) {
+                    BankAccountList.append($('<option data-id="' + option.Id + '" data-bankbranchid="' + option.BankBranchId + '" ></option>').val(option.AccountNo).html(option.AccountName));
+                });
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+   $(document).ready(function () {
+    //$("#ddlCompanyList").change(function () {
+    //    GetDepartmentList(0);
+    //});
+       GetDepartmentList(0);
+
+       $("input[type=radio][name=reports]").on("change", function () {
+            $(".radio-container label").removeClass("active");
+
+            $("input[type=radio][name=reports]:checked").parents("label").addClass("active");
+            var reportNo = parseInt($("input[type=radio][name=reports]:checked").val());
+
+
+            $("#divYear").hide();
+            $("#divMonth").hide();
+            $("#divCompany").hide();
+
+            if (reportNo == 1)
+            {
+                $("#divYear").show();
+                $("#divMonth").show();
+            }
+            else if (reportNo == 2) {
+                $("#divYear").show();
+                $("#divMonth").show();
+                $("#divCompany").hide();
+                $("#ddldepartmentList").attr('disabled', 'disabled');
+                //$("#ddldepartmentList").prop('disabled', true);
+            }
+            else if (reportNo == 3 || reportNo == 4 || reportNo == 5) {
+                $("#divYear").show();
+                $("#divMonth").show();
+            }
+        });
+
+
+
+        $("#btnShow").on("click", function () {
+
+            var reportNo = $("input[type=radio][name=reports]:checked").val();//
+            var ReferanceYr = $("#txtReferanceYear").val() == "" ? "0" : $("#txtReferanceYear").val();
+            var ReferanceNo = $("#txtReferanceNo").val() == "" ? "0" : $("#txtReferanceNo").val();
+            var ReportReferance = $("#txtReferance").val();// + "/" + ReferanceYr + "/" + ReferanceNo;
+            var BankGLId = $("#ddlBankAccountList option:selected").attr("data-id");
+            var BankbranchId = $("#ddlBankAccountList option:selected").attr("data-bankbranchid");
+            var Sign2 = $("#ddlSignatory").val();
+            var salMonth = $("#ddlSalMonth").val();
+            var salYear = $("#ddlSalYear").val();
+            var reportType = $("#cmbReportType").val();
+            var BankAdviceDate = $("#txtBankAdviceDate").val().trim();
+            var IPOCompanyId = $("#ddlIpoCompany").val();
+            var chkSts = $("#chkRfc").is(":checked") == true ? 1 : 0;
+            var department = $("#ddldepartmentList").val();
+            var companyList = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+            //alert(ReportReferance);
+            //if (chkSts == 0)
+            //{
+            //    ReportReferance = "";
+            //}
+
+            if (chkSts == 1 && ReferanceNo == "0")
+            {
+                $.alert.open("error", "Please insert referance.");
+                return false;
+            }
+            else if (companyList == "0") {
+                $.alert.open("error", "Please select company.");
+                return false;
+            }
+            if (BankGLId == "0")
+            {
+                $.alert.open("error", "Please select bank account.");
+                return false;
+            }
+            else if (BankAdviceDate == "") {
+                $.alert.open("error", "Please insert bank advice date.");
+                return false;
+            }
+            else if ((reportNo == "1" || reportNo == "3" || reportNo == "4" || reportNo == "5" || reportNo == "2") && salYear == "0") {
+                $.alert.open("error", "Please select year.");
+                return false;
+            }
+            else if ((reportNo == "1" || reportNo == "2") && salMonth == "0") {
+                $.alert.open("error", "Please select month.");
+                return false;
+            }
+            else
+            {
+                if (chkSts == 0)
+                {
+                    var param = 'reportNo=' + reportNo + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&CompanyId=' + companyList + '&ReportReferance=' + ReportReferance + '&BankGLId=' + BankGLId + '&BankbranchId=' + BankbranchId + '&Sign2=' + Sign2 + '&BankAdviceDate=' + BankAdviceDate + '&ReportType=' + reportType + '&ReferanceYr=' + ReferanceYr + '&ReferanceNo=' + ReferanceNo + '&chkSts=' + chkSts + '&Department=' + department;
+                    var url = '/ReportView/ShowBankAdvice?' + param;
+                    window.open(url);
+                }
+                else
+                {
+                    $.ajax({
+                        type: 'GET',
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("CheckDuplicationRefNo", "ReportView", "http")',
+                        data: { RefYear: ReferanceYr, RefNo: ReferanceNo },
+                        dataType: 'json',
+                        async: true,
+                        success: function (data) {
+                            if (data.Status == true) {
+                                if (data.Result > 0) {
+                                    $.alert.open("error", "Duplicate referance no.");
+                                }
+                                else {
+                                    var param = 'reportNo=' + reportNo + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&CompanyId=' + IPOCompanyId + '&ReportReferance=' + ReportReferance + '&BankGLId=' + BankGLId + '&BankbranchId=' + BankbranchId + '&Sign2=' + Sign2 + '&BankAdviceDate=' + BankAdviceDate + '&ReportType=' + reportType + '&ReferanceYr=' + ReferanceYr + '&ReferanceNo=' + ReferanceNo + '&chkSts=' + chkSts + '&Department=' + department;
+                                    var url = '/ReportView/ShowBankAdvice?' + param;
+                                    window.open(url);
+                                }
+                            }
+                            else {
+                                $.alert.open(data.Result, data.Message);
+                            }
+                        },
+                        error: function (request, status, error) {
+                            $('#AjaxLoader').hide();
+                            alert(request.statusText + "/" + request.statusText + "/" + error);
+                        }
+                    });
+                }
+            }
+        });
+
+        //$("#txtBankAdviceDate").on("change", function () {
+        //    var year = $("#txtBankAdviceDate").val().split("/")[2];
+        //    $("#txtReferanceYear").val(year);
+        //    GetReferance(year);
+       //});
+
+        $("#ddlSalYear").on("change", function () {
+            var year = $("#ddlSalYear").val();
+            $("#txtReferanceYear").val(year);
+            GetReferance(year);
+        });
+       $("#ddlCompanyList").on("change", function () {
+           GetDepartmentList(0);
+           GetBranchGLAccountNoCompanyWise();
+           var shortName = $(this).find("option:selected").attr('data-sname')
+           $("#txtReferance").val(shortName);
+
+           //alert($(this).find("option:selected").attr('data-sname'))
+       });
+
+        $("#chkRfc").on("click", function () {
+
+            if($("#chkRfc").is(":checked") == true)
+            {
+                $("#lblReferance").addClass("required");
+            }
+            else
+            {
+                $("#lblReferance").removeClass("required");
+            }
+        });
+
+    });
+
+
+
+</script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Bank Advice Report</h3>
+            </div>
+        </div>
+
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <div class="row">
+                        <div class="col-sm-2 label-container" style="text-align:right">
+                            @Html.Label("Report Name ", new { @class = "control-label" })
+                        </div>
+                        <div class="col-sm-10 radio-container">
+                            <div class="row">
+                                @for (var r = 0; r < reports.Count; r++)
+                                {
+                                    <label class="col-sm-4 @(r==0?"active":"")">
+                                        <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="reports" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="text-align:left"><input type="checkbox" id="chkRfc" /><span>With referance</span></div>
+                        <div class="row form-group">
+                            @Html.Label("Bank Advice Date", new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtBankAdviceDate" class="form-control DateInput check-date" />
+                            </div>
+
+                            @Html.Label("Bank Account", new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlBankAccountList">
+                                    <option value="0" data-id="0">Please select</option>
+                                    @*@foreach (var r in glAccountList)
+                                    {
+                                        <option value="@r.AccountNo" data-id="@r.Id" data-bankbranchid="@r.BankBranchId">@r.AccountName - @r.AccountNo (@r.BankShortName)</option>
+                                    }*@
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div id="divYear">
+                                @Html.Label("Year", new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4">
+                                    <select class="form-control" id="ddlSalYear">
+                                        @{
+                                            <option value="0">Select year</option>
+                                            for (var i = 2015; i < DateTime.Now.Year + 5; i++)
+                                            {
+                                                <option value="@i">@i</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="divMonth">
+                                @Html.Label("Month", new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4">
+                                    <select class="form-control" id="ddlSalMonth">
+                                        <option value="0">Please select month</option>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="divCompany" style="display:none">
+                                @Html.Label("Company ", new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4">
+                                    <select class="form-control" id="ddlIpoCompany">
+                                        <option value="0">Please select</option>
+                                        @foreach (var r in ipoCompany.OrderBy(x => x.CompanyName))
+                                        {
+                                            <option value="@r.Id">@r.CompanyName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2 required", @style = "text-align:right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id" data-sname="@dt.ShortName">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-sm-2 label-container">
+                                @Html.Label("Report Type :", new { @class = "control-label" })
+                            </div>
+                            <div class="col-sm-4">
+                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                    <option value="Pdf" selected="selected">Pdf</option>
+                                    <option value="ExcelBook">Microsoft Excel</option>
+                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                    <option value="XML">XML</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" style="display:none;">
+                                @Html.Label("Second Signatory ", new { @class = "control-label col-md-2 required" })
+                                <select class="form-control" id="ddlSignatory">
+                                    <option value="0">Please select</option>
+                                    @foreach (var r in signatoryList)
+                                    {
+                                        <option value="@r.Id">@r.SignatoryName</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Referance No", new { @class = "control-label col-md-2", @id = "lblReferance" })
+                        <div class="col-md-2">
+                            @*<input type="text" id="txtReferance" title="SADL" value="SADL" readonly="readonly" class="form-control" />*@
+                            <input type="text" id="txtReferance" readonly="readonly" class="form-control" />
+                        </div>
+                            <div class="col-md-1">
+                                <input type="number" id="txtReferanceYear" class="form-control" readonly="readonly" />
+                            </div>
+                            <div class="col-md-1">
+                                <input type="number" id="txtReferanceNo" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+

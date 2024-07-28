@@ -1,0 +1,463 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Investment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var investmentList = (List<PFController.PFModel>)ViewBag.InvestmentList;
+    var investmentTypeList = (List<PFController.PFModel>)ViewBag.InvestmentTypeList;
+}
+
+<style>
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+     #tblPFProfitList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblPFProfitList, td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+             #tblPFProfitList tr:nth-child(even) {
+                background-color: #f2f2f2;
+            }
+
+             #tblPFProfitList tr:hover {
+                background-color: #ddd;
+            }
+
+             #tblPFProfitList th {
+                padding-top: 12px;
+                padding-bottom: 12px;
+                text-align: left;
+                background-color: #4CAF50;
+                color: white;
+            }
+
+
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    #tblEmpList td, #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+        #tblEmpList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmpList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmpList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+
+</style>
+<script type="text/javascript">
+
+
+    function GetProfit(sl)
+    {
+        var id = 'rd' + sl;
+
+        var profitSource = $("#" + id).attr("data-profitSource");
+        var investmentId = $("#" + id).attr("data-investmentId");
+        var invType = $("#" + id).attr("data-invType");
+        var trxDate = invType == "SV" ? $("#txttrxDate" + sl).val() : "";
+      //  var profitFrom = $("#" + id).attr("data-profitSource");
+
+        var amount = parseFloat(profitSource == "Other" ? ($("#pfp" + sl).val() == "" ? "0" : $("#pfp" + sl).val()) : ($("#" + id).attr("data-amount")));
+        //alert(amount);
+        //if (amount != "0")
+        //{
+            var expense = parseFloat($("#" + id).attr("data-expense"));
+            var details = $("#" + id).attr("data-details");
+            var profitSourceId = $("#" + id).attr("data-id");
+
+            var profit = amount - expense;
+            // alert(profit);
+
+            $(".spNetprofit").html(0);
+
+            $("#sp" + sl).html(profit);
+
+            Get_Employee_Profit_Distribution(investmentId, profit, profitSource, profitSourceId, details, invType, trxDate)
+            $("#lblRemarks").html("");
+            $("#hdnProfitSource").val("");
+            $("#hdnProfitSourceId").val(0);
+
+            $("#lblRemarks").html(details);
+            $("#hdnProfitSource").val(profitSource);
+            $("#hdnProfitSourceId").val(profitSourceId);
+        //}
+        //else
+        //{
+        //    $("#" + id).prop("checked", false);
+        //    $("#tblEmpList").find('tbody').empty();
+        //    $("#lblRemarks").html("");
+        //    $("#hdnProfitSource").val("");
+        //    $("#hdnProfitSourceId").val(0);
+        //    $("#lblTotal").html("");
+        //}
+    }
+
+    function Get_Undistributed_PF_Profit() {
+
+        var investmentTypeId = $("#ddlInvestmentType").val();
+        //console.log(investmentTypeId);
+       // if (investmentTypeId != 0) {
+            $("#AjaxLoader").show();
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("Get_Undistributed_PF_Profit", "PF", "http")',
+                type: "GET",
+                dataType: 'json',
+                async: true,
+                data: {
+                    InvestmentTypeId: investmentTypeId,
+                    InvestmentId:0
+
+                },
+                success: function (data) {
+                    if (data.Status == true) {
+                        $("#tblPFProfitList").find('tbody').empty();
+                        $.each(data.Result, function (id, r) {
+                            if (r.ProfitFrom != "Other Investment") {
+                                $("#tblPFProfitList").find('tbody').append(
+                               '<tr>' +
+                               '<td>' + r.RowSl + '</td>' +
+                               '<td>' + r.ProfitFrom + '</td>' +
+                               '<td>' + r.InvestmentName + '</td>' +
+                               '<td>' + r.TrxDate + '</td>' +
+                               '<td>' + r.Amount + '</td>' +
+                               '<td>' + r.ExpenseAmount + '</td>' +
+                               '<td>' + r.Remarks + '</td>' +
+                               '<td><span class="spNetprofit" id="sp'+r.RowSl+'"><span/></td>' +
+                               '<td><input type="radio" name="profit" id="rd' + r.RowSl + '" data-investmentId="' + r.PFInvestmentId + '" data-amount="' + r.Amount + '" data-expense="' + r.ExpenseAmount + '" data-details="' + r.Details + '" data-profitSource="' + r.ProfitFromShortName + '" data-id="' + r.Id + '"  data-invType="' + r.InvestmentTypeShortName + '" onclick="GetProfit(' + r.RowSl + ');"/></td>' +
+                               '</tr>'
+                              );
+                            }
+                            else {
+                                if (r.InvestmentTypeShortName == "SV") // Savings
+                                {
+                                    $("#tblPFProfitList").find('tbody').append(
+                                          '<tr>' +
+                                          '<td>' + r.RowSl + '</td>' +
+                                          '<td>' + r.ProfitFrom + '</td>' +
+                                          '<td>' + r.InvestmentName + '</td>' +
+                                          '<td><input type="text" class="DateInput check-date" value="' + r.CurrentDate + '" id="txttrxDate' + r.RowSl + '"  /></td>' +
+                                          '<td><input type="number" value="' + r.Amount + '" id="pfp' + r.RowSl + '" style ="width:100%"/></td>' +
+                                          '<td>' + r.ExpenseAmount + '</td>' +
+                                          '<td>' + r.Remarks + '</td>' +
+                                          '<td><span class="spNetprofit" id="sp' + r.RowSl + '"><span/></td>' +
+                                          '<td><input type="radio" name="profit" id="rd' + r.RowSl + '" data-investmentId="' + r.PFInvestmentId + '" data-amount="' + r.Amount + '" data-expense="' + r.ExpenseAmount + '" data-details="' + r.Details + '" data-profitSource="' + r.ProfitFromShortName + '" data-id="' + r.Id + '" data-invType="' + r.InvestmentTypeShortName + '" onclick="GetProfit(' + r.RowSl + ');"/></td>' +
+                                          '</tr>'
+                             );
+                                }
+                                else
+                                {
+                                    $("#tblPFProfitList").find('tbody').append(
+                                                                      '<tr>' +
+                                                                      '<td>' + r.RowSl + '</td>' +
+                                                                      '<td>' + r.ProfitFrom + '</td>' +
+                                                                      '<td>' + r.InvestmentName + '</td>' +
+                                                                      '<td>' + r.TrxDate + '</td>' +
+                                                                      '<td><input type="number" value="' + r.Amount + '" id="pfp' + r.RowSl + '" style ="width:100%"/></td>' +
+                                                                      '<td>' + r.ExpenseAmount + '</td>' +
+                                                                      '<td>' + r.Remarks + '</td>' +
+                                                                      '<td><span class="spNetprofit" id="sp' + r.RowSl + '"><span/></td>' +
+                                                                      '<td><input type="radio" name="profit" id="rd' + r.RowSl + '" data-investmentId="' + r.PFInvestmentId + '" data-amount="' + r.Amount + '" data-expense="' + r.ExpenseAmount + '" data-details="' + r.Details + '" data-profitSource="' + r.ProfitFromShortName + '" data-id="' + r.Id + '" data-invType="' + r.InvestmentTypeShortName + '" onclick="GetProfit(' + r.RowSl + ');"/></td>' +
+                                                                      '</tr>'
+                                                                 );
+                                }
+                            }
+                        });
+                        $("#AjaxLoader").hide();
+                    }
+                    else {
+                        $("#AjaxLoader").hide();
+                        $.alert.open(data.Result, data.Message);
+                    }
+                },
+                error: function (error) {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", "An error occurred. Please contact to the vendor.");
+                }
+            });
+        //}
+    }
+
+
+
+    function Get_Employee_Profit_Distribution(investmentId, amount, profitSource, profitSourceId, remarks, invType, trxDate) {
+
+        if (investmentId == 0) {
+            $.alert.open("error", "Please select investment name");
+            return false;
+        }
+        else if (invType == "SV" && trxDate == "")
+        {
+            $.alert.open("error", "Please insert transaction date.");
+            return false;
+        }
+        else if (amount == "0") {
+            $.alert.open("error", "Please insert Profir amount");
+            return false;
+        }
+        else {
+            $("#AjaxLoader").show();
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("Get_Employee_Profit_Distribution", "PF", "http")',
+                type: "GET",
+                dataType: 'json',
+                async: true,
+                data: {
+                    InvestmentId: investmentId,
+                    Amount: amount,
+                    ProfitFrom: profitSource,
+                    ProfitSourceId: profitSourceId,
+                    TrxDate: trxDate,
+                    InvType: invType
+                },
+                success: function (data) {
+                    if (data.Status == true) {
+                        $("#tblEmpList").find('tbody').empty();
+                        var cnt = 0;
+                        $.each(data.Result, function (id, r) {
+
+                            if (r.ReleaseStatus == 1)
+                            {
+                                $("#tblEmpList").find('tbody').append(
+                               '<tr>' +
+                               '<td>' + r.RowSl + '</td>' +
+                               '<td>' + r.EmployeeCode + '</td>' +
+                               '<td>' + r.EmployeeName + '</td>' +
+                               '<td>' + r.DesignationShortName + '</td>' +
+                               '<td>' + r.EmployeewiseInvestmentAmount + '</td>' +
+                               '<td>' + r.EmployeewiseProfict + '<input type="hidden" class="allData" value="' + r.EmployeewiseProfict + '" data-empId="' + r.EmployeeId + '" data-investmentId="' + r.PFInvestmentId + '" data-relSts="' + r.ReleaseStatus + '" /></td>' +
+                               //'<td><input type="text" value="'+remarks+'"/></td>' +
+                               '</tr>'
+                         );
+
+                            }
+                            else
+                            {
+                                $("#tblEmpList").find('tbody').append(
+                               '<tr style="color:red">' +
+                               '<td>' + r.RowSl + '</td>' +
+                               '<td>' + r.EmployeeCode + '</td>' +
+                               '<td>' + r.EmployeeName + '</td>' +
+                               '<td>' + r.DesignationShortName + '</td>' +
+                               '<td>' + r.EmployeewiseInvestmentAmount + '</td>' +
+                               '<td>' + r.EmployeewiseProfict + '<input type="hidden" class="allData" value="' + r.EmployeewiseProfict + '" data-empId="' + r.EmployeeId + '" data-investmentId="' + r.PFInvestmentId + '" data-relSts="' + r.ReleaseStatus + '" /></td>' +
+                               //'<td><input type="text" value="'+remarks+'"/></td>' +
+                               '</tr>'
+                         );
+                            }
+
+                           
+                            //$("#lblTotal").html(amount);
+                            $("#lblTotal").html(r.Total);
+                        });
+                        $("#AjaxLoader").hide();
+                    }
+                    else {
+                        $("#AjaxLoader").hide();
+                        $.alert.open(data.Result, data.Message);
+                    }
+                },
+                error: function (error) {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", "An error occurred. Please contact to the vendor.");
+                }
+            });
+        }
+    }
+
+
+
+    $(document).ready(function () {
+
+       
+        Get_Undistributed_PF_Profit();
+
+        $("#btnSave").on("click", function () {
+
+            var remarks = $("#lblRemarks").html();
+            var profitSource = $("#hdnProfitSource").val();
+            var profitSourceId = $("#hdnProfitSourceId").val();
+            var processDate = $("#txtProcessDate").val();
+            
+            var allData = "";
+
+            $(".allData").each(function () {
+
+                var empIds = $(this).attr("data-empId");
+                var amts = $(this).val();
+                var investmentId = $(this).attr("data-investmentId");
+                var releaseStatus = $(this).attr("data-relSts");
+
+                allData = allData + "|" + empIds + "~" + investmentId + "~" + amts + "~" + releaseStatus;
+
+            });
+
+            if (allData == "") {
+                $.alert.open("error", "Please select from profit list.");
+                return false;
+            }
+            else if (processDate == "")
+            {
+                $.alert.open("error", "Please insert process date.");
+                return false;
+            }
+          
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_PF_Profit_Distribution", "PF", "http")',
+                    data: JSON.stringify({
+                        AllData: allData,
+                        Remarks: remarks,
+                        ProfitSource: profitSource,
+                        ProfitSourceId: profitSourceId,
+                        ProcessDate:processDate
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("Profit", "PF")"; });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;PF Profit Distribution</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div>
+                                <div class="row form-group">
+                                    <label class="control-label col-md-2">Investment Type</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <select class="form-control" id="ddlInvestmentType" onchange="Get_Undistributed_PF_Profit();">
+                                            <option value="0">Please Select</option>
+                                            @foreach (var r in investmentTypeList)
+                                            {
+                                                <option value="@r.Id" data-id="@r.Id">@r.InvestmentTypeName</option>
+                                            }
+                                            <option value="-1">Misscellaneous</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                  
+                    <fieldset>
+                        <div class="row form-group" style="height:15%">
+                            <table id="tblPFProfitList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Profit From</th>
+                                        <th>Investment</th>
+                                        <th>Transaction Date</th>
+                                        <th style ="width:10%">Profit</th>
+                                        <th style="width:8%">Expense</th>
+                                        <th style="width:20%">Remarks</th>
+                                        <th>Net Profit</th>
+                                        <th>Check</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                             
+                            </table>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend><span id="lgInvestmentName"></span></legend>
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Code</th>
+                                        <th>Employee Name</th>
+                                        <th>Desg</th>
+                                        <th>Investment Amount</th>
+                                        <th>Profit</th>
+                                        @*<th>Remarks</th>*@ 
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                    <td colspan="5"><input type="hidden" id="hdnProfitSource"/> <input type="hidden" id="hdnProfitSourceId"/></td>
+                                    <td  style="text-align:left"><label id="lblTotal"></label></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                           
+                        </div>
+                    </fieldset>
+                    <div class="row form-group">
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label>Remarks</label> <label id="lblRemarks"></label>
+                        </div>
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <label class="required">Process Date</label><input type="text" class="DateInput check-date" id="txtProcessDate" />
+                        </div>
+                        <div class="col-md-offset-1 col-md-2">
+                            <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

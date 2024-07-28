@@ -1,0 +1,254 @@
+﻿@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+<style>
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+    .panel-success {
+        border-color: #1ABB9C!important;
+    }
+    .panel-heading {
+        padding: 6px 10px!important;
+        font-size: 16px!important;
+        font-weight: bold!important;
+        color: white!important;
+        background-color: #1ABB9C!important;
+        border-color: #1ABB9C!important;
+    }
+    .panel-footer {
+        padding: 10px 0px;
+    }
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .k-grid .k-grouping-header {
+        color: white;
+    }
+</style>
+<script type="text/javascript">
+    function GetBrokerDepartment() {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetBrokerDepartment", "Department", "http")',
+                    dataType: "json",
+                    data: {}
+                }
+            },
+            pageSize: 20,
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 500,
+            groupable: true,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            resizable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                hidden: true,
+                filterable: false
+            },
+           {
+               field: "RowSl",
+               title: "SL",
+               width: "10%"
+           },
+            {
+                field: "DepartmentName",
+                title: "Department",
+                width: "30%"
+            },
+            {
+                field: "DepartmentShortName",//
+                title: "In Short",
+                width: "11%"
+            },
+            {
+                 field: "DisplayOrder",
+                 title: "Display Order",
+                 width: "14%"
+                },
+                {
+                    field: "OrganizationName",
+                    title: "Comapny",
+                    width: "27%"
+                },
+             {
+                 title: "Action",
+                 width: "8%",
+                 template: function (dataItem) {
+                     return '<a href="#" title="Edit" onclick="LoadEditData(' + dataItem.Id + ',' + dataItem.OrganizationId + ',' + "'" + dataItem.DepartmentName + "'" + ',' + "'" + dataItem.DepartmentShortName + "'" + ',' + "'" + dataItem.DisplayOrder + "'" + ')" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>';
+                 }
+             },
+            ]
+        });
+    }
+    function LoadEditData(Id, OrganizationId, DepartmentName, DepartmentShortName,DisplayOrder)
+    {
+        $("#hdnBrokerDeptId").val(Id);
+        $("#txtDepartmentName").val(DepartmentName);
+        $("#txtShortName").val(DepartmentShortName);
+        $("#txtDisplayOrder").val(DisplayOrder);
+        $("#txtShortName").prop('disabled', true);
+        $("#dllCompanyList").val(OrganizationId);
+    }
+    function DepartmentNameDelete(Id) {
+        $.alert.open('confirm', 'Are you sure you want to delete this record?', function (button) {
+            if (button == 'yes') {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DepartmentNameDelete", "Department", "http")',
+                    data: { Id: Id },
+                    dataType: 'json',
+                    async: true,
+                    success: function (result) {
+                        $.alert.open("info","Delete successfull");
+                        GetBrokerDepartment();
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    $(document).ready(function () {
+        GetBrokerDepartment();
+        $("#hdnBrokerDeptId").val("0");
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            if ($("#txtDepartmentName").val() == "") {
+                $.alert.open("error", "Insert department name");
+                return false
+            } else if ($("#txtShortName").val() == "") {
+                $.alert.open("error", "Insert department short name");
+                return false
+            } else if ($("#txtDisplayOrder").val() == "" || $("#txtDisplayOrder").val() == 0 || $("#txtDisplayOrder").val() == undefined) {
+                $.alert.open("error", "Insert department display order");
+                return false
+            } else if ($("#dllCompanyList").val() == "" || $("#dllCompanyList").val() == "0" || $("#dllCompanyList").val() == undefined) {
+                $.alert.open("error", "Select Comapny");
+                return false
+            }
+                else {
+                $("#AjaxLoader").show();
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("SaveBrokerDepartment", "Department", "http")',
+                        type: "GET",
+                        dataType: 'json',
+                        data: { DepartmentName: $("#txtDepartmentName").val(), ShortName: $("#txtShortName").val(), hdnBrokerDeptId: $("#hdnBrokerDeptId").val(), DisplayOrder: $("#txtDisplayOrder").val(), CompanyId: $("#dllCompanyList").val() },
+                        success: function (data) {
+                            $("#AjaxLoader").hide();
+                            if (data.result == true) {
+                                $("#txtDepartmentName").val("");
+                                $('#txtShortName').val("");
+                                $("#hdnBrokerDeptId").val("0");
+                                $("#txtDisplayOrder").val("");
+                                $("#dllCompanyList").val("0");
+                                $.alert.open("success", data.message, function () {
+                                    GetBrokerDepartment();
+                                    $("#txtShortName").prop('disabled', false);
+                                });
+                            }
+                            else {
+                                $.alert.open("error", data.message, function () { window.location.reload(); });
+                            }
+                        },
+                        error: function () {
+                            $.alert.open("error", data.message, function () { window.location.reload(); });
+                        }
+                    });
+                }
+
+
+        });
+        $("#btnReset").click(function (e) {
+            e.preventDefault();
+            $("#txtDepartmentName").val("");
+            $('#txtShortName').val("");
+            $("#hdnBrokerDeptId").val("0");
+            $("#txtDisplayOrder").val("");
+            $("#txtShortName").prop('disabled', false);
+        });
+    });
+</script>
+@using (Html.BeginForm("Index", "Department", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal form-label-left", id = "BrokerDepartmentForm" }))
+{
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">Department Information Setup</div>
+                <div class="panel-body">
+                    <div class="row form-group">
+                        <input type="hidden" id="hdnBrokerDeptId" />
+                        @Html.Label("Department", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("DepartmentName", new { htmlAttributes = new { @class = "form-control", @id = "txtDepartmentName" } })
+                        </div>
+                        @Html.Label("Short Name", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("ShortName", new { htmlAttributes = new { @class = "form-control", @id = "txtShortName" } })
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        @Html.Label("Display Order", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            @Html.Editor("DisplayOrder", new { htmlAttributes = new { @class = "form-control", @id = "txtDisplayOrder" } })
+                        </div>
+                        @Html.Label("Comany", htmlAttributes: new { @class = "control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" })
+                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                            <select class="form-control" id="dllCompanyList">
+                                <option value="0">Please Select</option>
+                                @foreach (var dt in sl)
+                                {
+                                    <option value="@dt.Id">@dt.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                            <button type="submit" id="btnSave" class="btn btn-success">Save</button>
+                            <button id="btnReset" class="btn btn-default">Reset</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row form-group">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 table-responsive">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" id="grid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+

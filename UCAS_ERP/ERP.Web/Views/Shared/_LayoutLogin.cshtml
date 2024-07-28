@@ -1,0 +1,102 @@
+﻿@using System.Configuration
+@{ 
+    var companyName = ConfigurationManager.AppSettings["CompanyName"].ToString();
+    var companyAddress = ConfigurationManager.AppSettings["CompanyAddress"].ToString();
+    var companyContact = ConfigurationManager.AppSettings["CompanyContact"].ToString();
+    var companyEmail = ConfigurationManager.AppSettings["CompanyEmail"].ToString();
+    var companyWebsite = ConfigurationManager.AppSettings["CompanyWebsite"].ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title || UFMS</title>
+
+    <meta name="title" content="UFMS | Universal Human Resource Management System">
+    <meta name="description" content="">
+
+    <!-- opengraph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:title" content="UFMS | Universal Human Resource Management System">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="~/Content/layout_login/images/thumbnail.jpg">
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+
+    <!-- css -->
+    <link rel="stylesheet" href="~/Content/layout_login/css/bootstrap.min.css">
+    <link rel="stylesheet" href="~/Content/layout_login/css/common.css">
+    <link rel="stylesheet" href="~/Content/layout_login/css/login.css">
+    <link rel="stylesheet" href="~/Content/layout_login/css/loginRes.css">
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="wrapper">
+        <div class="g-0">
+            <div class="foo-wrapper">
+                <div class="col-12 text-center">
+                    @*<h5>Inventory management system</h5>*@
+                </div>
+            </div>
+        </div>
+        <div class="innerWrapper">
+            <div class="left">
+                <img style="max-height:75px!important;" src="~/Content/layout_login/images/North-South-Green-City.png" class="company-logo mb-3">
+                <div class="name text-center">
+                    @companyName
+                </div>
+                <div class="info">
+                    <div class="icon"><i class="fa-solid fa-location-dot"></i></div>
+                    <div class="text">@companyAddress</div>
+                </div>
+                <div class="info">
+                    <div class="icon"><i class="fa-solid fa-phone"></i></div>
+                    <div class="text">@companyContact</div>
+                </div>
+                <div class="info">
+                    <div class="icon"><i class="fa-solid fa-envelope"></i></div>
+                    <div class="text">@companyEmail</div>
+                </div>
+                <div class="info">
+                    <div class="icon"><i class="fa-solid fa-globe"></i></div>
+                    <div class="text">@companyWebsite</div>
+                </div>
+            </div>
+            <div class="right">
+                <div class="welcome">
+                    <div class="text">Welcome to UFMS</div>
+                    @*<img src="~/Content/layout_login/images/abashon-a-real-estate-erp.png">*@
+                    <div class="tagline">Universal Human Resource Management System</div>
+                </div>
+                <div class="inputs g-3">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+        <div class="g-0">
+            <div class="foo-wrapper">
+                <div class="left">
+                    Copyright © @DateTime.Today.Year <abbr>@companyName</abbr> | All Rights Reserved.
+                </div>
+                <div class="right">
+                    <span>Powered By</span>
+                    <a href="http://www.ucasbd.com" target="_blank"><img src="~/Content/layout_login/images/ucas.svg" alt="ucas"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- scripts -->
+    <script src="~/Content/layout_login/js/jquery-3.6.1.min.js"></script>
+    <script src="~/Content/layout_login/js/popper.min.js"></script>
+    <script src="~/Content/layout_login/js/bootstrap.min.js"></script>
+    <script src="~/Content/layout_login/js/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,527 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+
+    var bonusList = ((DataTable)ViewBag.BonusList).AsEnumerable().
+        Select(x => new
+        {
+            Id = x.Field<int>("Id"),
+            AllowanceName = x.Field<string>("AllowanceName"),
+            AllowanceShortName = x.Field<string>("AllowanceShortName"),
+        }).ToList();
+}
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .section-heading {
+        color: #fff;
+        background-color: #337ab7;
+        border-color: #337ab7;
+        border-radius: 5px;
+    }
+
+    h5 {
+        margin-top: 7px;
+        margin-bottom: 7px;
+        font-weight: bold;
+    }
+
+    #tblAdvanceSalary th {
+        background-color: #2A3F54;
+        color: white;
+        border-radius: 5px;
+    }
+
+    .panel-body {
+        padding: 5px 15px;
+    }
+
+    .form-group {
+        margin-bottom: 5px;
+    }
+
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 10px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+
+    .table > tbody > tr > td:last-child {
+        padding: 2px 8px;
+        line-height: 1.42857143;
+        vertical-align: top;
+        border-top: 1px solid #ddd;
+        text-align:center;
+    }
+    #tblAdvanceSalary th:last-child {
+        text-align:center;
+    }
+</style>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Employee Bonus Grace Day</div>
+            <div class="panel-body">
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Employee Basic</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Employee Id</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" data-empid="0" id="EmployeeCode" class="form-control" autofocus />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Employee Name</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="EmployeeName" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Job Type</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="job_name" class="form-control" readonly="readonly" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Joining Date</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="empJoiningDate" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Designation</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="desg_name" class="form-control" readonly="readonly" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Department</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="Dept_name" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Branch</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="branch_name" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Bonus Grace Day Setup</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Bonus Type</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlBonusAllowance" data-id="0">
+                            <option value="0">Please select Bonus</option>
+                            @foreach (var dt in bonusList)
+                            {
+                                <option value=@dt.Id>@dt.AllowanceName</option>
+                            }
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Bonus Year</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlBonusYear">
+                            @{
+                                <option value="0">Select year</option>
+                                for (var i = DateTime.Now.Year; i < DateTime.Now.Year + 6; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Grace Day</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="number" id="txtBonusGraceDay" class="form-control" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Remarks</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <textarea type="text" id="txtRemarks" class="form-control bordercss"></textarea>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-6 col-xs-offset-6 col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                        <button type="submit" class="btn btn-info" id="btnSave">Save</button>
+                        <button type="submit" class="btn btn-default" id="btnRest">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-footer">
+                <div class="row form-group">
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Bonus</label>
+                    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
+                        <select class="form-control bordercss" id="SrcddlBonusAllowance" data-id="0">
+                            <option value="0">Please select Bonus</option>
+                            @foreach (var dt in bonusList)
+                            {
+                                <option value=@dt.Id>@dt.AllowanceName</option>
+                            }
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Year</label>
+                    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
+                        <select class="form-control bordercss" id="SrcddlBonusYear">
+                            @{
+                                <option value="0">Select year</option>
+                                for (var i = 2023; i < DateTime.Now.Year + 6; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Emp. Id</label>
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12">
+                        <input type="text" id="SrcEmployeeCode" class="form-control" />
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-12 text-right">
+                        <button type="submit" class="btn btn-primary" id="btnSearch"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Enployee List With Bonus Grace Day</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="table-responsive">
+                        <table class="table" id="tblAdvanceSalary">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Emp. ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Desg</th>
+                                    <th>Dept</th>
+                                    <th>Bonus Type</th>
+                                    <th>Year</th>
+                                    <th>Grace Day</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function Clear() {
+        $("#EmployeeCode").attr("data-empid", 0);
+        $("#EmployeeName").val("");
+        $("#desg_name").val("");
+        $("#empJoiningDate").val("");
+        $("#Dept_name").val("");
+        $("#branch_name").val("");
+        $("#job_name").val("");
+    }
+    function Get_EmployeeInfo_Details_By_Code(code = 0) {
+        var EmployeeCode = "";
+        if (code == 0) {
+            var EmployeeCode = $("#EmployeeCode").val();
+        } else {
+            EmployeeCode = code;
+        }
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeCode").attr("data-empid", E.emp_id);
+                        $("#EmployeeName").val(E.emp_name);
+                       // $("#empDateOfBirth").val(E.emp_datetimeof_birth);
+
+                        $("#empJoiningDate").val(E.emp_joining_datetime);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#job_name").val(E.job_name);
+                        $("#branch_name").val(E.branch_name);
+                      //  $("#desk_name").val(E.desk_name);
+                        //$("#DueDateofConfirmation").val(E.emp_confirmation_datetime);
+
+
+                        $('#AjaxLoader').hide();
+                        $("#thumbnil2").attr("src", "/Hrms/Employee/RetrieveSign/" + E.emp_id + "");
+                        $("#thumbnil").attr("src", "/Hrms/Employee/RetrieveImage/" + E.emp_id + "");
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function LoanBonusGraceDayList(allowanceId,year,code)
+    {
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBonusGraceDayList", "BonusGraceDaySetup", "http")',
+            data: { EmployeeCode: code, BonusAllowanceId: allowanceId, BonusYear: year  },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                if(data.Status == true)
+                {
+                    var html = "";
+                    $('#tblAdvanceSalary tbody').html("");
+                        $.each(data.Result, function (id, r) {
+                            if (r.IsEditDeleteAble == true) {
+                                html += '<tr>';
+                                html += '<td>' + (id + 1) + '</td>';
+                                html += '<td>' + r.emp_office_code + '</td>';
+                                html += '<td>' + r.emp_name + '</td>';
+                                html += '<td>' + r.Dept_name + '</td>';
+                                html += '<td>' + r.desg_name + '</td>';
+                                html += '<td>' + r.AllowanceName + '</td>';
+                                html += '<td>' + r.BonusYear + '</td>';;
+                                html += '<td>' + r.GraceDay + '</td>'
+                                html += '<td><a class="btn btn-danger btn-sm" href="javascript:void(0);" title="Delete" onclick="DeleteBonusGraceDay(' + r.id + ')"><i class="fa fa-trash-o"></i></a><a class="btn btn-default btn-sm" href="javascript:void(0);" title="Edit" onclick="EditBonusGraceDay(' + r.id + ', ' + "'" + r.emp_office_code + "'" + ')"><i class="fa fa-pencil"></i></a></td>';
+                                html += '</tr>';
+                            } else {
+                                html += '<tr>';
+                                html += '<td>' + (id + 1) + '</td>';
+                                html += '<td>' + r.emp_office_code + '</td>';
+                                html += '<td>' + r.emp_name + '</td>';
+                                html += '<td>' + r.Dept_name + '</td>';
+                                html += '<td>' + r.desg_name + '</td>';
+                                html += '<td>' + r.AllowanceName + '</td>';
+                                html += '<td>' + r.BonusYear + '</td>';;
+                                html += '<td>' + r.GraceDay + '</td>'
+                                html += '<td><a class="btn btn-success btn-sm" href="javascript:void(0);" title="This bonus disbursement was completed.So it can not be edit/deleted." ><i class="fa fa-check-square-o"></i></a></td>';
+                                html += '</tr>';
+                            }
+                        });
+                    $('#tblAdvanceSalary tbody').html(html);
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $('#tblAdvanceSalary tbody').html("");
+                    $.alert.open("info", data.Message, function () {
+                        var dt = `<tr><td colspan="10" class="text-center" style="color:red;">No Data Found.</td></tr>`
+                        $('#tblAdvanceSalary tbody').html(dt);
+                    });
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+
+    }
+    function EditBonusGraceDay(id, empOfficeCode) {
+        debugger
+        Get_EmployeeInfo_Details_By_Code(code = empOfficeCode);
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetGetBonusGraceDayListById", "BonusGraceDaySetup", "http")',
+            data: {Id: id},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                if(data.Status == true)
+                {
+                    $("#ddlBonusAllowance").val(data.Result.SalaryAllowanceId);
+                    $("#ddlBonusYear").val(data.Result.BonusYear);
+                    $("#txtBonusGraceDay").val(data.Result.GraceDay);
+                    $("#txtRemarks").val(data.Result.Remarks);
+                    $("#EmployeeCode").attr("data-empid", data.Result.emp_id);
+                    $("#EmployeeCode").val(data.Result.emp_office_code);
+                    $("#ddlBonusAllowance").attr("data-id", data.Result.id);
+                    $("#EmployeeCode").attr("readonly", "readonly");
+                    $("#btnSave").html("Update");
+                    $("#EmployeeName").focus();
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function DeleteBonusGraceDay(id) {
+         $.alert.open('confirm', 'Are you sure you want to delete this record?', function (button) {
+            if (button == 'yes') {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteBonusGraceDaySetup", "BonusGraceDaySetup", "http")',
+                    data: {Id: id},
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if(data.Status == true)
+                        {
+                            $.alert.open(data.Result, data.Message, function () {
+                                window.location.reload();
+                            });
+                        }
+                        else {
+                            $('#AjaxLoader').hide();
+                            $.alert.open("Error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    $(document).ready(function () {
+        LoanBonusGraceDayList(allowanceId=0, year=0, code='');
+        $("#EmployeeCode").blur(function () {
+            if ($("#EmployeeCode").val() != "") {
+                Get_EmployeeInfo_Details_By_Code(code = 0);
+            }
+        });
+    });
+    $(document).on("click", "#btnSave", function () {
+        debugger
+        var BonusAllowance = parseInt($("#ddlBonusAllowance").val());
+        var BonusYear = parseInt($("#ddlBonusYear").val());
+        var BonusGraceDay = parseInt($("#txtBonusGraceDay").val());
+        var remarks = $("#txtRemarks").val();
+        var employeeId = parseInt($("#EmployeeCode").attr("data-empid"));
+        var employeeCode = $("#EmployeeCode").val().trim();
+        var Id = parseInt($("#ddlBonusAllowance").attr("data-id"));
+
+        if (employeeId == 0 || employeeCode == "")
+        {
+            $.alert.open("error", "Please Insert Employee ID.");
+            return false;
+        }
+        else if (BonusAllowance == 0 || BonusAllowance == "" || BonusAllowance == undefined)
+        {
+            $.alert.open("error", "Please Select Bonus Type.");
+            return false;
+        }
+        else if (BonusYear == 0 || BonusYear == "" || BonusYear == undefined) {
+            $.alert.open("error", "Please Select Bonus Year.");
+            return false;
+        }
+        else if (BonusGraceDay == "0" || BonusGraceDay =="") {
+            $.alert.open("error", "Please Insert Bonus Grace Day.");
+            return false;
+        }
+        else
+        {
+            $('#AjaxLoader').show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveBonusGraceDay", "BonusGraceDaySetup", "http")',
+                data: JSON.stringify({
+                    Id:Id,
+                    EmployeeId: employeeId,
+                    EmployeeCode: employeeCode,
+                    BonusAllowanceId: BonusAllowance,
+                    BonusYear: BonusYear,
+                    GraceDay: BonusGraceDay,
+                    Remarks: remarks
+                }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $('#AjaxLoader').hide();
+                    if(data.Status == true)
+                    {
+                        $.alert.open(data.Result, data.Message, function ()
+                        {
+                            $("#EmployeeCode").removeAttr("readonly");
+                            window.location.reload();
+                        });
+                    }
+                    else
+                    {
+                        $.alert.open(data.Result, data.Message);
+                    }
+                },
+                error: function (request, status, error) {
+                    $('#AjaxLoader').hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    });
+    $(document).on("click", "#btnRest", function () {
+        Clear();
+        $("#ddlBonusAllowance").val(0);
+        $("#ddlBonusYear").val(0);
+        $("#txtBonusGraceDay").val('');
+        $("#txtRemarks").val('');
+        $("#EmployeeCode").attr("data-empid", 0);
+        $("#EmployeeCode").val('');
+        $("#ddlBonusAllowance").attr("data-id", 0);
+        $("#EmployeeCode").removeAttr("readonly");
+        $("#btnSave").html("Save");
+    });
+    $(document).on("click", "#btnSearch", function () {
+        var allowId = parseInt($("#SrcddlBonusAllowance").val());
+        var SrcYear = parseInt($("#SrcddlBonusYear").val());
+        var SrcEmployeeCode = $("#SrcEmployeeCode").val();
+        LoanBonusGraceDayList(allowanceId = allowId, year = SrcYear, code = SrcEmployeeCode);
+    });
+</script>

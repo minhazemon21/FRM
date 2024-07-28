@@ -1,0 +1,373 @@
+﻿@using Common.Data.CommonDataModel
+@model ERP.Web.ViewModels.AspNetSecurityModuleViewModel
+
+@{
+    ViewBag.Title = "GetAspNetSecurityModule";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var roleList = Model == null ? null : Model.RoleList;
+    var projects = ViewBag.Projects;
+}
+
+<style type="text/css">
+    th {
+        height: 40px;
+        vertical-align: top;
+        margin-top: 0px !important;
+        padding-top: 0px !important;
+    }
+
+
+    span.jtable-column-header-text {
+        margin-top: 0px !important;
+    }
+
+    .k-grid tbody .k-button, .k-ie8 .k-grid tbody button.k-button {
+        min-width: 0;
+    }
+
+    a.k-button.k-button-icontext.k-grid-Edit {
+        min-width: 0;
+    }
+
+    #grid a.k-button.k-button-icontext.k-grid-Edit {
+        min-width: 0;
+    }
+
+
+    /*.k-grid tbody .k-button, .k-ie8 .k-grid tbody button.k-button {
+        min-width: 0;
+    }*/
+    a.k-button.k-button-icontext.k-i-close {
+        min-width: 0;
+    }
+
+    #grid a.k-button.k-button-icontext.k-i-close {
+        min-width: 0;
+    }
+
+    table td .k-button {
+        padding: 0px;
+    }
+
+        table td .k-button span {
+            padding: 9px 14px;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+</style>
+
+<script type="text/javascript">
+
+    function Securirty(AspNetSecurityModuleId) {
+        var securityValue = $("#SecurityId" + AspNetSecurityModuleId + " option:selected").val();
+        $("#txtSecurityId" + AspNetSecurityModuleId).val(securityValue);
+    }
+
+    function checkedValue(AspNetSecurityModuleId) {
+        var chkResult = $('#txtCheckId' + AspNetSecurityModuleId).is(":checked");
+        if (chkResult == true) {
+            $("#txtId" + AspNetSecurityModuleId).val('1');
+        }
+        else {
+            $("#txtId" + AspNetSecurityModuleId).val('0');
+        }
+    }
+
+    function SaveRoleSecurityLevel() {
+        var RoleIds = $('#RoleId').val();
+        if (RoleIds == "0") {
+            $.alert.open("Error!", "Please select a role.");
+            return;
+        }
+
+       
+        var rowCount = $("#grid").data("kendoGrid").dataSource.data().length;
+
+        var allChecks = new Array();
+        var allSecurity = new Array();
+        var allModes = new Array();
+        var allModule = new Array();
+        for (var i = 0; i < rowCount; i++) {
+            if ($("#grid").data().kendoGrid._data[i] != null && $("#grid").data().kendoGrid._data[i] != undefined && $("#grid").data().kendoGrid._data[i] != "null" && $("#grid").data().kendoGrid._data[i] != "undefined") {
+                var moduleId = $("#grid").data().kendoGrid._data[i].AspNetSecurityModuleId;
+                var chkTxtId = $('#txtId' + moduleId).attr('id');
+                var chkValue = $('#txtId' + moduleId).val();
+                var obj1 = new Object();
+                obj1.Key = chkTxtId;
+                obj1.Value = chkValue;
+                allChecks[allChecks.length] = obj1;
+
+                var securityTxtId = $('#txtSecurityId' + moduleId).attr('id');
+                var securityValue = $('#txtSecurityId' + moduleId).val();
+                var obj2 = new Object();
+                obj2.Key = securityTxtId;
+                obj2.value = securityValue;
+                allSecurity[allSecurity.length] = obj2;
+
+
+                var modeTxtId = $('#txtMode' + moduleId).attr('id');
+                var modeValue = $('#txtMode' + moduleId).val();
+                var obj3 = new Object();
+                obj3.Key = modeTxtId;
+                obj3.value = modeValue;
+                allModes[allModes.length] = obj3;
+
+
+                allModule[allModule.length] = moduleId;
+
+            }
+        }
+
+
+        var allTrx = new Object();
+        allTrx.allCheck = allChecks; // checkValue
+        allTrx.allDropDown = allSecurity;
+        allTrx.allMode = allModes;
+        allTrx.allModuleId = allModule;
+        allTrx.RoleId = RoleIds;
+
+        var json = JSON.stringify(allTrx);
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("SaveSecurityLevel", "AspNetSecurityModule", "http")',
+            type: "POST",
+            dataType: 'json',
+            async: true,
+            data: json,
+
+            success: function (data) {
+                //field clear
+                $('#AjaxLoader').hide();
+                if (data.Result == 1) {
+                    $('#AjaxLoader').hide();
+                    $(".success").show(800).fadeToggle(3000);
+                } else {
+                    $(".failed").show(800).fadeToggle(3000);
+                }
+            },
+            error: function () {
+                $('#AjaxLoader').hide();
+                $("#dialog-message").html('<p>Error, Fail to Save.</p>');
+                $("#dialog-message").dialog({
+                    modal: true,
+                    buttons: {
+                        Ok: function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            }
+
+        });
+    }
+
+    var count = 0;
+
+    function GetAspNetSecurityModule() {
+        var RoleId = $("#RoleId option:selected").val();
+        var projectShortName = $("#cmbProjects option:selected").val();
+        if (count > 0) {
+            $('#grid').kendoGrid('destroy').empty();
+        }
+        if (RoleId != "0") {
+            count++;
+            var dataSource = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: '@Url.Action("GetAspNetSecurityModule", "AspNetSecurityModule", "http")',
+                        dataType: "json",
+                        data: { RoleId: RoleId, ProjectShortName: projectShortName }
+                    }
+                },
+                group: {
+                    field: "ParentName"
+                }
+            });
+
+            $("#grid").kendoGrid({
+                dataSource: dataSource,
+                height: 1500,
+                groupable: false,
+                reorderable: true,
+                filterable: true,
+                sortable: true,
+                columnMenu: true,
+
+                pageable: {
+                    refresh: true,
+                    pageSizes: true,
+                    buttonCount: 5
+                },
+                columns: [
+                {
+                    title: "<input id='checkAll' type='checkbox' style='width:20px;height:20px;' class='check-boxAll' />",
+                    template: function (dataItem) {
+                        if (dataItem.Mode == 'S') {
+                            return "<input type='checkbox' data-module='" + dataItem.AspNetSecurityModuleId + "' class='Clcheckbox' style='width:20px;height:20px;' id='txtCheckId" + dataItem.AspNetSecurityModuleId + "' onclick='checkedValue(" + dataItem.AspNetSecurityModuleId + ")' />" +
+                                "<input type='text' style='display:none' value='0' class='check-text' id='txtId" + dataItem.AspNetSecurityModuleId + "'/>" +
+                                "<input type='text' style='display:none' value='S' id='txtMode" + dataItem.AspNetSecurityModuleId + "'/>";
+                        }
+                        else { // when checkbox is checked -- U
+                            return "<input type='checkbox' class='Clcheckbox' data-module='" + dataItem.AspNetSecurityModuleId + "' style='width:20px;height:20px;' checked id='txtCheckId" + dataItem.AspNetSecurityModuleId + "' onclick = 'checkedValue(" + dataItem.AspNetSecurityModuleId + ")'/>" +
+                                "<input type='text' style='display:none' value='1' class='check-text' id='txtId" + dataItem.AspNetSecurityModuleId + "'/>" +
+                                "<input type='text' style='display:none' value='U' id='txtMode" + dataItem.AspNetSecurityModuleId + "'/>";
+                        }
+                    }
+                },
+                {
+                    field: "AspNetSecurityModuleId",
+                    hidden: true,
+                    filterable: false
+                },
+
+                {
+                    field: "linkText",
+                    title: "Menu Name",
+                },
+                {
+                    field: "ParentName",
+                    title: "Module Name",
+                    // title: "<input  type='checkbox' style='width:20px;height:20px;' class='check-boxAll GroupChek' />",
+                    //template: function (dataItem) {
+                    //    return dataItem.ParentName+" <input  type='checkbox' style='width:20px;height:20px;' class='check-box-module ' />";
+                    //} ,
+                    hidden: true,
+                    groupHeaderTemplate: "Module: #= value #  <input  type='checkbox' style='width:20px;height:20px;vertical-align: middle;margin-left:10px;' class='check-box-module ' />"
+                }
+                //,
+                //{
+                //    field: "SecurityLevelId",
+                //    title: "Security Level",
+                //    template: function (dataItem) {
+                //        if (dataItem.SecurityLevelId == 2) {
+                //            return '<select  style="height:30px;width:200px" onchange="Securirty(' + dataItem.AspNetSecurityModuleId + ')"  id="SecurityId' + dataItem.AspNetSecurityModuleId + '"><option value="1">Readonly</option><option value="2" selected>Add</option><option value="3">Update</option><option value="4">Delete</option><option value="5">supper admin</option></select>' +
+                //                "<input type='text' style='display:none' value='2' id='txtSecurityId" + dataItem.AspNetSecurityModuleId + "'/>"
+                //        }
+
+                //        else if (dataItem.SecurityLevelId == 3) {
+                //            return '<select style="height:25px;width:160px" onchange="Securirty(' + dataItem.AspNetSecurityModuleId + ')" id="SecurityId' + dataItem.AspNetSecurityModuleId + '"><option value="1">Readonly</option><option value="2">Add</option><option value="3" selected>Update</option><option value="4">Delete</option><option value="5">supper admin</option></select>' +
+                //                "<input type='text' style='display:none' value='3' id='txtSecurityId" + dataItem.AspNetSecurityModuleId + "'/>"
+                //        }
+
+                //        else if (dataItem.SecurityLevelId == 4) {
+                //            return '<select style="height:25px;width:160px" onchange="Securirty(' + dataItem.AspNetSecurityModuleId + ')" id="SecurityId' + dataItem.AspNetSecurityModuleId + '"><option value="1">Readonly</option><option value="2">Add</option><option value="3">Update</option><option value="4" selected>Delete</option><option value="5">supper admin</option></select>' +
+                //                "<input type='text' style='display:none' value='4' id='txtSecurityId" + dataItem.AspNetSecurityModuleId + "'/>"
+                //        }
+
+                //        else if (dataItem.SecurityLevelId == 5) {
+                //            return '<select style="height:25px;width:160px" onchange="Securirty(' + dataItem.AspNetSecurityModuleId + ')" id="SecurityId' + dataItem.AspNetSecurityModuleId + '"><option value="1">Readonly</option><option value="2">Add</option><option value="3">Update</option><option value="4">Delete</option><option value="5" selected>supper admin</option></select>' +
+                //                "<input type='text' style='display:none' style='display:none' value='5' id='txtSecurityId" + dataItem.AspNetSecurityModuleId + "'/>"
+                //        }
+
+                //        else {
+                //            return '<select style="height:25px;width:160px" onchange="Securirty(' + dataItem.AspNetSecurityModuleId + ')" id="SecurityId' + dataItem.AspNetSecurityModuleId + '"><option value="1" selected>Readonly</option><option value="2">Add</option><option value="3">Update</option><option value="4">Delete</option><option value="5">supper admin</option></select>' +
+                //                "<input type='text' style='display:none' value='1' id='txtSecurityId" + dataItem.AspNetSecurityModuleId + "'/>"
+                //        }
+                //    }
+                //},
+                ]
+            }).data("kendoGrid");
+
+        }
+
+        // $(".k-reset").each(function () {alert(10) });
+    }
+
+    $(document).ready(function () {
+        GetAspNetSecurityModule();
+        $("#RoleId,#cmbProjects").on('change', function () {
+            GetAspNetSecurityModule();
+        });
+
+        $('#btnSave').click(function (e) {
+            SaveRoleSecurityLevel();
+        });
+
+        $(document).on('click', '#checkAll', function () {
+            $('.Clcheckbox,.check-box-module').prop('checked', $(this).is(":checked"));
+            $('.Clcheckbox').each(function(i, d) {
+                checkedValue($(this).attr("data-module"));
+            });
+        });
+        $(document).on("click", ".check-box-module", function () {
+            var obj = $(this);
+            var currentGroupRow = $(this).closest(".k-grouping-row");
+            currentGroupRow.nextUntil(".k-grouping-row", ":not('.k-group-footer')").each(function (i, d) {
+                $(this).find(".Clcheckbox").prop("checked", obj.is(":checked"));
+            });
+            $('.Clcheckbox').each(function (i, d) {
+                checkedValue($(this).attr("data-module"));
+            });
+        });
+    });
+
+</script>
+
+
+<div class="page-title">
+    <div class="title_left PageHeader" style="width:90%;">
+        <h3 style="color: white;padding:3px">Security role</h3>  
+    </div>
+    <div class="clearfix"></div>
+</div>
+<br />
+<div class="x_content">
+
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="col-md-2 text-right">
+        @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label" })
+    </div>
+    <div class="col-md-3">
+        @Html.DropDownListFor(model => model.RoleId, roleList, new { @class = "form-control bordercss" })
+    </div>
+    <div class="col-md-1 text-right">
+        <label class="control-label">Modules</label>
+    </div>
+    <div class="col-md-3">
+        <select id="cmbProjects" class="input-sm form-control bordercss">
+            <option value="0">All</option>
+            @foreach (var pr in projects)
+            {
+                <option value="@pr.ProjectShortName">@pr.ProjectName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" id="btnSave" class="btn btn-success">Submit</button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-2">
+        </div>
+        <div class="col-md-6">
+            <div class="success" role="alert" style="display:none">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <p class="message-content">Saved Sucessfully</p>
+            </div>
+            <div class="failed" role="alert" style="display: none">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <p class="message-content">Fail to save</p>
+            </div>
+        </div>
+
+    </div>
+    <br />
+    <br />
+    <form id="demo-form2" data-parsley-validate class="form-horizontal form-label-left">
+        <div class="row">
+            <div class="col-sm-12">
+                <div id="grid"></div>
+            </div>
+        </div>
+    </form>
+</div>
+

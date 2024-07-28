@@ -1,0 +1,66 @@
+﻿@using Common.Data.CommonDataModel
+@using ERP.Web.Helpers
+@using System.Configuration
+@model ERP.Web.Models.LoginModel
+@{
+    ViewBag.Title = "HrmIndex";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+
+@*<div style="text-align:center">
+    <img src="~/Images/hrmImage001.png" />
+</div>*@
+
+@*@{
+    var AllProjectddl = new List<UcasSoftware_Projects>();
+    if (SessionHelper.ddlProjects != null)
+    {
+        AllProjectddl = SessionHelper.ddlProjects.Where(x => x.ProjectShortName != "Basic" && x.ProjectShortName != "HRM").ToList() ?? new List<UcasSoftware_Projects>();
+    }
+    var cnt = 0;
+}*@
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var usn = $("#ifm").attr("data-user");
+        var ps = $("#ifm").attr("data-has");
+        $(".username").each(function () {
+            $(this).val(usn);
+        });
+        $(".passw").each(function () {
+            $(this).val(ps);
+        });
+    });
+
+</script>
+
+<div>
+    <div data-user="@SessionHelper.UserName" data-has="@SessionHelper.Password" id="ifm" style="display:none"></div>
+    @*@foreach (var p in AllProjectddl)
+    {*@
+        <a href="javascript:void(0);" onclick="document.getElementById('frmlogin').submit();">
+            <div class="col-md-3 col-sm-offset-2 ">
+                <div class="x_panel" style="height: 150px; text-align: center;background-image:url(/Images/Shopnodharalogo.png); background-repeat: no-repeat;background-size: 100% 100%;">
+                    <form method="post" class="login" id="frmlogin" action="@ConfigurationManager.AppSettings["MainProjectLink"]/account/login">
+                        <div style="display:none">
+                            @Html.AntiForgeryToken()
+                            <div class="input-box">
+                                <i class="fa fa-user"></i>
+                                @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { type = "text", @class = "form-control username" } })
+                            </div>
+                            <div class="input-box">
+                                <i class="fa fa-unlock"></i>
+                                @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control passw" } })
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </a>
+    @*}*@
+</div>
+
+
+

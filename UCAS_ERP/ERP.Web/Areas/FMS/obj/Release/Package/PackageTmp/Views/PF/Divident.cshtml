@@ -1,0 +1,418 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Investment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var investmentExpense = (List<PFController.PFModel>)ViewBag.InvestmentExpense;
+    var investmentList = (List<PFController.PFModel>)ViewBag.InvestmentList;
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblEmpList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblEmpList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmpList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmpList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+<script type="text/javascript">
+
+
+
+    function GetCashAndStockDivident() {
+
+        var startDate = "";
+        var endDate = "";
+
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetCashAndStockDivident", "PF", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: {
+                StartDate: startDate,
+                EndDate: endDate
+            },
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblEmpList").find('tbody').empty();
+                    $.each(data.Result, function (id, r) {
+                        if (r.CashOrStockBonous == "Cash") {
+                            $("#tblEmpList").find('tbody').append(
+                        '<tr>' +
+                        '<td>' + r.RowSl + '</td>' +
+                        '<td>' + r.InvestmentName + '</td>' +
+                        '<td>' + r.CashOrStockBonous + '</td>' +
+                        '<td>' + r.TransactionDate + '</td>' +
+                        '<td>' + r.RecordDate + '</td>' +
+                        '<td>' + r.CashAmount + '</td>' +
+                        '<td>' + r.EffectiveDate + '</td>' +
+                        '<td>' + r.CashFractionAmount + '</td>' +
+                         '<td>' + r.CashPaymentDate + '</td>' +
+                        '<td>' + r.Remarks + '</td>' +
+                        '<td><a href="#" title="Edit" onclick="DividentEdit(' + r.Id + ',' + r.PFInvestmentId + ',' + r.CashAmount + ',' + r.EntitlementShareQuantity + ',' + r.CashFractionAmount + ',' + "'" + r.CashOrStockBonous + "'" + ',' + "'" + r.TransactionDateMsg + "'" + ',' + "'" + r.RecordDateMsg + "'" + ',' + "'" + r.EffectiveDatemsg + "'" + ',' + "'" + r.CashPaymentDatemsg + "'" + ',' + "'" + r.Remarks + "'" + ')" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a></td>' +
+                        '</tr>'
+                    );
+                        }
+                        else {
+                            $("#tblEmpList").find('tbody').append(
+                        '<tr>' +
+                        '<td>' + r.RowSl + '</td>' +
+                        '<td>' + r.InvestmentName + '</td>' +
+                        '<td>' + r.CashOrStockBonous + '</td>' +
+                        '<td>' + r.TransactionDate + '</td>' +
+                        '<td>' + r.RecordDate + '</td>' +
+                        '<td>' + r.EntitlementShareQuantity + '</td>' +
+                        '<td>' + r.EffectiveDate + '</td>' +
+                        '<td>' + r.CashFractionAmount + '</td>' +
+                         '<td>' + r.CashPaymentDate + '</td>' +
+                        '<td>' + r.Remarks + '</td>' +
+                        '<td><a href="#" title="Edit" onclick="DividentEdit(' + r.Id + ',' + r.PFInvestmentId + ',' + r.HoldingShareQuantity + ',' + r.CashAmount + ',' + r.EntitlementShareQuantity + ',' + r.CashFractionAmount + ',' + "'" + r.CashOrStockBonous + "'" + ',' + "'" + r.TransactionDateMsg + "'" + ',' + "'" + r.RecordDateMsg + "'" + ',' + "'" + r.EffectiveDatemsg + "'" + ',' + "'" + r.CashPaymentDatemsg + "'" + ',' + "'" + r.Remarks + "'" + ')" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a></td>' +
+                        '</tr>'
+                    );
+                        }
+                    });
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+    function DividentEdit(Id, PFInvestmentId,HoldingShareQuantity, CashAmount, EntitlementShareQuantity, CashFractionAmount, CashOrStockBonous, TransactionDateMsg, RecordDateMsg, EffectiveDatemsg, CashPaymentDatemsg, Remarks) {
+
+        $("#hdnDividentId").val(Id);
+
+        $("#ddlInvestmentList").val(PFInvestmentId);
+        $("#txtHoldingShare").val(HoldingShareQuantity);
+        $("#ddlDividentType").val(CashOrStockBonous == "Cash" ? "C" : "S");
+        $("#txttransactionDate").val(TransactionDateMsg);
+        $("#txtRecordDate").val(RecordDateMsg);
+        $("#txtCashAmount").val(CashAmount);
+        $("#txtEntitleShare").val(EntitlementShareQuantity);
+        $("#txtEffectiveDate").val(EffectiveDatemsg);
+        $("#txtCashFruction").val(CashFractionAmount);
+        $("#txtCashPaymentDate").val(CashPaymentDatemsg);
+        $("#txtRemarks").val(Remarks);
+
+        $("#ddlDividentType").attr("disabled",true);
+
+        if (CashOrStockBonous == "Cash") {
+            $("#txtCashFruction").attr("readonly", false);
+            $("#divCash").hide();
+            $("#divStock").show();
+        }
+        else {
+            $("#txtCashFruction").attr("readonly", true);
+            $("#divStock").hide();
+            $("#divCash").show();
+        }
+    }
+
+
+    $(document).ready(function () {
+
+         GetCashAndStockDivident();
+
+        $("#ddlInvestmentList").on("change", function () {
+            if ($(this).val() != 0) {
+                $("#txtHoldingShare").val($("#ddlInvestmentList option:selected").attr("data-sharebalance"));
+            }
+            else {
+                $("#txtHoldingShare").val(0);
+            }
+        });
+
+
+        $("#ddlDividentType").on("change", function () {
+            if ($(this).val() == "S")
+            {
+                $("#txtCashFruction").attr("readonly", false);
+                $("#divCash").hide();
+                $("#divStock").show();
+            }
+            else
+            {
+                $("#txtCashFruction").attr("readonly",true);
+                $("#divStock").hide();
+                $("#divCash").show();
+            }
+        });
+
+
+        $("#btnSave").on("click", function () {
+       
+            var dividentId = $("#hdnDividentId").val();
+            var investmentId = $("#ddlInvestmentList").val();
+            var holdingShare = $("#txtHoldingShare").val();
+            var dividentType = $("#ddlDividentType").val();
+            var transactionDate = $("#txttransactionDate").val();
+            var recordDate = $("#txtRecordDate").val();
+            var cashAmount = dividentType== "C" ?($("#txtCashAmount").val() == "" ? "0" : $("#txtCashAmount").val()):"0";
+            var entitleShare = dividentType== "S" ? ($("#txtEntitleShare").val() == "" ? "0" : $("#txtEntitleShare").val().trim()):"0";
+            var effectiveDate = $("#txtEffectiveDate").val();
+            var cashFruction = dividentType== "S" ?($("#txtCashFruction").val() == "" ? "0" : $("#txtCashFruction").val()):"0";
+            var cashPaymentDate = $("#txtCashPaymentDate").val();
+            var remarks = $("#txtRemarks").val();
+
+
+
+            if (investmentId == "0") {
+                $.alert.open("error", "Please select investment.");
+                return false;
+            }
+            else if (dividentType == "0") {
+                $.alert.open("error", "Please select divident type.");
+                return false;
+            }
+            else if (transactionDate == "") {
+                $.alert.open("error", "Please insert transaction date.");
+                return false;
+            }
+            else if (recordDate == "") {
+                $.alert.open("error", "Please insert record date.");
+                return false;
+            }
+            else if (dividentType == "C" && cashAmount == "0") {
+                $.alert.open("error", "Please insert cash amount.");
+                return false;
+            }
+            else if (dividentType == "S" && entitleShare == "0") {
+                $.alert.open("error", "Please insert entitle share.");
+                return false;
+            }
+            else if (effectiveDate == "") {
+                $.alert.open("error", "Please insert effective date.");
+                return false;
+            }
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("InsertCashAndStockDivident", "PF", "http")',
+                    data: JSON.stringify({
+                        DividentId: dividentId,
+                        InvestmentId: investmentId,
+                        HoldingShare: holdingShare,
+                        DividentType: dividentType,
+                        TransactionDate: transactionDate,
+                        RecordDate: recordDate,
+                        CashAmount: cashAmount,
+                        EntitleShare: entitleShare,
+                        EffectiveDate: effectiveDate,
+                        CashFruction: cashFruction,
+                        CashPaymentDate: cashPaymentDate,
+                        Remarks: remarks
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $("#hdnDividentId").val(0);
+                            $("#ddlDividentType").attr("disabled", false);
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("Divident", "PF")"; });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Cash & Stock Dividend</h3>
+                        </div>
+                        @*@Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Investment</label>
+                                <input type="hidden" value="0" id="hdnDividentId" />
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlInvestmentList">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in investmentList)
+                                        {
+                                            <option value="@r.Id" data-sharebalance="@r.ShareBalance">@r.InvestmentName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2 required">Dividend Type</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlDividentType">
+                                        <option value="0">Please select</option>
+                                        <option value="C">Cash Dividend</option>
+                                        <option value="S">Stock Dividend</option>
+                                    </select>
+                                </div>
+                            </div> 
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Transaction Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txttransactionDate" />
+                                </div>
+                                <label class="control-label col-md-2 required">Record Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtRecordDate" />
+                                </div>
+                            </div> 
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Holding Share</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtHoldingShare" readonly="readonly" />
+                                </div>
+                                <div id="divCash">
+                                    <label class="control-label col-md-2 required">Cash Amount</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtCashAmount" />
+                                    </div>
+                                </div>
+                               <div id="divStock" style="display:none">
+                                   <label class="control-label col-md-2 required">Entitle Share</label>
+                                   <div class="col-md-4 col-sm-6 col-xs-12">
+                                       <input type="number" class="form-control" id="txtEntitleShare" />
+                                   </div>
+                               </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Effective Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtEffectiveDate" />
+                                </div>
+                                <label class="control-label col-md-2">Cash Fruction Amount</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtCashFruction" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Cash Payment Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtCashPaymentDate" />
+                                </div>
+                                <label class="control-label col-md-2">Remarks</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtRemarks" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-md-offset-5 col-md-4">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Investment</th>
+                                        <th>Dividend</th>
+                                        <th>Trx Date</th>
+                                        <th>Record Date</th>
+                                        <th>Cash/Stock</th>
+                                        <th>Effective Date</th>
+                                        <th>Fruction</th>
+                                        <th>Payment Date</th>
+                                        <th>Remarks</th>
+                                        <th>Edit</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

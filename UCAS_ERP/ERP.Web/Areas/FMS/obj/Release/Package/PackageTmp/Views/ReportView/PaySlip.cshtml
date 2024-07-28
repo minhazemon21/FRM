@@ -1,0 +1,300 @@
+﻿@using Common.Data.CommonDataModel
+@model Hrms.HRMViewModel.EmployeeReportViewModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "PaySlip";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    var departmentList = (List<BrokerDepartment>)ViewBag.Department;
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Salary Payslip</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset>
+                        <div class="row form-group">
+                            <div class="col-sm-2 label-container" style="text-align:right">
+                                @Html.Label("Report Name ", new { @class = "control-label" })
+                            </div>
+                            <div class="col-sm-10 radio-container">
+                                <div class="row">
+                                    @for (var r = 0; r < reports.Count; r++)
+                                    {
+                                        <label class="col-sm-4 @(r==0?"active":"")">
+                                            <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="fileType" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Month", htmlAttributes: new { @class = "control-label col-md-2 required", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalMonth">
+                                    <option value="0">Please select month</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            @Html.Label("Year", htmlAttributes: new { @class = "control-label col-md-2 required", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddlSalYear">
+                                    @{
+                                        <option value="0">Select year</option>
+                                        for (var i = 2010; i < DateTime.Now.Year + 5; i++)
+                                        {
+                                            <option value="@i">@i</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Report Type ", new { @class = "col-sm-2 control-label", @style = "text-align:right" })
+                            <div class="col-sm-4">
+                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                    <option value="Pdf" selected="selected">Pdf</option>
+                                    <option value="ExcelBook">Microsoft Excel</option>
+                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                    <option value="XML">XML</option>
+                                </select>
+                            </div>
+                            @Html.Label("Employee", new { @class = "control-label col-md-2", @style = "text-align:right" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.TextBoxFor(model => model.EmployeeCode, new { @class = "form-control", @required = "true", @autofocus = true })
+                            </div>
+                            @Html.HiddenFor(model => model.EmployeeId)
+                            @Html.HiddenFor(model => model.EmpOfficeCode)
+                            @*@Html.Label("Report Type", new { @class = "control-label col-md-2" })*@
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-5 col-md-2">
+                                <button type="submit" class="btn btn-info" id="btnShow">Show</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    $("#ddlCompanyList").change(function () {
+        GetDepartmentList(0);
+    });
+    GetDepartmentList(0);
+    var AllEmployeeList = [];
+    function GetEmployeeList() {
+        $('#EmployeeCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: {},
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#EmployeeCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#EmployeeCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+
+        $('#EmployeeCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#EmployeeCode").val(ui.item.value); // display the selected text
+                $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+                $("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+    $("#btnShow").on("click", function (e) {
+        debugger
+        var reportNo = parseInt($("input[type=radio][name=fileType]:checked").val());
+        /////var employeeCode = $('#txtExceptEmpCode').val().split("-")[0].trim();
+        var employeeCode = $("#EmpOfficeCode").val();
+        var EmployeeId = $("#EmployeeId").val() == "" || null ? -1 : $("#EmployeeId").val();
+        var allowanceId = $("#ddlAllowance").val();
+        /////////var departmentId = $("#ddldepartmentList").val();
+        var branchId = 0;
+        var reportType = $("#cmbReportType").val();
+        var startDate = $("#txtStartDate").val();
+        var endDate = $("#txtEndDate").val();
+        var salMonth = Number($("#ddlSalMonth").val());
+        var salYear = Number($("#ddlSalYear").val());
+        var departmentId = $("#ddldepartmentList").val();
+        var companyList = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+
+        if (salMonth != "0" && salYear != "0") {
+            if (reportNo == "1") {
+                var param = 'rptslnx=' + reportNo + '&EmployeeCode=' + employeeCode + '&SalMonth=' + salMonth + '&SalYear=' + salYear + '&DepartmentId=' + departmentId + '&ReportType=' + reportType + '&CompanyId=' + companyList;
+                var url = '/ReportView/ShowSalaryPaysilp?' + param;
+                window.open(url);
+            }
+            else {
+                $.alert.open("error", "Please Select Report.");
+            }
+        }
+        else {
+            $.alert.open("error", "Please insert  month and year.");
+        }
+    });
+
+    $(document).ready(function () {
+        GetEmployeeList();
+    });
+</script>

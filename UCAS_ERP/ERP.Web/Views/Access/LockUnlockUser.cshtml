@@ -1,0 +1,157 @@
+﻿@using Common.Data.CommonDataModel
+@{
+    ViewBag.Title = "Lock/Unlock user";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var users = (List<AspNetUser>) ViewBag.Users;
+}
+<style type="text/css">
+    .panel-custom > .panel-heading {
+        /*background: #26B99A !important;*/
+        color: #FFFFFF !important;
+    }
+
+    .panel-custom .panel-body .row:not(:last-child) {
+        margin-bottom: 10px;
+    }
+
+    .panel-custom .panel-body .radio {
+        margin-top: 0px;
+    }
+
+    .panel-custom .panel-body .radio-text, .panel-custom .panel-body input[type=text] {
+        color: #73879C;
+    }
+
+    .panel-custom .label-container {
+        text-align: right;
+    }
+
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    #error > .panel {
+        margin-bottom: 20px;
+    }
+
+        #error > .panel > .panel-heading {
+            padding: 0px 5px 0px 15px;
+        }
+
+    .radio-container label {
+        cursor: pointer;
+        padding: 5px;
+    }
+
+        .radio-container label.active {
+            background: #0e73a9;
+            border-radius: 4px;
+            /*margin-left: 10px;*/
+        }
+
+            .radio-container label.active span.radio-text {
+                color: #FFFFFF;
+            }
+
+    .report-module {
+        background: #f9f9f9;
+    }
+
+        .report-module .k-icon {
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+    .panel-report .panel-body table {
+        margin-bottom: 0px;
+    }
+
+        .panel-report .panel-body table thead {
+            color: #1ABB9C;
+        }
+
+    .panel-report .panel-body {
+        padding: 10px 0px 0px 0px;
+    }
+</style>
+<div class="row">
+    <div class="col-sm-offset-1 col-sm-10">
+        <div class="panel panel-success panel-custom">
+            <div class="panel-heading PageHeader">
+                <h3 class="panel-title">Lock/Unlock User</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-responsive">
+                    <thead>
+                        <tr>
+                            <th class="text-left">User</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in users)
+                                        {
+                        <tr>
+                            <td>@u.UserName</td>
+                            @if (!u.LockoutEnabled)
+                            {
+                                <td><input type="button" class="btn btn-sm btn-primary btn-info lock" data-userid="@u.UserId" value="Lock" /></td>
+                            }
+                            else
+                            {
+                                <td><input type="button" class="btn btn-sm btn-primary btn-info unlock" data-userid="@u.UserId" value="Unlock" /></td>
+                            }
+                        </tr>}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="~/Scripts/jquery.maskedinput-1.3.min.js"></script>
+<script type="text/javascript">
+    $(document).on('click', ".lock", function () {
+        var userid = parseInt($(this).attr("data-userId"));
+        var jsonData = { userid: userid, isLock: 1 };
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("ManualLockUnlockUser", "Access")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(jsonData),
+            dataType: "json",
+            success: function (data) {
+                if (data.Status == true) {
+                    $.alert.open("Success!!", data.Message, function () {
+                        window.location = '@Url.Action("LockUnlockUser","Access")';
+                    });
+                } else {
+                    $.alert.open("Error!!", data.Message);
+                }
+            },
+        });
+        return true;
+    });
+    $(document).on('click', ".unlock", function () {
+        var userid = parseInt($(this).attr("data-userId"));
+        var jsonData = { userid: userid, isLock: 0 };
+        $.ajax({
+            type: "Post",
+            url: '@Url.Action("ManualLockUnlockUser", "Access")',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(jsonData),
+            dataType: "json",
+            success: function (data) {
+                if (data.Status == true) {
+                    $.alert.open("Success!!", data.Message, function () {
+                        window.location = '@Url.Action("LockUnlockUser","Access")';
+                    });
+                } else {
+                    $.alert.open("Error!!", data.Message);
+                }
+            },
+        });
+        return true;
+    });
+
+</script>

@@ -1,0 +1,318 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Allowance";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var transactionList = (List<SalaryController.SalaryAllowance>)ViewBag.TransactionList;
+    var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+    
+}
+
+<style>
+ 
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+
+    function AllowanceEdit(Id, TransactionTypeId, AllowanceName, AllowanceShortName, CalculationBasisOn, IsPercentage, Percentage, IsAddition, DisplayOrder)
+    {
+       $("#txtAllowName").val(AllowanceName);
+       $("#txtShortName").val(AllowanceShortName);
+       $("#ddlTransactionId").val(TransactionTypeId);
+       $("#ddlCalculationBasisOn").val(CalculationBasisOn);
+       $("#ddlPercentageSts").val(IsPercentage);
+       $("#txtPercentage").val(Percentage);
+
+       $("#ddlNature").val(IsAddition);
+       $("#txtDisplayOrder").val(DisplayOrder);
+       $("#hdnAllowanceId").val(Id);
+       $("#txtShortName").attr("readonly", true);
+       if (CalculationBasisOn == "F") {
+           $("#txtPercentage").attr("readonly", true);
+           $("#lblpercSts").removeClass("required");
+           $("#txtPercentage").val(0);
+       }
+       else {
+           $("#txtPercentage").attr("readonly", false);
+           $("#lblpercSts").addClass("required");
+           //$("#txtPercentage").val(0);
+        }
+       $("#txtAllowName").focus();
+    }
+
+    $(document).ready(function () {
+
+         
+        $("#ddlCalculationBasisOn").on("change", function () {
+            if ($(this).val() == "F") {
+                $("#txtPercentage").attr("readonly", true);
+                $("#lblpercSts").removeClass("required");
+                $("#txtPercentage").val(0);
+            }
+            else {
+                $("#txtPercentage").attr("readonly", false);
+                $("#lblpercSts").addClass("required");
+                $("#txtPercentage").val(0);
+            }
+        });
+
+        //$("#ddlPercentageSts").on("change", function () {
+
+        //    if ($(this).val() == "1") {
+        //        $("#txtPercentage").attr("readonly", false);
+        //        $("#lblpercSts").addClass("required");
+        //    }
+        //    else {
+        //        $("#txtPercentage").attr("readonly", true);
+        //        $("#lblpercSts").removeClass("required");
+        //    }
+        //});
+
+        $("#btnSave").on("click", function () {
+            var allowName = $("#txtAllowName").val().trim();
+            var shortName = $("#txtShortName").val().trim();
+            var transactionId = $("#ddlTransactionId").val();
+            var calculationBasisOn = $("#ddlCalculationBasisOn").val();
+            var percentageSts = calculationBasisOn != "F"? 1 :0; //  $("#ddlPercentageSts").val();
+            var percentage = $("#txtPercentage").val().trim() == "" ? "0" : $("#txtPercentage").val().trim();
+            var nature = $("#ddlNature").val();
+            var displayOrder = $("#txtDisplayOrder").val() == "" ? "500" : $("#txtDisplayOrder").val().trim();
+            var allowanceId = $("#hdnAllowanceId").val();
+
+
+            if (allowName == "") {
+                $.alert.open("error", "Please insert allowance name.");
+                return false;
+            }
+            else if (shortName == "") {
+                $.alert.open("error", "Please insert allowance short name.");
+                return false;
+            }
+            else if (transactionId == "0") {
+                $.alert.open("error", "Please select transaction type");
+                return false;
+            }
+            else if (calculationBasisOn == "0") {
+                $.alert.open("error", "Please select calculation basis on.");
+                return false;
+            }
+            //else if (percentageSts == "1" && percentage == "0") {
+            //    $.alert.open("error", "Please insert percentage.");
+            //    return false;
+            //}
+
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Salary_Allowance", "Salary", "http")',
+                    data: JSON.stringify({
+                          AllowanceId: allowanceId
+                        , AllowName: allowName
+                        , ShortName: shortName
+                        , TransactionId: transactionId
+                        , CalculationBasisOn: calculationBasisOn
+                        , PercentageSts: percentageSts
+                        , Percentage: percentage
+                        , Nature: nature
+                        , DisplayOrder: displayOrder
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $("#hdnAllowanceId").val(0);
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("Create", "Salary")" });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Salary Allowance</h3>
+                        </div>
+                        @*@Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <form class="form-horizontal form-label-left">
+                        <div class="row form-group">
+                            <label class="control-label col-md-2 required">Allowance Name</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <input type="text" class="form-control" id="txtAllowName" />
+                                <input type="hidden" id="hdnAllowanceId" value="0" />
+                            </div>
+                            <label class="control-label col-md-2 required">Allowance Short Name</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <input type="text" class="form-control" id="txtShortName" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="control-label col-md-2 required">Transaction Type</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlTransactionId">
+                                    <option value="0">Please select</option>
+                                    @foreach (var t in transactionList)
+                                    {
+                                        <option value="@t.Id">@t.TransactionTypeName</option>
+                                    }
+                                </select>
+
+                            </div>
+                            <label class="control-label col-md-2 required">Nature</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlNature">
+                                    <option value="1" selected="selected">Addition</option>
+                                    <option value="2">Deduction</option>
+                                    <option value="0">None</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div class="row form-group">
+                            @*<label class="control-label col-md-2 required" >Percentage Status</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlPercentageSts">
+                                        <option value="1">Yes</option>
+                                        <option value="0" selected="selected">No</option>
+                                    </select>
+                                </div>*@
+                            <label class="control-label col-md-2 required">Calculation Basis On</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlCalculationBasisOn">
+                                    <option value="B">Basic</option>
+                                    <option value="G">Gross</option>
+                                    <option value="F">Fixed</option>
+                                </select>
+                            </div>
+                            <div id="divpercentage">
+                                <label class="control-label col-md-2 required" id="lblpercSts">Percentage</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" class="form-control" id="txtPercentage" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+
+                            <label class="control-label col-md-2">Display Order</label>
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <input type="number" class="form-control" id="txtDisplayOrder" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="control-label col-md-5">
+                                <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                    <fieldset>
+                        <legend>Salary Allowance List</legend>
+                        <div class="row form-group">
+                            <table id="tblAllowanceList">
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Transaction Type</th>
+                                    <th>Allowance Name</th>
+                                    <th>Short Name</th>
+                                    <th>Calc Basis On</th>
+                                    <th>Percentage Status</th>
+                                    <th>Percentage</th>
+                                    <th>Nature</th>
+                                    <th>Display Order</th>
+                                    <th>Edit</th>
+                                </tr>
+                                @foreach (var r in allowanceList)
+                                {
+                                    if (r.AllowanceShortName != "Basic")
+                                    {
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.TransactionTypeName</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td>@r.AllowanceShortName</td>
+                                            <td>@r.CalculationBasisOnSts</td>
+                                            <td>@r.PercentageSts</td>
+                                            <td>@r.Percentage</td>
+                                            <td>@r.AdditionSts</td>
+                                            <td>@r.DisplayOrder</td>
+                                            <td><a href="#" title="Edit" onclick="AllowanceEdit(@r.Id,@r.TransactionTypeId,'@r.AllowanceName','@r.AllowanceShortName','@r.CalculationBasisOn',@r.IsPercentage,@r.Percentage,@r.IsAddition,@r.DisplayOrder);" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a></td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.TransactionTypeName</td>
+                                            <td>@r.AllowanceName</td>
+                                            <td>@r.AllowanceShortName</td>
+                                            <td>@r.CalculationBasisOnSts</td>
+                                            <td>@r.PercentageSts</td>
+                                            <td>@r.Percentage</td>
+                                            <td>@r.AdditionSts</td>
+                                            <td>@r.DisplayOrder</td>
+                                            <td></td>
+                                        </tr>
+                                    }
+
+                                }
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

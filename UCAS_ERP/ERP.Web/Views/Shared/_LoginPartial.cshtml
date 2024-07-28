@@ -1,0 +1,53 @@
+﻿@*@if (Request.IsAuthenticated) {
+    <text>
+        Hello, @Html.ActionLink(User.Identity.Name, "Manage", "Account", routeValues: null, htmlAttributes: new { @class = "username", title = "Manage" })!
+        @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" })) {
+            @Html.AntiForgeryToken()
+            <a href="javascript:document.getElementById('logoutForm').submit()">Log off</a>
+        }
+    </text>
+} else {
+    <ul>
+        <li>@Html.ActionLink("Register", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+        <li>@Html.ActionLink("Log in", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+    </ul>
+}*@
+@using ERP.Web.Helpers
+@model ERP.Web.Models.LoginModel
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(document).ready(function () {
+            var usn = $("#ifm").attr("data-user");
+            var ps = $("#ifm").attr("data-has");
+            $(".username").each(function () {
+                $(this).val(usn);
+            });
+            $(".passw").each(function () {
+                $(this).val(ps);
+            });
+        });
+    });
+</script>
+
+<div>
+    <div data-user="@SessionHelper.UserName" data-has="@SessionHelper.Password" id="ifm" style="display:none"></div>
+    <a href="javascript:;">
+        <form method="post" class="login" action="http://223.27.81.163:8045/account/login">
+            <div style="display:none">
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+                <div class="input-box">
+                    <i class="fa fa-user"></i>
+                    @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { type = "text", @class = "form-control username" } })
+                </div>
+                <div class="input-box">
+                    <i class="fa fa-unlock"></i>
+                    @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control passw", @value = "" + @SessionHelper.Password + "" } })
+                </div>
+            </div>
+            @*<button type="submit" id="btnswitch">Switch</button>*@
+            <input type="submit" id="btnswitch" value="Switch" />
+        </form>
+    </a>
+</div>

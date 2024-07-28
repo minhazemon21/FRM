@@ -1,0 +1,405 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<SalaryController.SalaryAllowance>)ViewBag.EmployeeList;
+    var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+    var companyList = (List<SalaryController.SalaryAllowance>)ViewBag.IPOCompany;
+    var branchList = (List<SalaryController.SalaryAllowance>)ViewBag.BranchList;
+    var departmentList = (List<SalaryController.SalaryAllowance>)ViewBag.DepartmentList;
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name"),
+        ShortName = r.Field<string>("ShortName")
+    });
+}
+
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    hr {
+        width: 100%;
+        height: 1px;
+        background-color: gray;
+    }
+
+    #tblProjectList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblProjectList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblProjectList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblProjectList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblProjectList thead tr {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            text-align: left;
+            background-color: #337ab7;
+            color: white;
+        }
+        .modal {
+            z-index: 1 !important;
+        }
+
+        .modal-backdrop {
+            z-index: 0 !important;
+        }
+
+        .modal-header {
+            background-color: #5bc0de;
+            color: white
+        }
+
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#btnReset").on("click", function () {
+            window.location.reload();
+        });
+        GetProjectDetalisList();
+        $("#btnSave").on("click", function () {
+            var projectName = $("#txtProjectName").val();
+            var projectShortName = $("#txtProjectShortName").val();
+            var projectAddress = $("#txtProjectAddress").val();
+            var projectDescription = $("#txtProjectDescription").val();
+            var projectODate = $("#txtProjectODate").val().trim();
+            var CompanyId = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+            var Id = $("#txtProjectName").attr("data-id");
+
+            if (projectName == "" || projectName == null || projectName == undefined) {
+                 $.alert.open("error", "Insert Project Name.");
+                return false;
+            }
+            else if (projectShortName == "" || projectShortName == null || projectShortName == undefined) {
+                $.alert.open("error", "Insert Project Short Name.");
+                return false;
+            }
+            else if (CompanyId == 0 || CompanyId == null || CompanyId == undefined) {
+                $.alert.open("error", "Select Company.");
+                return false;
+            }
+
+            else {
+
+              $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveProjectSetup", "Project", "http")',
+                type: "POST",
+                dataType: 'json',
+                  async: true,
+                  data: JSON.stringify({ projectName: projectName, projectShortName: projectShortName, projectAddress: projectAddress, projectDescription: projectDescription, projectODate: projectODate, CompanyId: CompanyId, Id: Id }),
+                 success: function (data) {
+                     if (data.Status == true) {
+                         $.alert.open("Info", data.Message, function () {
+                             window.location.reload();
+                             GetProjectDetalisList();
+                        });
+                    }
+                    else {
+                         $.alert.open("error", data.Message, function () {
+                            //window.location.reload();
+                        });
+                    }
+                },
+                error: function () {
+                    $.alert.open("error", data.message, function () {
+                        //window.location.reload();
+                    });
+                }
+            });
+            }
+
+        });
+
+         $(document).on("click", "#btnSaveClose", function () {
+             var Id = $("#btnSaveClose").attr("data-projectId");
+             var closeDate = $("#projectCDate").val();
+             if (closeDate == "" || closeDate == undefined || closeDate == null) {
+                 $.alert.open("error", "Please Select Date.");
+                return false;
+            }
+
+             var jsonData = { Id: Id, closeDate: closeDate};
+            $.ajax({
+                type: "Post",
+                url: '@Url.Action("UpdateProjectCloseDate", "Project")',
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(jsonData),
+                dataType: "json",
+                success: function (data) {
+                    $("#divLoader").hide();
+                    if (data.Status == true) {
+                        $.alert.open("Success!!", data.Message, function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        $.alert.open("Success!!", data.Message);
+                    }
+                },
+                error: function (request, status, error) {
+                    $("body").css("pointer-events", "");
+                    $("#divLoader").hide();
+                    $.alert.open("Status", "An error occurred.<br/<br/>Please contact to your vendor.");
+                }
+            });
+         });
+
+        $("#btnPrint").on("click", function () {
+            window.open('/Project/ShowProjectDetailsReport');
+            return true;
+        });
+    });
+    function LoadEditData(Id, CompanyId, ProjectName, ProjectShortName, ProjectAddress, ProjectDescription, ProjectOpeningDate) {
+
+        $("#txtProjectName").val(ProjectName);
+        $("#txtProjectShortName").val(ProjectShortName);
+        $("#txtProjectAddress").val(ProjectAddress);
+        $("#txtProjectDescription").val(ProjectDescription);
+        $("#ddlCompanyList").val(CompanyId);
+        $("#txtProjectODate").val(ProjectOpeningDate);
+        $("#txtProjectName").attr("data-id", Id);
+        $("#btnSave").prop("value", "Update");
+
+
+    }
+    function GetProjectDetalisList() {
+
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetProjectDetails", "Project", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: {},
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblProjectList").find('tbody').empty();
+                    $.each(data.Result, function (id, r) {
+                        var closedButton = '';
+                        var deleteButton = '';
+                        var editButton = '';
+                        //if (r.ProjectCloseingDate != 0) {
+
+                        //    deleteButton = '<a href="#" onclick="DeletebyId(' + r.Id + ')" title="delete"  class="btn btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></a>';
+                        //}
+                        //else {
+                            editButton = '<a href="#" onclick="LoadEditData(' + r.Id + ',' + r.CompanyId + ',' + "'" + r.ProjectName + "'" + ', ' + "'" + r.ProjectShortName + "'" + ', ' + "'" + r.ProjectAddress + "'" + ', ' + "'" + r.ProjectDescription + "'" + ', ' + "'" + r.ProjectOpeningDate + "'" + ');" title="edit"  class="btn btn-primary btn-xs"><i class="fa fa-edit" aria-hidden="true"></i></a>';
+                            deleteButton = '<a href="#" onclick="DeletebyId(' + r.Id + ')" title="delete"  class="btn btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></a>';
+                            closedButton = '<a href="#" data-toggle="modal" data-target="#modalforclosedate" onclick="ClosedProject(' + r.Id + ', ' + "'" + r.ProjectCloseingDate + "'" + ')" title="close"  class="btn btn-danger btn-xs"><i class="fa fa-clock-o" aria-hidden="true"></i></a>';
+                       /* }*/
+                        $("#tblProjectList").find('tbody').append(
+                            '<tr>' +
+                            '<td>' + r.RowSl + '</td>' +
+                            '<td>' + r.ProjectName + '</td>' +
+                            '<td>' + r.ProjectShortName + '</td>' +
+                            '<td>' + r.ProjectAddress + '</td>' +
+                            '<td>' + r.ProjectDescription + '</td>' +
+                            '<td>' + r.ProjectOpeningDate + '</td>' +
+                            '<td>' + editButton +
+                            deleteButton +
+                            closedButton +
+                            '</td>' +
+                            '</tr>'
+                        );
+                    });
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+    function DeletebyId(Id) {
+        $.alert.open('confirm', 'Are you sure you want to Delete this Project?', function (button) {
+            if (button == 'yes') {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteProjectbyId", "Project", "http")',
+                    data: { Id: Id },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        if (data.Status == true) {
+                            $.alert.open("info", data.Message, function () {
+                                window.location.reload();
+                            });
+                        }
+                        else {
+                            $.alert.open("Error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    function ClosedProject(Id, ProjectCloseingDate) {
+        $("#projectCDate").val(ProjectCloseingDate);
+        $("#btnSaveClose").attr("data-projectId", Id);
+
+
+    }
+
+</script>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Project Setup</div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Project Name</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtProjectName" class="form-control" data-id="" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Project Short Name</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtProjectShortName" class="form-control" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Project Address</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <textarea type="text" id="txtProjectAddress" class="form-control"></textarea>
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Project Description Name</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <textarea type="text" id="txtProjectDescription" class="form-control"></textarea>
+
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Project Opening Date</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtProjectODate" class="form-control DateInput CurrentDate" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Company Name</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select id="ddlCompanyList" class="form-control bordercss">
+                            <option value="0">Please select</option>
+                            @foreach (var dt in sl)
+                            {
+                                <option value="@dt.Id" data-sname="@dt.ShortName">@dt.Name</option>
+                            }
+                        </select>
+
+                    </div>
+                </div>
+                <hr />
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-6">
+                        <button type="button" class="btn btn-success" id="btnSave">Save</button>
+                        <button type="button" class="btn btn-info" id="btnReset">Reset</button>
+
+                    </div>
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-6" style="text-align:right">
+                        <button type="button" class="btn btn-primary" id="btnPrint">Grid Print</button>
+
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-footer">
+
+                <div class="row form-group">
+                    <div class="table-responsive">
+                        <table class="table" id="tblProjectList">
+                            <thead>
+                                <tr>
+                                    <th>Row No</th>
+                                    <th>Project Name</th>
+                                    <th>Project Short Name</th>
+                                    <th>Project Address</th>
+                                    <th>Project Description</th>
+                                    <th>Opening Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- The modal -->
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false" id="modalforclosedate">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #337ab7">
+                <button style="color:red" type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Project Completion Date</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row form-group">
+                   
+                    <div class="col-sm-6 label-container">
+                        @Html.Label("Completion Date :", new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="text" id="projectCDate" class="input-sm form-control lock-upto-date DateInput-dynamic check-date" autofocus="autofocus" placeholder="dd/mm/yyyy"/>
+                    </div>
+                </div>
+                <div class="row row-top-margin">
+                    <div class="col-sm-12 col-sm-offset-6">
+                        <button type="button" data-projectId="0" class="btn btn-success" id="btnSaveClose">Save</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+
+                    </div>
+                </div>
+            </div>
+            @*<div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>*@
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

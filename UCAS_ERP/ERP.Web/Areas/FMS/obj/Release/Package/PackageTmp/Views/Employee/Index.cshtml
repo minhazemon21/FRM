@@ -1,0 +1,326 @@
+﻿@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+
+    var MobileOperatorList = ((DataTable)ViewBag.MobileOperatorList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>
+       ("Id"),
+        OperatorName = x.Field<string>
+       ("OperatorName")
+    }).ToList();
+    var OfficeMobileList = ((DataTable)ViewBag.OfficeMobileList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>
+      ("Id"),
+        OrganizationName = x.Field<string>
+      ("OrganizationName")
+    }).ToList();
+}
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .accordion .panel-heading {
+        padding: 8px;
+    }
+
+    .wizard_content {
+        /*overflow:auto;*/
+        margin: 0 auto;
+        height: 350px;
+        bottom: 0px;
+        top: 0px;
+        overflow-x: hidden;
+    }
+
+    legend {
+        display: block;
+        width: 100%;
+        padding: 0;
+        margin-bottom: 0px;
+        font-size: 21px;
+        line-height: inherit;
+        color: #333;
+        border: 0;
+        border-bottom: 1px solid #e5e5e5;
+    }
+</style>
+
+<div class="row">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Office Mobile Information</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <div class="row form-group">
+                        @Html.Label("Mobile Operator", htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <select class="form-control input-sm bordercss" id="ddlMobileOperatorDropdown">
+                                <option value="0">Please Select</option>
+                                @foreach (var dt in MobileOperatorList)
+                                {
+                                    <option value="@dt.Id">@dt.OperatorName</option>
+                                }
+                            </select>
+                        </div>
+
+                        @Html.Label("Company", htmlAttributes: new { @class = "control-label col-md-2" })
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <select class="form-control input-sm bordercss" id="ddlOfficeMobileDropdown">
+                                <option value="0">Please Select</option>
+                                @foreach (var dt in OfficeMobileList)
+                                {
+                                    <option value="@dt.Id">@dt.OrganizationName</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    @Html.Label("Mobile No", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("MobileNo", new { htmlAttributes = new { @class = "form-control" } })
+                    </div>
+                    @Html.Label("Remarks", htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        @Html.Editor("txtRemarks", new { htmlAttributes = new { @class = "form-control" } })
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="control-label col-md-2 col-md-offset-5">
+                        <button type="submit" class="btn btn-success" id="btnSave" data-id="0">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="x_panel">
+        <div class="x_content">
+            @*<h3 style="text-align:center">Office Mobile Information</h3>*@
+            <fieldset>
+                <legend>Mobile Information List</legend>
+                <div class="row form-group">
+                    <br />
+                    <div id="grid"></div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+        function DeleteMobileInformation(id)
+        {
+        $.alert.open('confirm', 'Are you sure you want to DELETE this record?', function (button) {
+            if (button == 'yes') {
+                $("#AjaxLoader").show();
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("DeleteMobileInfo", "Employee")',
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({ Id: id }),
+                    dataType: "json",
+                    success: function (data) {
+                        $("#AjaxLoader").hide();
+                        if (data.Status == true) {
+                            $.alert.open("Success!!", data.Message, function () {
+                                window.location.reload();
+                            });
+                        } else {
+                            $.alert.open("Error!!", data.Message);
+                        }
+                    }
+                });
+            }
+            else {
+                return false;
+            }
+        });
+    }
+          function GetMobileOperatorList() {
+          var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetMobileOperator", "Employee", "http")',
+                    dataType: "json",
+                    data: { CompanyId: 0 }
+                }
+            },
+            pageSize: 100,
+        });
+           var index = 0;
+         $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 300,
+            groupable: true,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            resizable: true,
+            columnMenu: true,
+            noRecords: {
+                template: "Please Check again there is no data avaiable right now!"
+            },
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [
+                {
+                    title: "SL",
+                    width: "10%",
+                    template: function (dataItem) {
+                        index++;
+                        return index;
+                    }
+                },
+                {
+                    field: "OperatorName",
+                    title: "Operator Name",
+
+                },
+                {
+                    field: "OrganizationName",
+                    title: "Organization Name",
+
+                },
+                {
+                    field: "MobileNo",
+                    title: "Mobile No",
+                    Width: "15%",
+                },
+                {
+                    field: "Remarks",
+                    title: "Remarks",
+                    Width: "15%",
+                },
+                {
+                    title: "Commands",
+                    Width: "5%",
+                    template: function (dataItem) {
+                        var temp = `
+                                <a href="javascript:void(0)" title="Edit" onclick="LoadEditData(${dataItem.Id},${dataItem.MobileOperatorId},${dataItem.SisterConcernId},'${dataItem.MobileNo}','${dataItem.Remarks}')" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>
+                                <a href="#" title="Edit" onclick="DeleteMobileInformation(${dataItem.Id})" title="Delete" class="btn btn-danger btn-xs"><i class="fa fa-trash"></i></a>
+                            `
+                        return temp;
+                        //return '<a href="#" title="Edit" onclick="LoadEditData(' + dataItem.Id + ',' + dataItem.OperatorName + ',' + dataItem.OrganizationName + ',' + "'" + ',' + "'" + dataItem.MobileNo + "'" + ',' + dataItem.MobileOperatorId + ',' + dataItem.SisterConcernId + ')"  title="Edit" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>' +
+                        //    '<a href="#" title="Edit" onclick="LoadEditData(' + dataItem.Id + ',' + dataItem.StudentName + ',' + "'" + ',' + "'" + dataItem.StudentContactNo + "'" + ')"  title="Edit" class="btn btn-info btn-xs"><i class="fa fa-trash"></i></a>'
+                       }
+                     }
+                   ]
+                 });
+        }
+        //function Clear() {
+        //    $("#ddlMobileOperatorDropdown").val('0');
+        //    $("#ddlOfficeMobileDropdown").val('0');
+        //    $("#MobileNo").val('');
+        //    $("#txtRemarks").attr("data-id", 0);
+        //    $("#txtRemarks").val('');
+        //    $("#btnSave").text("Save");
+        //}
+        $(document).ready(function () {
+            GetMobileOperatorList();
+
+            $("#MobileNo").blur(function () {
+                var MobileNo = $('#MobileNo').val().trim() == '' ? '0' : $('#MobileNo').val().trim();
+                if (MobileNo != "0") {
+                    var mob = /^[0-9]{11}$/;
+                    var phone = $('#MobileNo').val();
+                    if (mob.test(phone) == false) { $.alert.open("error", "Please Insert Valid Mobile Number."); $('#MobileNo').val(''); return false }
+                    return true;
+                }
+            });
+        });
+        function LoadEditData(id, mobileOperatorId, sisterConcernId, MobileNo, remarks) {
+            //alert(id + ", " + mobileOperatorId + ", " + sisterConcernId + ", " + MobileNo)
+            //console.log(Id + 'd ' + AccSubledgerId + ' v ' + SubledgerMasterName + ' vv ' + SubledgerMasterShortName);
+            $("#ddlMobileOperatorDropdown").val(mobileOperatorId);
+            $("#ddlOfficeMobileDropdown").val(sisterConcernId);
+            $("#MobileNo").val(MobileNo);
+            $("#txtRemarks").val(remarks);
+            //$("#ddlOfficeMobileDropdown").attr("data-id", Id);
+            $("#btnSave").attr("data-id", id);
+            $("#btnSave").text("Update");
+        }
+          $(document).on("click", "#btnSave", function () {
+              var ddlMobileOperatorDropdown = $("#ddlMobileOperatorDropdown").val();
+              var ddlOfficeMobileDropdown = $("#ddlOfficeMobileDropdown").val();
+              var MobileNo = $("#MobileNo").val();
+              var Remarks = $("#txtRemarks").val();
+              if (!Remarks) {
+                  Remarks = "";
+              }
+              var id = $("#btnSave").attr("data-id");
+
+              if (ddlOfficeMobileDropdown == "") {
+                  $.alert.open("info", "Please insert Operator.");
+                  return false;
+              }
+              var jsonData = {
+                  CompanyId: ddlOfficeMobileDropdown,
+                  OperatorId: ddlMobileOperatorDropdown,
+                  MobileNo: MobileNo,
+                  Remarks: Remarks,
+                  Id: id
+              }
+              //console.log(jsonData);
+              //return false;
+                $.ajax({
+                    type: "Post",
+                    url: '@Url.Action("SaveMobileInformation", "Employee")',
+                    contentType: "application/json; charset=utf-8",
+                    /////int AccSubledgerId, string SubledgerMasterName, string SubledgerMasterShortName, int Id = 0
+                    data: JSON.stringify(jsonData),
+                    dataType: "json",
+                    success: function (dt) {
+                        if (dt.Result == 'Success') {
+                            $.alert.open("success", dt.Message, function () {
+                                GetMobileOperatorList();
+                                Clear()
+                            });
+                        } else {
+                            $.alert.open("error", dt.Message);
+                        }
+                    }
+                });
+
+          });
+
+</script>
+
+
+
+

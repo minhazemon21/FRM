@@ -1,0 +1,324 @@
+﻿@model Hrms.HRMViewModel.SpecialOfficeDayViewModel
+@{
+    ViewBag.Title = "Individual Employee Special Office Day";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<link href="~/Content/css/timePicker.css" rel="stylesheet" />
+<script src="~/Content/js/timePicker.js"></script>
+
+
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .wrapper {
+        height: 320px;
+        margin: 20px auto;
+        padding: 20px 0 0;
+        background: url('../content/web/panelbar/astonmartin.png') no-repeat center 50px transparent;
+    }
+
+    #panelbar {
+        width: 250px;
+        float: right;
+        margin-bottom: 20px;
+    }
+
+    #panelbar p {
+        padding: 1em;
+    }
+    button.accordion {
+        background-color: #668cff;
+        /*#eee*/
+        color: #444;
+        cursor: pointer;
+        padding: 8px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 15px;
+        transition: 0.4s;
+    }
+
+    button.accordion.active, button.accordion:hover {
+        background-color: #99ccff;
+    }
+
+    button.accordion:after {
+        content: '\002B';
+        color: #777;
+        font-weight: bold;
+        float: right;
+        margin-left: 2px;
+    }
+
+    button.accordion.active:after {
+        content: "\2212";
+    }
+
+    div.panel {
+        padding: 0 18px;
+        background-color: white;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        color: black;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#ddlEmployee').select2({
+            maximumSelectionLength: 10
+        });
+        $(".txtTimePicker").timepicker({
+            timeFormat: 'h:mm p',
+            interval: 15,
+            defaultTime: '09',
+            startTime: '08:00',
+            dynamic: false,
+            dropdown: true,
+            scrollbar: true
+        });
+
+        $('input.timepicker').timepicker({});
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            if (!validator.checkAll($('#frmSpecialOffice'))) {
+                return false;
+            }
+            else {
+
+
+                var StartDate = $("#StartDate").val();
+                var EndDate = $("#EndDate").val();
+                var office_intime = $("#office_intime").val();
+                var office_outtime = $("#office_outtime").val();
+                var absent_time = $("#absent_time").val();
+                var late_time = $("#late_time").val();
+                var half_OfficeTIme = $("#half_OfficeTIme").val();
+                var Purpose = $("#Purpose").val();
+                var Remarks = $("#Remarks").val();
+
+
+                var IsLateCount = $('input[name=IsLateCount]').is(':checked');
+                //alert(IsLateCount);
+                var IsAbsentCount = $('input[name=IsAbsentCount]').is(':checked');
+                var IsSetHoliDay = $('input[name=IsSetHoliDay]').is(':checked');
+                var IsSetDayMandatory = $('input[name=IsSetDayMandatory]').is(':checked');
+                var noOfHoliDAY = $("#ddlWeeklyHoliDay").val();
+
+                var employeeList = $("#ddlEmployee").val();
+                var AllEmployee = new Array();
+                AllEmployee = employeeList;
+
+                if (StartDate != "" && EndDate != "" && office_intime != "" && office_outtime != "" && absent_time != "" && late_time != "" && half_OfficeTIme != "" && Purpose != "" && Remarks != "")
+                {
+            //var data = {
+            //    StartDate: StartDate, EndDate: EndDate,
+            //    office_intime: office_intime, office_outtime: office_outtime,
+            //    absent_time: absent_time, late_time: late_time,
+            //    half_OfficeTIme: half_OfficeTIme
+            //     , Purpose: Purpose
+            //     , Remarks: Remarks
+            //     , IsLateCount: IsLateCount
+            //     , IsAbsentCount: IsAbsentCount
+            //     , IsSetHoliDay: IsSetHoliDay
+            //     , IsSetDayMandatory: IsSetDayMandatory
+            //    , noOfHoliDAY: noOfHoliDAY
+            //    , AllEmployee: AllEmployee
+            //        };
+                    var data = JSON.stringify({
+                        StartDate: StartDate,
+                        EndDate: EndDate,
+                        office_intime: office_intime,
+                        office_outtime: office_outtime,
+                        late_time: late_time,
+                        half_office_outtime: half_OfficeTIme,
+                        absent_time: absent_time,
+                        noOfHoliDAY: noOfHoliDAY
+                        , Purpose: Purpose
+                        , Remarks: Remarks
+                        , IsLateCount: IsLateCount
+                        , IsAbsentCount: IsAbsentCount
+                        , IsSetHoliDay: IsSetHoliDay
+                        , IsSetDayMandatory: IsSetDayMandatory
+                        ,AllEmployee: AllEmployee
+                    });
+                    console.log(data);
+                    $('#AjaxLoader').show();
+                    $.ajax({
+                        type: 'POST',
+                        contentType: "application/json; charset=utf-8",
+                        url: '@Url.Action("SaveIndividualEmployeeSpecialOfficeDay", "BasicOfficeSetup", "http")',
+                        data: data,//{ data },
+                        dataType: 'json',
+                        async: true,
+                        success: function (data) {
+                            $('#AjaxLoader').hide();
+                            // $.alert.open('Success', result.message);
+                            if (data.Result == "Success") {
+                                $.alert.open("success", data.Message);
+                            }
+                            else {
+                                $.alert.open("Error", data.Message);
+                            }
+                        },
+                        error: function (request, status, error) {
+                            alert(request.statusText + "/" + request.statusText + "/" + error);
+                        }
+                    });
+
+
+                }
+                else
+                {
+                    $.alert.open("Error","Insert all required field");
+                }
+
+            }
+        });
+
+
+        $("#StartDate").on("change", function () {
+            var fromDate = $("#StartDate").val();
+            $("#EndDate").datepicker('option', { minDate: fromDate });
+        });
+        $("#EndDate").on("change", function () {
+            var toDate = $("#EndDate").val();
+            $("#TotalDays").val(0);
+            $("#StartDate").datepicker('option', { maxDate: toDate });
+        });
+
+
+        $("#btnClear").click(function (e) { e.preventDefault(); window.location.reload(); });
+    });
+</script>
+
+<form name="frmSpecialOffice" class="form-horizontal form-label-left" id="frmSpecialOffice" method="post">
+    @Html.AntiForgeryToken()
+    <div role="main">
+        <div class="">
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+            <div class="page-title">
+                <div class="title_left PageHeader" style="width:90%;">
+                    <h3 style="color: white;padding:2px">&nbsp; Declare Special Office Time(Individual Employee)</h3>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                        <ul class="list-unstyled timeline">
+                            <li>
+                                <div class="block_content">
+                                    <div class="row form-group">
+                                        @Html.LabelFor(model => model.StartDate, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.StartDate, new { @class = "form-control DateInput" })
+                                        </div>
+                                        @Html.LabelFor(model => model.EndDate, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.EndDate, new { @class = "form-control DateInput" })
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        @Html.LabelFor(model => model.office_intime, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.office_intime, new { @class = "form-control txtTimePicker" })
+                                        </div>
+                                        @Html.LabelFor(model => model.office_outtime, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.office_outtime, new { @class = "form-control txtTimePicker" })
+                                        </div>
+
+                                    </div>
+                                    <div class="row form-group">
+                                        @Html.LabelFor(model => model.late_time, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.late_time, new { @class = "form-control txtTimePicker" })
+                                        </div>
+                                        @Html.LabelFor(model => model.absent_time, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.absent_time, new { @class = "form-control txtTimePicker" })
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        @Html.LabelFor(model => model.half_OfficeTIme, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextBoxFor(model => model.half_OfficeTIme, new { @class = "form-control txtTimePicker" })
+                                        </div>
+                                        @Html.Label("Weekly HoliDay", new { @class = "control-label col-md-2" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <select class="form-control bordercss" id="ddlWeeklyHoliDay">
+                                                <option value="1" selected>Friday</option>
+                                                <option value="2">Friday & Saturday</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        @Html.LabelFor(model => model.Purpose, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextAreaFor(model => model.Purpose, new { @class = "form-control" })
+                                        </div>
+                                        @Html.LabelFor(model => model.Remarks, new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.TextAreaFor(model => model.Remarks, new { @class = "form-control" })
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        @Html.Label("Select Employee", new { @class = "control-label col-md-2 required" })
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            @Html.DropDownList("EmployeeList", new SelectList(ViewBag.EmployeeList, "emp_id", "emp_name"), new { @class = "form-control bordercss", @id = "ddlEmployee", @multiple = "multiple", @name = "states[]", @placeholder = "Please select" })
+                                        </div>
+                                    </div>
+                                    <div class="row form-group">
+                                        <div class="col-md-offset-2 col-md-12 col-sm-12 col-xs-12">
+                                            <input type="checkbox" id="IsLateCount" name="IsLateCount" />
+                                            @Html.LabelFor(model => model.LateCount, new { @class = "control-label col-md-0" }) |
+                                            <input type="checkbox" id="IsAbsentCount" name="IsAbsentCount" />
+
+                                            @Html.LabelFor(model => model.AbsentCount, new { @class = "control-label col-md-0" }) |
+                                            <input type="checkbox" id="IsSetHoliDay" name="IsSetHoliDay" />
+
+                                            @Html.LabelFor(model => model.SetHoliDay, new { @class = "control-label col-md-0" })  |
+                                            <input type="checkbox" id="IsSetDayMandatory" name="IsSetDayMandatory" />
+
+                                            @Html.LabelFor(model => model.SetDayMandatory, new { @class = "control-label col-md-0" })
+                                        </div>
+                                    </div>
+                                    <br />
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="form-group">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary" id="btnClear">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

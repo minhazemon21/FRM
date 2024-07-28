@@ -1,0 +1,409 @@
+﻿
+@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var projectList = ((DataTable)ViewBag.projectList).AsEnumerable().Select(x => new
+    {
+        Id = x.Field<int>("Id"),
+        ProjectName = x.Field<string>("ProjectName"),
+        ProjectShortName = x.Field<string>("ProjectShortName")
+    }).ToList();
+}
+<style type="text/css">
+    input[type=text]:read-only {
+        background: #FFFFFF;
+        cursor: default;
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    .radio-container label.active {
+        background: #0e73a9;
+        border-radius: 4px;
+        margin-left: 0px;
+    }
+
+        .radio-container label.active span.radio-text {
+            color: #FFFFFF;
+        }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    input[type=radio] {
+        margin: -2px 0 0;
+    }
+
+    /*Scarchable dropdown CSS Customization Select2 Plugin*/
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 16px !important;
+        color: black;
+    }
+
+    .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border: 3px double #CCC !important;
+    }
+
+        .select2-container--default .select2-selection--single:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-results > .select2-results__options {
+        max-height: 200px;
+        overflow-y: auto;
+        color: black;
+    }
+
+        .select2-container--default .select2-results > .select2-results__options :focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1) !important;
+        }
+
+    .select2-container--default .select2-selection--single, .select2-container--default .select2-selection--multiple {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 0;
+        min-height: 33px !important;
+        max-height: 33px !important;
+        overflow: hidden;
+        font-size: 13px;
+    }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 14px;
+            position: absolute;
+            top: 7px;
+            right: 1px;
+            width: 18px;
+        }
+
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .ui-autocomplete {
+        max-height: 300px;
+        overflow: scroll;
+        /*overflow-y: auto;*/ /* prevent horizontal scrollbar */
+        /*overflow-x: hidden;*/ /* add padding to account for vertical scrollbar */
+        /*z-index: 1000 !important;*/
+    }
+    #tblStoreList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        /*#tblStoreList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }*/
+
+        #tblStoreList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblStoreList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblStoreList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #337ab7;
+            color: white;
+            text-align: center;
+        }
+
+        #tblStoreList td {
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+</style>
+<script type="text/javascript">
+    var AllEmployeeList = [];
+    function GetEmployeeList() {
+        $('#EmployeeCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: { },
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#EmployeeCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#EmployeeCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+        $('#EmployeeCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#EmployeeCode").val(ui.item.value); // display the selected text
+                $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+                $("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+    function DeletebyId(Id) {
+        $.alert.open('confirm', 'Are you sure you want to Reject this Invoice?', function (button) {
+            if (button == 'yes') {
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteEmployeeProjectbyId", "Project", "http")',
+                    data: { Id: Id },
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        if (data.Status == true) {
+                            $.alert.open("success", data.Message, function () {
+                                window.location.reload();
+                            });
+                        }
+                        else {
+                            $.alert.open("Error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    function SearchEmployeeProjectList(empId, ProjectId) {
+
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetProjectListforSearch", "Project", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: { empId: empId, ProjectId: ProjectId },
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblStoreList").find('tbody').empty();
+                    $.each(data.Result, function (id, r) {
+
+                        $("#tblStoreList").find('tbody').append(
+                            '<tr>' +
+                            '<td>' + r.RowSl + '</td>' +
+                            '<td>' + r.emp_name + '</td>' +
+                            '<td>' + r.ProjectName + '</td>' +
+                            '<td>' + r.FormDate + '</td>' +
+                            '<td>' + r.ToDate + '</td>' +
+                            '<td>' + '<a href="/Hrms/Project/ProjectEdit?Id=' + r.Id + '&empId=' + r.EmployeeId + '"  title="Edit" class="btn btn-primary btn-xs"><i class="fa fa-pencil"></i></a>' +
+                            '<a href="#" onclick="DeletebyId('+ r.Id +')" title="Delete" class="btn btn-danger btn-xs"><i class="fa fa-trash" aria-hidden="true"></i></a>' +
+                            '</td>' +
+                            '</tr>'
+                        );
+                    });
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+    $(document).ready(function () {
+
+        $("#txtDateFrom").on("change", function () {
+            var fromDate = $("#txtDateFrom").val();
+            $("#txtDateTo").datepicker('option', { minDate: fromDate });
+        });
+        $("#txtDateTo").on("change", function () {
+            var toDate = $("#txtDateTo").val();
+            $("#TotalDays").val(0);
+            $("#txtDateFrom").datepicker('option', { maxDate: toDate });
+        });
+
+        //============
+        GetEmployeeList();
+        SearchEmployeeProjectList(empId = 0, projectId = 0);
+        $("#ddlEmployee").select2({ width: "100%" });
+        //===================================
+
+
+        $("#btnShow").on("click", function () {
+            //=============================
+            //var EmployeeId = 0;
+            //if ($("#EmployeeCode").val() == "") {
+            //    EmployeeId = 0;
+            //}
+            //else {
+            //    EmployeeId = $("#EmployeeId").val() == "" || $("#EmployeeId").val() == undefined ? 0 : $("#EmployeeId").val();
+            //}
+            //===============================
+            var reportNo = parseInt($("input[type=radio][name=reports]:checked").val());
+            var salMonth = $("#ddlSalMonth").val();
+            var salYear = $("#ddlSalYear").val();
+            var reportType = $("#cmbReportType").val();
+            var department = $("#ddldepartmentList").val();
+            var companyList = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+
+            var EmployeeList = $("#EmpOfficeCode").val() == "" ? "0" : $("#EmpOfficeCode").val();
+            var StartDate = $("#txtDateFrom").val();
+            var EndDate = $("#txtDateTo").val();
+            if (reportNo == 1) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date range.");
+                    return false;
+                }
+                else if (EmployeeList == "0" || EmployeeList == "" || EmployeeList == null || EmployeeList == undefined) {
+                    $.alert.open("error", "Please select employee.");
+                    return false;
+                }
+
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + EndDate + '&EmpOfficeCode=' + EmployeeList + '&ReportType=' + reportType;
+                    var url = '/IndividualEmployeeAttendence/RptIndividualAttendanceIn?' + param;
+                    window.open(url);
+                }
+
+            }
+            else if (reportNo == 2) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date range.");
+                    return false;
+                }
+                else if (EmployeeList == "0" || EmployeeList == "" || EmployeeList == null || EmployeeList == undefined) {
+                    $.alert.open("error", "Please select employee.");
+                    return false;
+                }
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + EndDate + '&EmpOfficeCode=' + EmployeeList + '&ReportType=' + reportType;
+                    var url = '/IndividualEmployeeAttendence/RptIndividualAttendanceOut?' + param;
+                    window.open(url);
+                }
+            }
+            else if (reportNo == 3) {
+                if (StartDate == "" || EndDate == "") {
+                    $.alert.open("error", "Please insert date range.");
+                    return false;
+                }
+                else if (EmployeeList == "0" || EmployeeList == "" || EmployeeList == null || EmployeeList == undefined) {
+                    $.alert.open("error", "Please select employee.");
+                    return false;
+                }
+
+                else {
+                    var param = 'reportNo=' + reportNo + '&StartDate=' + StartDate + '&EndDate=' + EndDate + '&EmpOfficeCode=' + EmployeeList + '&ReportType=' + reportType;
+                    var url = '/IndividualEmployeeAttendence/RptIndividualAttendanceInandOut?' + param;
+                    window.open(url);
+                }
+            }
+
+        });
+
+        $(document).on("click", "#btnSearch", function () {
+            var empId = $("#EmployeeId").val() == "" ? "0" : $("#EmployeeId").val();
+            var projectId = $("#ddProjectName").val();
+            SearchEmployeeProjectList(empId, projectId);
+        });
+    });
+</script>
+
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                Employee wise Project List
+                <a href="@Url.Action("ProjectAssign", "Project")" class="btn btn-primary btn-sm pull-right" style="background-color: #44c7f4">Assign Project</a>
+
+            </div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    <label class="col-lg-2 col-md-2 col-sm-2 col-xs-12 control-label" id="lblEmployee">Employee List</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12" id="divEmployeeList">
+                        @*@Html.DropDownList("List_EmployeeInfo", new SelectList(ViewBag.List_EmployeeInfo, "emp_id", "EmployeeName"), "Please select", new { @class = "form-control bordercss", @id = "ddlEmployee" })*@
+                        <input type="text" id="EmployeeCode" class="form-control bordercss" />
+                        <input type="text" id="EmployeeId" class="form-control bordercss" style="display:none;" />
+                        <input type="text" id="EmpOfficeCode" class="form-control bordercss" style="display:none;" />
+                    </div>
+                    <label class="col-lg-2 col-md-2 col-sm-2 col-xs-12 control-label" id="lblProjectName">Project List</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control input-sm bordercss" id="ddProjectName">
+                            <option value="0">Please Select</option>
+                            @foreach (var dt in projectList)
+                            {
+                                <option value="@dt.Id" data-psName="@dt.ProjectShortName">@dt.ProjectName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                        <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <fieldset>
+                    <div class="row form-group">
+                        <table id="tblStoreList" style="text-align:center">
+                            <thead>
+                                <tr>
+                                    <th>SL No</th>
+                                    <th>Employee Name</th>
+                                    <th>Project Name</th>
+                                    <th>Assign Date From</th>
+                                    <th>Assign Date To</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </fieldset>
+
+            </div>
+        </div>
+    </div>
+</div>

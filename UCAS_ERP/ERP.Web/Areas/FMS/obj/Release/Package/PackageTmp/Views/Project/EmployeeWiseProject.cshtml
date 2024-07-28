@@ -1,0 +1,353 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<SalaryController.SalaryAllowance>)ViewBag.EmployeeList;
+    var allowanceList = (List<SalaryController.SalaryAllowance>)ViewBag.AllowanceList;
+    var companyList = (List<SalaryController.SalaryAllowance>)ViewBag.IPOCompany;
+    var branchList = (List<SalaryController.SalaryAllowance>)ViewBag.BranchList;
+    var departmentList = (List<SalaryController.SalaryAllowance>)ViewBag.DepartmentList;
+    
+}
+
+
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+
+    hr {
+        width: 100%;
+        height: 1px;
+        background-color: gray;
+    }
+
+    #tblProjectList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblProjectList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblProjectList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblProjectList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblProjectList thead tr {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .modal {
+        z-index: 1 !important;
+    }
+
+    .modal-backdrop {
+        z-index: 0 !important;
+    }
+
+    .modal-header {
+        background-color: #5bc0de;
+        color: white
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#EmployeeCode").blur(function () {
+            if ($("#EmployeeCode").val() != "") {
+                Get_EmployeeInfo_Details_By_Code();
+                GetProjectDetalisList();
+            }
+
+        });
+        $("#btnReset").on("click", function () {
+            window.location.reload();
+        });
+        
+        
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseProjectSetup();
+        });
+        $("#all_chk").on("click", function () {
+            $(".chksig").prop("checked", $(this).is(":checked"));
+        });
+    });
+
+    function GetProjectDetalisList() {
+        var empCode = $("#EmployeeCode").val();
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetProjectDetailsempIdwise", "Project", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: { empCode: empCode },
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblProjectList").find('tbody').empty();
+                    $.each(data.Result, function (id, r) {
+                        $("#tblProjectList").find('tbody').append(
+                            '<tr>' +
+                            '<td>' + r.RowSl + '</td>' +
+                            '<td>' + r.ProjectName + '</td>' +
+                            '<td>' + r.ProjectShortName + '</td>' +
+                            '<td><input type="text" class="clEmpIds" id="startDate' + r.Id + '" data-Id="' + r.Id + '"></td>' +
+                            '<td><input type="text" id="remarks' + r.Id + '" data-Id="' + r.Id + '"></td>' +
+                            '<td><input id="chk-' + r.Id + '" type="checkbox" class="chksig" checked /></td>' +
+                            '</tr>'
+                        );
+                        $("#startDate" + r.Id).datepicker(
+                            {
+                                dateFormat: "dd/mm/yy",
+                                showAnim: "scale",
+                                changeMonth: true,
+                                changeYear: true,
+                                yearRange: "1950:2050"
+                                //maxDate: "+40Y"
+                            });
+
+                    });
+                    
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open("error", data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+    function Clear() {
+        $("#hdnEmployeeId").val(0);
+        $("#EmployeeName").val("");
+        $("#empDateOfBirth").val("");
+        $("#desg_name").val("");
+        $("#empJoiningDate").val("");
+        $("#Dept_name").val("");
+        $("#branch_name").val("");
+        $("#job_name").val("");
+    }
+    function Get_EmployeeInfo_Details_By_Code() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                ActionMode = "Edit"
+                Clear();
+
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+
+                        $("#hdnEmployeeId").val(E.emp_id);
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeName").val(E.emp_name);
+                        $("#empDateOfBirth").val(E.emp_datetimeof_birth);
+
+                        $("#empJoiningDate").val(E.emp_joining_datetime);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#job_name").val(E.job_name);
+                        $("#branch_name").val(E.branch_name);
+                        $("#desk_name").val(E.desk_name);
+                        $("#DueDateofConfirmation").val(E.emp_confirmation_datetime);
+
+                        $("#hdnEmployeeDetailId").val(E.DetailId);
+                        $('#AjaxLoader').hide();
+
+
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+
+
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SaveEmployeewiseProjectSetup() {
+        var employeeId = $("#hdnEmployeeId").val();
+        
+        var mobileided = new Array();
+        $(".clEmpIds").each(function () {
+            var projId = $(this).attr("data-Id");//chk-
+            if ($("#chk-" + projId).is(":checked") == true) {
+                var assignDate = $("#startDate" + projId).val();
+                var remarks = $("#remarks" + projId).val();
+                var projectId = $(this).attr("data-Id");
+                if (assignDate == '' || assignDate == null || assignDate == undefined) {
+                    $.alert.open("error", "Please Insert Assign Date.");
+                    return false;
+                } else {
+                    var allmobileid = new Object();
+                    allmobileid.projectId = projectId;
+                    allmobileid.employeeId = employeeId;
+                    allmobileid.assignDate = assignDate;
+                    allmobileid.remarks = remarks;
+                    mobileided.push(allmobileid);
+
+                    console.log(mobileided)
+                }
+            }
+          
+        });
+        if (employeeId == 0 || employeeId == null || employeeId == undefined) {
+            $.alert.open("info", "error.");
+            return false;
+        }
+        else if (mobileided == null || mobileided == 0 || mobileided == undefined) {
+            $.alert.open("error", "Error.");
+            return false;
+        }
+
+        var json = JSON.stringify(mobileided)
+        $("#AjaxLoader").show();
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("InsertEmployeewiseProject", "Project", "http")',
+            data : json,
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $("#AjaxLoader").hide();
+                if (data.Status == true) {
+                    $.alert.open(data.Result, data.Message, function () {
+                        window.location.reload();
+                    });
+                }
+                else {
+                    $.alert.open(data.Result, data.Message, function () {
+                        window.location.reload();
+                    });
+                }
+            },
+            error: function (request, status, error) {
+                $("#AjaxLoader").hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+        
+    }
+
+</script>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<input type="hidden" id="hdnEmployeeId" value="0" />
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Employee wise Project Setup</div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Employee Id</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="EmployeeCode" class="form-control" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Employee Name</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="EmployeeName" class="form-control" disabled />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Designation</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="desg_name" class="form-control" disabled />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Department</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="Dept_name" class="form-control" disabled />
+
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Branch</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="branch_name" class="form-control" disabled />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Date of Birth</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="empDateOfBirth" class="form-control" disabled />
+                    </div>
+
+                </div>
+                <hr />
+                
+            </div>
+
+            <div class="panel panel-footer">
+                <div class="row form-group">
+                    <div class="table-responsive">
+                        <table class="table" id="tblProjectList">
+                            <thead>
+                                <tr>
+                                    <th>Row No</th>
+                                    <th>Project Name</th>
+                                    <th>Project Short Name</th>
+                                    <th>Assign Date</th>
+                                    <th>Remarks</th>
+                                    <th><input type="checkbox" id="all_chk" checked="checked" /></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                        <button type="button" class="btn btn-success" id="btnSave">Save</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

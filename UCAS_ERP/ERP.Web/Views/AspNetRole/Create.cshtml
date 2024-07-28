@@ -1,0 +1,183 @@
+﻿@model ERP.Web.ViewModels.AspNetRoleViewModel
+
+@{
+    ViewBag.Title = "Create";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+</style>
+<script type="text/javascript">
+
+    
+
+
+
+    function RoleEditData(Id, Name, DefaultLinkURL) {
+        $("#hdnRoleId").val(Id)
+        $("#Name").val(Name);
+        $("#DefaultLinkURL").val(DefaultLinkURL);
+    }
+
+    @*var dataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: '@Url.Action("GetRoleInformation", "AspNetRole", "http")',
+                dataType: "json"
+            }
+        }
+    });*@
+
+
+    function GetRoleInformation()
+    {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetRoleInformation", "AspNetRole", "http")',
+                    dataType: "json",
+                    data: {}
+                }
+            },
+            pageSize: 15,
+        });
+
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 550,
+            groupable: true,
+            reorderable: true,
+            filterable: true,
+            sortable: true,
+            columnMenu: true,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                hidden: true,
+                filterable: false
+            },
+            {
+                field: "Name",
+                title: "Name",
+                groupable: false
+            },
+            {
+                field: "DefaultLinkURL",
+                title: "Home page",
+                //hidden:true
+            },
+            {
+
+                title: "Commands",
+                width: "15%",
+                template: function (dataItem) {
+                    return '<a href="#" title="Edit" onclick="RoleEditData(' + dataItem.Id + ',' + "'" + dataItem.Name + "'" + ',' + "'" + dataItem.DefaultLinkURL + "'" + ');" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>';
+                }
+            }
+            ]
+        });
+    }
+
+    $(document).ready(function () {
+    
+        GetRoleInformation();
+        
+
+
+        $('#btnRoleSave').click(function (e) {
+
+            e.preventDefault();
+
+            if ( $("#Name").val() != "")
+            {
+                var RoleId = $("#hdnRoleId").val();
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("SaveUserRole", "AspNetRole", "http")',
+                    type: "GET",
+                    dataType: "json",
+                    async: true,
+                    data: { RoleId: RoleId, RoleName: $("#Name").val(), HomePage: $("#DefaultLinkURL").val() },
+                    success: function (data) {
+                        $("#hdnRoleId").val(0)
+                        if (data.Result == "Ok") {
+                            GetRoleInformation();
+                            $("#Name").val("");
+                            $("#DefaultLinkURL").val("");
+                            $.alert.open("info", "Save successfull....");
+                        }
+                        else {
+                            $.alert.open("error", data.Message);
+                        }
+                    },
+                    failure: function () {
+                        $.alert.open("error", "Failed!");
+                    }
+                });
+            }
+            else
+            {
+                $.alert.open("Error","Insert required field");
+            }
+        });
+
+     });
+</script>
+
+
+@using (Html.BeginForm("Create", "AspNetRole", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal form-label-left", id = "AspNetRoleForm" }))
+{
+
+<div class="page-title">
+    <div class="title_left PageHeader" style="width:90%;">
+        <h3 style="color: white;padding:3px">Role info entry</h3>
+        <input type="hidden" id="hdnRoleId" value="0"/>
+    </div>
+</div>
+    <div class="x_panel">
+        <div class="x_title">
+            <ul class="nav navbar-right panel_toolbox">
+                <li style="float:right;">
+                    <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                </li>
+            </ul>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <br />
+            <form id="demo-form2" data-parsley-validate>
+                <div id="AjaxLoader" class="ajaxLoader"></div>
+                <div class="item form-group">
+                    @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-3 col-sm-3 col-xs-12 required" })
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control", @placeholder = "Name",} })
+                    </div>
+                </div>
+                <div class="item form-group">
+                    @Html.LabelFor(model => model.DefaultLinkURL, htmlAttributes: new { @class = "control-label col-md-3 col-sm-3 col-xs-12" })
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        @Html.EditorFor(model => model.DefaultLinkURL, new { htmlAttributes = new { @class = "form-control", @placeholder = "URL",} })
+                    </div>
+                </div>             
+                <div class="ln_solid"></div>
+                <div class="item form-group">
+                    <div class="col-md-6 col-sm-6 col-xs-12 col-md-offset-3">
+                        <br />
+                        <button type="submit" id="btnRoleSave" class="btn btn-success">Submit</button>
+                    </div>
+                </div>
+                <br />
+                <div class="item form-group">
+                    <div id="grid"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+}

@@ -1,0 +1,634 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\AllPublish\HRMNSGroup\Areas\Hrms</_PublishTargetUrl>
+    <History>True|2024-07-08T12:30:13.1013173Z||;True|2024-07-08T14:55:48.5679788+06:00||;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+  <ItemGroup>
+    <File Include="bin/Antlr3.Runtime.dll">
+      <publishTime>05/10/2022 12:35:32</publishTime>
+    </File>
+    <File Include="bin/Antlr3.Runtime.pdb">
+      <publishTime>05/10/2022 12:35:33</publishTime>
+    </File>
+    <File Include="bin/Autofac.dll">
+      <publishTime>05/10/2022 12:35:29</publishTime>
+    </File>
+    <File Include="bin/Autofac.Integration.Mvc.dll">
+      <publishTime>05/10/2022 12:35:30</publishTime>
+    </File>
+    <File Include="bin/AutoMapper.dll">
+      <publishTime>05/10/2022 12:35:32</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.CrystalReports.Engine.dll">
+      <publishTime>12/01/2022 17:44:08</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.ClientDoc.dll">
+      <publishTime>12/01/2022 17:44:08</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.CommLayer.dll">
+      <publishTime>12/01/2022 17:44:08</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.CommonControls.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.CommonObjectModel.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.Controllers.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.CubeDefModel.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.DataDefModel.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.DataSetConversion.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.ObjectFactory.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.Prompting.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.ReportDefModel.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportAppServer.XmlSerialize.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.ReportSource.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/CrystalDecisions.Shared.dll">
+      <publishTime>12/01/2022 17:44:10</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.AspNet.dll">
+      <publishTime>05/10/2022 12:35:41</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.Core.dll">
+      <publishTime>05/10/2022 12:35:45</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.OAuth.Consumer.dll">
+      <publishTime>05/10/2022 12:35:46</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.OAuth.dll">
+      <publishTime>05/10/2022 12:35:46</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.OpenId.dll">
+      <publishTime>05/10/2022 12:35:50</publishTime>
+    </File>
+    <File Include="bin/DotNetOpenAuth.OpenId.RelyingParty.dll">
+      <publishTime>05/10/2022 12:35:52</publishTime>
+    </File>
+    <File Include="bin/EntityFramework.dll">
+      <publishTime>05/10/2022 12:36:11</publishTime>
+    </File>
+    <File Include="bin/Microsoft.AspNet.Identity.Core.dll">
+      <publishTime>05/10/2022 12:36:14</publishTime>
+    </File>
+    <File Include="bin/Microsoft.AspNet.Identity.EntityFramework.dll">
+      <publishTime>05/10/2022 12:36:14</publishTime>
+    </File>
+    <File Include="bin/Microsoft.AspNet.Identity.Owin.dll">
+      <publishTime>05/10/2022 12:36:15</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.dll">
+      <publishTime>05/10/2022 12:36:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.Host.SystemWeb.dll">
+      <publishTime>05/10/2022 12:36:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.Security.Cookies.dll">
+      <publishTime>05/10/2022 12:36:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.Security.dll">
+      <publishTime>05/10/2022 12:36:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Owin.Security.OAuth.dll">
+      <publishTime>05/10/2022 12:36:54</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Web.Infrastructure.dll">
+      <publishTime>05/10/2022 12:36:55</publishTime>
+    </File>
+    <File Include="bin/Microsoft.Web.WebPages.OAuth.dll">
+      <publishTime>05/10/2022 12:36:25</publishTime>
+    </File>
+    <File Include="bin/Mono.Math.dll">
+      <publishTime>05/10/2022 12:35:51</publishTime>
+    </File>
+    <File Include="bin/Newtonsoft.Json.dll">
+      <publishTime>05/10/2022 12:35:33</publishTime>
+    </File>
+    <File Include="bin/Org.Mentalis.Security.Cryptography.dll">
+      <publishTime>05/10/2022 12:35:50</publishTime>
+    </File>
+    <File Include="bin/Owin.dll">
+      <publishTime>05/10/2022 12:37:09</publishTime>
+    </File>
+    <File Include="bin/stdole.dll">
+      <publishTime>03/19/2010 13:21:56</publishTime>
+    </File>
+    <File Include="bin/System.Net.Http.Formatting.dll">
+      <publishTime>05/10/2022 12:35:41</publishTime>
+    </File>
+    <File Include="bin/System.Web.Helpers.dll">
+      <publishTime>05/10/2022 12:36:23</publishTime>
+    </File>
+    <File Include="bin/System.Web.Http.dll">
+      <publishTime>05/10/2022 12:35:33</publishTime>
+    </File>
+    <File Include="bin/System.Web.Http.WebHost.dll">
+      <publishTime>05/10/2022 12:35:31</publishTime>
+    </File>
+    <File Include="bin/System.Web.Mvc.dll">
+      <publishTime>05/10/2022 12:36:18</publishTime>
+    </File>
+    <File Include="bin/System.Web.Optimization.dll">
+      <publishTime>05/10/2022 12:36:19</publishTime>
+    </File>
+    <File Include="bin/System.Web.Razor.dll">
+      <publishTime>05/10/2022 12:36:19</publishTime>
+    </File>
+    <File Include="bin/System.Web.WebPages.Deployment.dll">
+      <publishTime>05/10/2022 12:36:24</publishTime>
+    </File>
+    <File Include="bin/System.Web.WebPages.dll">
+      <publishTime>05/10/2022 12:36:26</publishTime>
+    </File>
+    <File Include="bin/System.Web.WebPages.Razor.dll">
+      <publishTime>05/10/2022 12:36:25</publishTime>
+    </File>
+    <File Include="bin/UCAS.BasicDataAccess.dll">
+      <publishTime>07/08/2024 18:30:06</publishTime>
+    </File>
+    <File Include="bin/UCAS.BasicDataAccess.pdb">
+      <publishTime>07/08/2024 18:30:06</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Data.dll">
+      <publishTime>07/08/2024 18:30:06</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Data.dll.config">
+      <publishTime>07/07/2024 17:06:26</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Data.pdb">
+      <publishTime>07/08/2024 18:30:06</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Service.dll">
+      <publishTime>07/08/2024 18:30:07</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Service.dll.config">
+      <publishTime>07/07/2024 17:06:26</publishTime>
+    </File>
+    <File Include="bin/UCAS.Common.Service.pdb">
+      <publishTime>07/08/2024 18:30:07</publishTime>
+    </File>
+    <File Include="bin/UCAS.ERP.Web.dll">
+      <publishTime>07/08/2024 18:30:08</publishTime>
+    </File>
+    <File Include="bin/UCAS.ERP.Web.dll.config">
+      <publishTime>07/08/2024 17:46:46</publishTime>
+    </File>
+    <File Include="bin/UCAS.ERP.Web.pdb">
+      <publishTime>07/08/2024 18:30:08</publishTime>
+    </File>
+    <File Include="bin/UCAS.ERP.Web.XmlSerializers.dll">
+      <publishTime>07/08/2024 18:30:09</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Data.dll">
+      <publishTime>07/08/2024 18:30:07</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Data.dll.config">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Data.pdb">
+      <publishTime>07/08/2024 18:30:07</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Service.dll">
+      <publishTime>07/08/2024 18:30:09</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Service.dll.config">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Service.pdb">
+      <publishTime>07/08/2024 18:30:09</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Web.dll">
+      <publishTime>07/08/2024 18:30:10</publishTime>
+    </File>
+    <File Include="bin/UCAS.Hrms.Web.pdb">
+      <publishTime>07/08/2024 18:30:10</publishTime>
+    </File>
+    <File Include="bin/UCAS.Utility.dll">
+      <publishTime>07/08/2024 14:54:34</publishTime>
+    </File>
+    <File Include="bin/UCAS.Utility.pdb">
+      <publishTime>07/08/2024 14:54:34</publishTime>
+    </File>
+    <File Include="bin/WebGrease.dll">
+      <publishTime>05/10/2022 12:35:39</publishTime>
+    </File>
+    <File Include="bin/WebMatrix.Data.dll">
+      <publishTime>05/10/2022 12:36:25</publishTime>
+    </File>
+    <File Include="bin/WebMatrix.WebData.dll">
+      <publishTime>05/10/2022 12:36:26</publishTime>
+    </File>
+    <File Include="packages.config">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery-1.10.2.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery-1.10.2.min.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery-1.10.2.min.map">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery.validate.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery.validate.min.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery.validate.unobtrusive.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Scripts/jquery.validate.unobtrusive.min.js">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/AdvanceSalary/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Attendance/AttenModify.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Attendance/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Attendance/ManualAtn.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Attendance/ManualAtnVS.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Attendance/ManualAtnVSApprove.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BasicOfficeSetup/GovernmentHoliday.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BasicOfficeSetup/IndividualEmployeeSpecialOfficeDay.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BasicOfficeSetup/OffCalForIndividualEmp.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BasicOfficeSetup/OfficeCalendar.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BasicOfficeSetup/SpecialOfficeDay.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BonusGraceDaySetup/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/BonusRules/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/CompanyInfo/Create.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/CompanyInfo/Edit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/CompanyInfo/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/CompanyInfo/IndexEx.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ConveyanceAllowance/ConveyanceAllowanceReprocess.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ConveyanceAllowance/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ConveyanceAllowance/MiscReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/EmpAttachment.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/EmpDetails.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/EmpEd.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/EmpRelease.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/EmpTransfer.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Employee/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/EmployeeWiseAttendenceInOutRpt/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/IndividualEmployeeAttendence/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/EarnLeaveProc.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmApprove.cshtml">
+      <publishTime>07/07/2024 20:00:52</publishTime>
+    </File>
+    <File Include="Views/Leave/frmApproveEx.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmHr.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmLeaveCancel.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmRecom.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmRecom2.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmRecom2check.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmRecomapp.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/frmReliever.cshtml">
+      <publishTime>07/08/2024 18:23:29</publishTime>
+    </File>
+    <File Include="Views/Leave/Index.cshtml">
+      <publishTime>07/07/2024 20:26:49</publishTime>
+    </File>
+    <File Include="Views/Leave/Leavelist.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Leave/leaveRecoApp.cshtml">
+      <publishTime>07/08/2024 11:42:07</publishTime>
+    </File>
+    <File Include="Views/LookupDesignation/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/MobileAllowance/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/MobileAllowance/MobileAllowanceReporcess.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/MobileAllowanceReport/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/OverTimeCount/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/Apply.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/Declaration.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/Divident.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/ExpenseEntry.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/InvApproved.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/InvestExpense.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/InvestmentList.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/Profit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/SaleApprove.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/PF/ShareSale.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Project/EmployeeProjectList.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Project/EmployeeWiseProject.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Project/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Project/ProjectAssign.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Project/ProjectEdit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Report/AttendanceSummaryRpt.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Report/EmpListBloodGroup.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/AttendanceSummaryReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/BankAdviceReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/BranchAndDepartmentWiseReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/ConveyanceReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/DuLedger.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeeDetailsReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeeLeaveDetailsReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeeList.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeelistReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeeSalaryReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/EmployeeWiseAttendanceReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/InceReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/IncrDate.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/Investment.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/LeaveStatus.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/LeaveSummaryReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/LoanReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/MonthlyAttendanceRegister.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/MonthlyAttenSumRpt.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/OfficeCalendarReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/OfficeMobileInfo.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/PaySlip.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/PfLedger.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/ReleasedEmployeelist.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/RptProfit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/RptSalaryCash.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/RptTaxAndIncentive.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/SalCertificate.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/SalIncrement.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/SalReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/ReportView/TypeWiseAttendanceReport.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/Arear.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/Create.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/DueCreate.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/DuePayment.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/EarnLeave.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/IncentiveProcess.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/IncentiveSetup.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/SalaryAccount.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/SalaryProcess.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/SalaryReProcess.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Salary/Setup.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryAutoVoucherCreation/CreateSalaryAutoVouch.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryIncrement/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryIncrement/ReSalaryInc.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryLoan/Approve.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryLoan/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryLoan/LoanInfo.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryLoan/LoanReDisbusment.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryLoan/ManualCollection.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryPayableDaySetup/Edit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/SalaryPayableDaySetup/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/TravelAllowance/Index.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/TravelAllowance/TAEdit.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/TravelAllowance/TAList.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/Web.config">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Views/_ViewStart.cshtml">
+      <publishTime>07/07/2024 17:06:27</publishTime>
+    </File>
+    <File Include="Web.config">
+      <publishTime>07/08/2024 14:55:46</publishTime>
+    </File>
+  </ItemGroup>
+</Project>

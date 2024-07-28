@@ -1,0 +1,239 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+</style>
+<script type="text/javascript">
+    function GetDeptWiseEmployeeList() {
+        debugger
+        var YearNo = $("#YearNameList").val();
+        var MonthNo = $("#MonthNameList").val();
+        var DeptId = $("#DepartmentList").val();
+        if (YearNo == '' || YearNo == 0 || YearNo == '0') {
+            $.alert.open("error", "Please Insert Year");
+            return false;
+        }
+        if (MonthNo == '' || MonthNo == 0 || MonthNo == '0') {
+            $.alert.open("error", "Please Insert Month");
+            return false;
+        }
+        if (DeptId == '' || DeptId == 0 || DeptId == '0') {
+            $.alert.open("error", "Please Insert Department");
+            return false;
+        }
+        $("#divLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetDeptWiseEmployeeList", "SalaryPayableDaySetup", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: { year: YearNo, month: MonthNo, dept: DeptId },
+            success: function (data) {
+                $("#divLoader").hide();
+                if (data.Status == true) {
+                    var html = "";
+                    $.each(data.Data, function (i, e) {
+                        html += '<tr>';
+                        html += '<td class="text-center">' + e.EmployeeCode + '<input type="text" value="' + e.Id + '" style="display:none;" class="clEmployeeId" id="txtEmployeeId' + e.Id + '" /><input type="text" value="' + e.EmployeeCode + '" style="display:none;" class="clEmployeeCode" id="txtEmployeeCode' + e.EmployeeCode + '" /></td>';
+                        html += '<td class="text-left">' + e.EmployeeName + '</td>';
+                        html += '<td class="text-left">' + e.DesignationName + '</td>';
+                        //html += '<td class="text-center">' + e.SalaryYear + '</td>';
+                        //html += '<td class="text-center">' + e.SalaryMonth + '</td>';
+                        html += '<td class="text-center">' + e.MonthDay + '</td>';
+                        html += '<td>' + '<input type="text" value="' + e.MonthDay + '" class="clSalaryPayableDay" id="txtSalaryPayableDay' + e.Id + '" /></td>';
+                        html += '<td>' + '<input type="text" value="" class="clRemarks" id="clSalaryPayableDayRemarks' + e.Id + '" /></td>';
+                        html += '</tr>';
+                    });
+                    $("#tblDeptWiseEmployeeDetail").find('tbody').html(html);
+                } else {
+                    $.alert.open("error", data.Message);
+                    return false;
+                }
+            },
+            failure: function () {
+
+            }
+        });
+    }
+    function SaveDepartmentWiseSalaryPayableDaySetup() {
+
+        var allEmployeeId = new Array();
+        var allEmployeeCode = new Array();
+        var allSalarypayableDay = new Array();
+        var allRemarks = new Array();
+
+        //     
+        var $Employ = $(".clEmployeeId")
+        $Employ.each(function () {
+            allEmployeeId[allEmployeeId.length] = $(this).val();;
+        });
+        var $alEmpCode = $(".clEmployeeCode")
+        $alEmpCode.each(function () {
+            allEmployeeCode[allEmployeeCode.length] = $(this).val();;
+        });
+        var $alSalarypayableDay = $(".clSalaryPayableDay")
+        $alSalarypayableDay.each(function () {
+            allSalarypayableDay[allSalarypayableDay.length] = $(this).val();;
+        });
+        var $allRemarks = $(".clRemarks")
+        $allRemarks.each(function () {
+            allRemarks[allRemarks.length] = $(this).val();;
+        });
+
+        var allTrx = new Object();
+
+        allTrx.YearNo = $("#YearNameList").val();
+        allTrx.MonthNo = $("#MonthNameList").val();
+        allTrx.DeptId = $("#DepartmentList").val();
+
+        allTrx.allEmployeeId = allEmployeeId;
+        allTrx.allEmployeeCode = allEmployeeCode;
+        allTrx.allSalarypayableDay = allSalarypayableDay;
+        allTrx.allRemarks = allRemarks;
+
+        var json = JSON.stringify(allTrx);
+        if (allEmployeeId.length != 0) {
+                $("#AjaxLoader").show();
+                $.ajax({
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("SaveDepartmentWiseSalaryPayableDaySetup", "SalaryPayableDaySetup", "http")',
+                    type: "POST",
+                    dataType: 'json',
+                    async: true,
+                    data: json,
+                    success: function (data) {
+                        $("#AjaxLoader").hide();
+                        if (data.Status == true) {
+                            //$.alert.open("info", data.Message);
+                            $.alert.open("success", data.Message, function () { window.location.reload(); });
+                        }
+                        if (data.Status == false) {
+                            $.alert.open("info", data.Message);
+                            //$.alert.open("success", data.Message, function () { window.location.reload(); });
+                        }
+                    },
+                    error: function () {
+                        $.alert.open("info", data.Message);
+                        $("#AjaxLoader").hide();
+                    }
+                });
+            }
+            else {
+               $.alert.open("error", "Data Table Can't be Empty. ");
+            }
+
+        }
+
+    $(document).ready(function () {
+        var date = new Date();
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        $("#YearNameList").val(year);
+        $("#MonthNameList").val(month);
+        $("#DepartmentList").val(20);
+        $("#DepartmentList").prop('disabled', true);
+
+        $("#btnLoad").on("click", function () {
+            GetDeptWiseEmployeeList();
+        });
+        $("#btnSave").click(function () {
+
+            if ($("#tblDeptWiseEmployeeDetail tbody tr").length != 0) {
+                SaveDepartmentWiseSalaryPayableDaySetup();
+            }
+            else {
+                $.alert.open("error", "Data Table Can't be Empty.");
+            }
+        });
+        });
+    </script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:85%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Monthly Salary Payable Day Setup</h3>
+            </div>
+            @Html.ActionLink("Edit Payable Day", "Edit", null, new { @class = "btn btn-primary btn-sm pull-right" })
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+        </div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <ul class="list-unstyled timeline">
+                        <li>
+                            <div class="row">
+                                <div class="col-sm-1 label-container">
+                                    @Html.Label("Year:", new { @class = "control-label required" })
+                                    <input style="display:none;" id="otcId" value="0" />
+                                </div>
+                                <div class="col-sm-2">
+                                    @Html.DropDownList("YearNameList", new SelectList(ViewBag.YearNameList, "Id", "YearNo"), "Please Select Year", new { @class = "form-control" })
+                                </div>
+                                <div class="col-sm-1 label-container">
+                                    @Html.Label("Month:", new { @class = "control-label required" })
+                                </div>
+                                <div class="col-sm-2">
+                                    @Html.DropDownList("MonthNameList", new SelectList(ViewBag.MonthNameList, "Key", "Value"), "Please Select month", new { @class = "form-control" })
+                                </div>
+                                <div class="col-sm-2 label-container">
+                                    @Html.Label("Department:", new { @class = "control-label required" })
+                                </div>
+                                <div class="col-sm-4 radio-container">
+                                   @Html.DropDownList("DepartmentList", new SelectList(ViewBag.DepartmentList, "Id", "DepartmentName"), "Please Select Department", new { @class = "form-control"})
+                                </div>
+                            </div>
+                        </li>
+                        <li style="margin-top:5px;">
+                            <div class="row form-group">
+                                <div class="control-label col-md-5 col-md-offset-5">
+                                    <button type="submit" class="btn btn-success" id="btnLoad">Load Employee</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                                <div class="block_content">
+                                    <table id="tblDeptWiseEmployeeDetail" class="table table-striped jambo_table bulk_action">
+                                        <thead>
+                                            <tr>
+                                                <th>EMP ID</th>
+                                                <th>Name</th>
+                                                <th>Designation</th>
+                                                @*<th>Salary Year</th>
+                                                <th>Salary Month</th>*@
+                                                <th>Day Of Month</th>
+                                                <th>Salary Payable Day</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                        </li>
+                    </ul>
+                    <div class="row">
+                        <div class="col-md-offset-5 col-md-2">
+                            <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

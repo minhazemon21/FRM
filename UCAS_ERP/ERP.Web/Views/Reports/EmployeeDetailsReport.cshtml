@@ -1,0 +1,122 @@
+﻿@model ERP.Web.ViewModels.EmployeeReportViewModel
+@{
+    ViewBag.Title = "EmployeelistReport";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .control-label{
+        text-align:right;
+    }
+</style>
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        loadDropDown('/Common/getEMPBranchList', {}, 'Post', '#BranchId', "", false);
+        loadDropDown('/Common/getEMPDepartment', {}, 'Post', '#DepartmentId', "", false);
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+            var BranchId = $("#BranchId").val() == "" || null ? "0" : $("#BranchId").val();
+            var DepartmentId = $("#DepartmentId").val() == "" || null ? "0" : $("#DepartmentId").val();
+            var ExperienceDate = $("#txtExperienceDate").val();
+           
+            var data = "rptslnx=1&BranchId=" + BranchId + "&DepartmentId=" + DepartmentId + "&ExperienceDate=" + ExperienceDate + '&ExportType=' + $("#cmbReportType").val();
+            ShowReport('/Reports/ShowEmployeeDetailsReport', data);
+           
+        });
+    });
+</script>
+<div role="main">
+        <div class="">
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+            <div class="page-title">
+                <div class="title_left PageHeader" style="width:90%;">
+                    <h3 style="color: white;padding:2px">&nbsp; Employee Details Information</h3>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <ul class="list-unstyled timeline">
+                            <li>
+                                <div class="block">
+                                    <div class="tags">
+                                        <a href="" class="tag">
+                                            <span>Search Options</span>
+                                        </a>
+                                    </div>
+                                    <div class="block_content">
+                                        <div class="row form-group">
+                                            @Html.LabelFor(model => model.BranchId, new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                <select id="BranchId" name="BranchId" class="input-sm form-control bordercss"></select>
+                                            </div>
+                                            @Html.LabelFor(model => model.DepartmentId, new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                <select id="DepartmentId" name="DepartmentId" class="input-sm form-control bordercss"></select>
+                                            </div>
+                                        </div>
+                                        @*<div class="row form-group">
+                                            @Html.Label("Job Type", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.DropDownList("JobTypeList", new SelectList(ViewBag.JobTypeList, "JOB_ID", "JOB_NAME"), "Please select", new { @class = "form-control bordercss" })
+                                            </div>
+                                            @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.DropDownList("DesignationList", null, new { @id = "DesignamtionList", @class = "form-control bordercss" })
+                                            </div>
+                                        </div>*@
+                                        <div class="row form-group">
+                                            @Html.Label("Experience Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.Editor("txtExperienceDate", new { htmlAttributes = new { @class = "form-control DateInput" } })
+                                            </div>
+                                            @Html.Label("Report Type", new { @class = "control-label col-md-2" })
+                                            <div class="col-sm-4">
+                                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                                    <option value="Pdf" selected="selected">Pdf</option>
+                                                    <option value="ExcelBook">Microsoft Excel</option>
+                                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                                    <option value="XML">XML</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="form-group">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success" id="btnShow">Show</button>
+                            </div>
+                          
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+

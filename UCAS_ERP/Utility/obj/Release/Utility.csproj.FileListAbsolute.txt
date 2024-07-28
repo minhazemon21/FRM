@@ -1,0 +1,6 @@
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\bin\Release\UCAS.Utility.dll
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\bin\Release\UCAS.Utility.pdb
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\obj\Release\Utility.csproj.AssemblyReference.cache
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\obj\Release\Utility.csproj.CoreCompileInputs.cache
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\obj\Release\UCAS.Utility.dll
+D:\AllTFSProject\mahiuddin.visualstudio\HRMS\NSGHRM\Utility\obj\Release\UCAS.Utility.pdb

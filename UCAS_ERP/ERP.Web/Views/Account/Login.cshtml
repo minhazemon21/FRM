@@ -1,0 +1,30 @@
+﻿@model ERP.Web.Models.LoginModel
+
+@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+}
+<style type="text/css">
+    .validation-summary-errors ul li {
+        text-decoration: none;
+        list-style: none;
+        color: red;
+    }
+</style>
+@using (Html.BeginForm(new { ReturnUrl = ViewBag.ReturnUrl }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    <div class="form-floating">
+        <input type="text" class="form-control" name="UserName" id="UserName" placeholder="Username">
+        <label for="userName">Username</label>
+        @Html.ValidationMessageFor(m => m.UserName)
+    </div>
+    <div class="form-floating mt-3">
+        <input type="password" class="form-control" id="Password" name="Password" placeholder="Username">
+        <label for="userPass">Password</label>
+        @Html.ValidationMessageFor(m => m.Password)
+    </div>
+    <input class="btn btn-lg btn-primary mt-3 w-100" type="submit" name="login" value="LOGIN" />
+}

@@ -1,0 +1,369 @@
+﻿@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Investment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var empList = (List<SalaryController.SalaryAllowance>)ViewBag.EmpList;
+    var bankList = (List<Common.Data.CommonDataModel.LookupBank>)ViewBag.BankList;
+    var accountList = (List<SalaryController.SalaryAllowance>)ViewBag.AccountList;
+
+    var SalDisbAcc = ((DataTable)ViewBag.SalaryDisbursementAccount).AsEnumerable().
+                Select(x => new
+                {
+                    Id = x.Field<int>("Id"),
+                    AccountName = x.Field<string>("AccountName"),
+                    BankBranchId = x.Field<int?>("BranchId")
+                });
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    #tblEmpList td, #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    #tblEmpList tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    #tblEmpList tr:hover {
+        background-color: #ddd;
+    }
+    #tblEmpList th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #4CAF50;
+        color: white;
+    }
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Salary Bank Account</h3>
+                        </div>
+                        @*@Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Bank Account Name</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtBankAccountName" />
+                                    <input type="hidden" value="0" id="hdnSalaryAccountId"/>
+                                </div>
+                                <label class="control-label col-md-2 required">Bank Account No</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtBankAccountNo" />
+                                </div>
+
+                            </div>
+                            <div class="row form-group"> 
+                                <label class="control-label col-md-2 required">Bank</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlBankList" onchange="GetBankBranchList(BranchId = 0);">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in bankList)
+                                        {
+                                            <option value="@r.Id">@r.BankName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2 required">Bank Branch</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlBankBranchList">
+                                       
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Employee</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlEmployeetList">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in empList)
+                                        {
+                                            <option value="@r.Id" data-code="@r.emp_office_code">@r.emp_name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2 required">Salary Disbursement Account</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlSalDisbAcc">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in SalDisbAcc)
+                                        {
+                                            <option value="@r.Id" data-branch="@r.BankBranchId">@r.AccountName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="col-md-offset-4 col-md-1">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary" id="btnReset">Reset</button>
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <br />
+                    <fieldset>
+                        <div class="row form-group">
+                            <label class="control-label col-md-2 required">Employee Status</label>
+                            <div class="col-md-3 col-sm-6 col-xs-12">
+                                <select class="form-control" id="ddlEmployeeStatus">
+                                    <option value="0">All Employee</option>
+                                    <option value="1">Active Employee</option>
+                                    <option value="2">Released Employee</option>
+                                </select>
+                            </div>
+                            <label class="control-label col-md-2">Employee Code</label>
+                            <div class="col-md-3 col-sm-6 col-xs-12">
+                                <input type="text" class="form-control" id="txtEmployeCode" />
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Account Name</th>
+                                        <th>Account No</th>
+                                        <th>Bank</th>
+                                        <th>Branch</th>
+                                        <th>Employee Name</th>
+                                        <th>Disbursement Account</th>
+                                        <th>Edit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+
+                            </table>
+                        </div>
+                    </fieldset>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+
+    function GetBankBranchList(BranchId)
+    {
+        var bankId = $("#ddlBankList").val();
+        var bankBranch = $("#ddlBankBranchList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBankBranchList", "Salary", "http")',
+            data: { BankId: bankId },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                   bankBranch.html("");
+                if (data.Status == true) {
+                    bankBranch.append($('<option></option>').val("0").html("Please select"));
+                    $.each(data.Result, function (id, e) {
+                        bankBranch.append($('<option></option>').val(e.Id).html(e.BranchName));
+                    });
+                    if(BranchId > 0)
+                    {
+                        $("#ddlBankBranchList").val(BranchId);
+                    }
+                }
+                else {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SalaryAccountEdit(GLId,Id, emp_id, BankId, BankBranchId, BankAccountName, BankAccountNo) {  //, BankAccountName, BankAccountNo
+        $("#hdnSalaryAccountId").val(Id);
+        $("#txtBankAccountName").val(BankAccountName);
+        $("#txtBankAccountNo").val(BankAccountNo);
+        $("#ddlBankList").val(BankId);
+        $("#ddlSalDisbAcc").val(GLId);
+
+        GetBankBranchList(BranchId=BankBranchId);
+       // $("#ddlBankBranchList").val() == "" ? "0" : $("#ddlBankBranchList").val().trim();
+        $("#ddlEmployeetList").val(emp_id);
+    }
+    function GetSalaryBankAccountInfo(EmployeeStatus,EmployeeCode) {
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetSalaryBankAccountInfo", "Salary", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: { accountHolderType: EmployeeStatus, EmployeeCode: EmployeeCode },
+            success: function (data) {
+                if (data.Status == true) {
+                    var html = "";
+                    $("#tblEmpList tbody").html("");
+                    $.each(data.Result, function (id, e) {
+                        html +='<tr>'
+                            +'<td >'+e.RowSl+'</td >'
+                            +'<td>'+e.BankAccountName+'</td>'
+                            +'<td>'+e.BankAccountNo+'</td>'
+                            + '<td>' + e.BankName + '</td>'
+                            + '<td>' + e.BankBranchName + '</td>'
+                            +'<td>'+e.emp_office_code +' - '+ e.emp_name + '</td>' 
+                            + '<td>' + e.GLAccountName + '</td>' 
+                            + '<td><a href="#" title="Edit" onclick="SalaryAccountEdit(' + e.GLId + ',' + e.Id + ',' + e.emp_id + ',' + e.BankId + ',' + e.BankBranchId + ',' + "'" + e.BankAccountName + "'" + ',' + "'" + e.BankAccountNo + "'"+')" class="btn btn-info btn-xs"> <i class="fa fa-caret-square-o-down"></i></a></td>' @*,@r.BankBranchId,@r.BankAccountName*@
+                            + '</tr>';
+                    });
+                    $("#tblEmpList tbody").html(html);
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+    $(document).ready(function () {
+        $("#ddlEmployeeStatus").val(1);
+        GetSalaryBankAccountInfo(EmployeeStatus = 1, EmployeeCode='');
+        $("#btnSave").on("click", function () {
+
+            var salaryAccountId = $("#hdnSalaryAccountId").val();
+            var bankAccountName = $("#txtBankAccountName").val();
+            var bankAccountNo = $("#txtBankAccountNo").val();
+            var bankId = $("#ddlBankList").val() == "" ? "0" : $("#ddlBankList").val();
+            var bankBranchId = $("#ddlBankBranchList").val() == "" ? "0" : $("#ddlBankBranchList").val();
+            var employeetId = $("#ddlEmployeetList").val();
+            var salDisbAccId = $("#ddlSalDisbAcc").val();
+
+
+            if (bankAccountName == "") {
+                $.alert.open("error", "Please insert bank account name.");
+                return false;
+            }
+            else if (bankAccountNo == "") {
+                $.alert.open("error", "Please insert account no.");
+                return false;
+            }
+            else if (bankId == "0") {
+                $.alert.open("error", "Please select bank name.");
+                return false;
+            }
+            else if (bankBranchId == "0") {
+                $.alert.open("error", "Please select bank branch.");
+                return false;
+            } else if (employeetId == "0") {
+                $.alert.open("error", "Please select employee.");
+                return false;
+            } else if (salDisbAccId == "0") {
+                $.alert.open("error", "Please select salary disbursement account.");
+                return false;
+            }
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Bank_Account_Info", "Salary", "http")',
+                    data: JSON.stringify({
+                        SalaryAccountId: salaryAccountId,
+                        BankAccountName: bankAccountName,
+                        BankAccountNo: bankAccountNo,
+                        BankId: bankId,
+                        BankBranchId: bankBranchId,
+                        EmployeetId: employeetId,
+                        SalDisbAccId: salDisbAccId
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $("#hdnSalaryAccountId").val(0);
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("SalaryAccount", "Salary")"; });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+    $(document).on("click", "#btnSearch", function () {
+        var EmployeeStatus = $("#ddlEmployeeStatus").val();
+        var EmployeeCode = $("#txtEmployeCode").val();
+        GetSalaryBankAccountInfo(EmployeeStatus, EmployeeCode);
+    });
+</script>

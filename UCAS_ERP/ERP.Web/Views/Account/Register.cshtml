@@ -1,0 +1,233 @@
+﻿@model ERP.Web.Models.RegisterModel
+@using ERP.Web.Helpers;
+@{
+    ViewBag.Title = "Register";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var UserNameType = SessionHelper.UserNameType;
+}
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .panel-success {
+        border-color: #1ABB9C !important;
+    }
+
+    .panel-heading {
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: white !important;
+        background-color: #1ABB9C !important;
+        border-color: #1ABB9C !important;
+    }
+
+    .panel-footer {
+        padding: 10px 0px;
+    }
+    .row{
+        margin-bottom:5px!important;
+        /*text-align:center!important;*/
+    }
+</style>
+<script type="text/javascript">
+    function LoadRoleList() {
+        var RoleId = $("#RoleId");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("LoadRoleList", "Account", "http")',
+            data: {},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                RoleId.html('');
+                $.each(data, function (id, option) {
+                    RoleId.append($('<option></option>').val(option.Value).html(option.Text));
+                });
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function GetBrokerEmployeeForRegister(userNameType) {
+        var AllEmployeeList = [];
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBrokerEmployeeForRegister", "Account", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: {},
+            success: function (data) {
+                if(data.Result == "Ok")
+                {
+                    $.each(data.Data, function (id, option) {
+                        var obj = new Object();
+                        obj.key = option.UserId;
+                        obj.value = option.EmployeeName;
+                        obj.Email = option.Email;
+                        obj.IsUser = option.IsUser;
+
+                        AllEmployeeList[AllEmployeeList.length] = obj;
+                    });
+                }
+                else
+                {
+                    $.alert.open("error", data.Message);
+                }
+            },
+            failure: function () {
+                $.alert.open("error", "Failed!");
+            }
+        });
+        $('#PersonName').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+                $("#PersonName").val(ui.item.value);
+                $("#UserId").val(ui.item.key);
+                $("#Email").val(ui.item.Email);
+                if (ui.item.IsUser == "No")
+                {
+                    if ((ui.item.Email != null && ui.item.Email != "") && userNameType == 1) {
+                        $("#UserName").val(ui.item.Email);
+                    }
+                    else if ((ui.item.Email == null || ui.item.Email == "") && userNameType == 1) {
+                        $.alert.open("error", "No email address found. To insert email address, go to employee form");
+                    } else {
+                        $("#UserName").prop("readonly", false);
+                    }
+                }
+                else
+                {
+                    $.alert.open("error", ui.item.value + " is already registered.");
+                }
+
+            }
+        });
+    }
+    $(document).ready(function () {
+        var userNameType = @UserNameType;
+        GetBrokerEmployeeForRegister(userNameType);
+        LoadRoleList();
+        $('#btnRegisterSave').click(function (e) {
+            e.preventDefault();
+            if (!validator.checkAll($('form'))) {
+                return false;
+            }
+            else {//RoleId ConfirmPassword Password UserName PersonName
+                if ($("#RoleId").val() != "0" && $("#ConfirmPassword").val() != "" && $("#Password").val() != "" && $("#UserName").val() != "" && $("#PersonName").val() != "") {
+                    $("#hashing").val($("#Password").val());
+                    $('#RegisterForm').ajaxSubmit({
+                        type: "POST",
+                        target: '#thumbnil',
+                        data: {},
+                        dataType: 'json',
+                        resetForm: true,
+                        success: function (data) {
+                            if (data.Result == "OK") {
+                                $$.alert.open("error", data.Message);
+                            }
+                            else {
+                                $.alert.open("error", data.Message);
+                            }
+                        },
+                        error: function () {
+                            $("#dialog-message").html('<p>Error, Fail to Save.</p>');
+                            $("#dialog-message").dialog({
+                                modal: true,
+                                buttons: {
+                                    Ok: function () {
+                                        $(this).dialog("close");
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    $.alert.open("error", "All field required");
+                }
+
+            }
+        });
+    });
+</script>
+
+@Html.ActionLink("Back To List", "RegisterIndex", null, new { @class = "btn btn-primary btn-sm pull-right" })
+@using (Html.BeginForm("Register", "Account", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal form-label-left", @id = "RegisterForm" }))
+{
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">User Registration</div>
+                <div class="panel-body">
+                    <div class="row">
+                        @if (UserNameType == 1)
+                        {
+                            <h5 style="color:red;text-align:center;">** A employee must have a email address **</h5>
+                        }
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.Label("Employee Name", htmlAttributes: new { @class = "control-label required" })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.EditorFor(model => model.PersonName, new { htmlAttributes = new { @class = "form-control" } })
+
+                        </div>
+                    </div>
+                    <input type="hidden" name="Hashing" id="hashing" value="" />
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.LabelFor(model => model.UserName, htmlAttributes: new { @class = "control-label required" })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.EditorFor(model => model.UserName, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                            @Html.HiddenFor(model => model.UserId, new { htmlAttributes = new { @class = "form-control" } })
+                            @Html.HiddenFor(model => model.Email, new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.LabelFor(model => model.Password, htmlAttributes: new { @class = "control-label required" })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control", @type = "password" } })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.LabelFor(model => model.ConfirmPassword, htmlAttributes: new { @class = "control-label required" })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.EditorFor(model => model.ConfirmPassword, new { htmlAttributes = new { @class = "form-control", @type = "password" } })
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" style="text-align:right">
+                            @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label required" })
+                        </div>
+                        <div class="col-md-4">
+                            @Html.DropDownList("RoleId", null, new { @class = "form-control bordercss" })
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row form-group">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:center;">
+                            <button type="submit" id="btnRegisterSave" class="btn btn-success">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+

@@ -1,0 +1,421 @@
+﻿@using Common.Data.CommonDataModel;
+
+@{
+    ViewBag.Title = "Transfer";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var branchList = (List<OfficeBranch>)ViewBag.BranchList;
+    
+}
+
+
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    .accordion .panel-heading {
+        padding: 8px;
+    }
+
+    .wizard_content {
+        /*overflow:auto;*/
+        margin: 0 auto;
+        height: 350px;
+        bottom: 0px;
+        top: 0px;
+        overflow-x: hidden;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+    function showMyImage(fileInput) {
+        var files = fileInput.files;
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            var imageType = /image.*/;
+
+            if (file.type.match(imageType)) {
+                //continue;
+                var size = Math.round(file.size / 1024);
+                if (size <= 9000) {
+                    var img = document.getElementById("thumbnil");
+                    img.file = file;
+                    var reader = new FileReader();
+                    reader.onload = (function (aImg) {
+                        return function (e) {
+                            aImg.src = e.target.result;
+                        };
+                    })(img);
+                    reader.readAsDataURL(file);
+                }
+                else
+                    alert('Image file cannot be greater than 9000 KB.');
+            }
+            else {
+                $("#PhotographMsg").replaceWith($("#PhotographMsg").clone(true));
+                alert('Please select a valid image file');
+            }
+
+        }
+    }
+
+
+
+    function showMyImageSign(fileInput) {
+        var files = fileInput.files;
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            var imageType = /image.*/;
+
+            if (file.type.match(imageType)) {
+                //continue;
+                var size = Math.round(file.size / 1024);
+                if (size <= 9000) {
+                    var img = document.getElementById("thumbnil2");
+                    img.file = file;
+                    var reader = new FileReader();
+                    reader.onload = (function (aImg) {
+                        return function (e) {
+                            aImg.src = e.target.result;
+                        };
+                    })(img);
+                    reader.readAsDataURL(file);
+                }
+                else
+                    alert('Image file cannot be greater than 9000 KB.');
+            }
+            else {
+                $("#SignatureMsg").replaceWith($("#SignatureMsg").clone(true));
+                alert('Please select a valid image file');
+            }
+
+        }
+    }
+
+
+
+    function Clear() {
+        $("#hdnEmployeeId").val(0);
+        $("#EmployeeName").val("");
+        $("#empDateOfBirth").val("");
+        $("#desg_name").val("");
+        $("#empJoiningDate").val("");
+        $("#desg_name").val("");
+        $("#branch_name").val("");
+        $("#job_name").val("");
+        $("#desk_name").val("");
+        $("#DueDateofConfirmation").val("");
+        $("#txtResignationDate").val("");
+        $("#txtResignationAcceptDate").val("");
+        $("#txtReleaseDate").val("");
+        $("#txtReleaseOrderNo").val("");
+        $("#txtFileCloseDate").val("");
+        $('#thumbnil').attr("src", "/Images/blank-headshot.jpg");
+        $("#thumbnil2").attr("src", "/Images/signature.png");
+    }
+
+    function Get_EmployeeInfo_Details_By_Code() {
+        var EmployeeCode = $("#EmployeeCode").val();
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+
+                        $("#hdnEmployeeId").val(E.emp_id);
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeName").val(E.emp_name);
+                        $("#empDateOfBirth").val(E.emp_datetimeof_birth);
+                        $("#hdnPresentBranchId").val(E.emp_branch_id);
+                        $("#empJoiningDate").val(E.emp_joining_datetime);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#job_name").val(E.job_name);
+                        $("#branch_name").val(E.branch_name);
+                        $("#desk_name").val(E.desk_name);
+                        $("#DueDateofConfirmation").val(E.emp_confirmation_datetime);
+
+
+                        $('#AjaxLoader').hide();
+                        $("#thumbnil2").attr("src", "/Hrms/Employee/RetrieveSign/" + E.emp_id + "");
+                        $("#thumbnil").attr("src", "/Hrms/Employee/RetrieveImage/" + E.emp_id + "");
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+
+
+
+
+
+
+
+
+    $(document).ready(function () {
+
+        $("#EmployeeCode").blur(function () {
+            if($("#EmployeeCode").val() != "")
+            {
+                Get_EmployeeInfo_Details_By_Code();
+            }
+        });
+
+
+        $("#btnSave").on("click",function(){
+    
+            var officeOrderNo = $("#txtOfficeOrderNo").val().trim();
+            var officeOrderDate = $("#txtOfficeOrderDate").val().trim();
+            var transferDate = $("#txtTransferDate").val().trim();
+            var branchTolist = $("#ddlBranchTolist").val().trim();
+            var presentBranchId = $("#hdnPresentBranchId").val().trim();
+            var joiningDate = $("#txtJoiningDate").val().trim();
+            var EmployeeId = $("#hdnEmployeeId").val();
+            var EmployeeCode = $("#EmployeeCode").val().trim();
+
+            if (EmployeeId == 0 || EmployeeCode == "")
+            {
+                $.alert.open("error", "Please insert employee.");
+                return false;
+            }
+            else if (branchTolist == "0") {
+                $.alert.open("error", "Please select branch.");
+                return false;
+            }
+            else if (presentBranchId == branchTolist)
+            {
+                $.alert.open("error", "Invalid transaction. Present branch and transfered branch are same.");
+                return false;
+            }
+           
+            else if (officeOrderNo == "")
+            {
+                $.alert.open("error", "Please insert office order no.");
+                return false;
+            }
+            else if (officeOrderDate == "")
+            {
+                $.alert.open("error", "Please insert office order date.");
+                return false;
+            }
+            else if (transferDate == "") {
+                $.alert.open("error", "Please insert transfer date.");
+                return false;
+            }
+            else
+            {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Employee_Transfer_Info", "Employee", "http")',
+                    data: JSON.stringify({
+                                      EmployeeId: EmployeeId
+                                    , OfficeOrderNo: officeOrderNo
+                                    , OfficeOrderDate: officeOrderDate
+                                    , TransferDate: transferDate
+                                    , BranchTolist: branchTolist
+                                    , PresentBranchId: presentBranchId
+                                    , JoiningDate: joiningDate
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if(data.Status == true)
+                        {
+                            $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                        }
+                        else
+                        {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <input type="hidden" id="hdnPresentBranchId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Employee Transfer</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <legend>Basic Information</legend>
+
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                @Html.Label("Employee Id", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeCode", new { htmlAttributes = new { @class = "form-control", @autofocus = true } })
+                                </div>
+                                @Html.Label("Name", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("EmployeeName", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+
+                            <div class="row form-group">
+                                @Html.Label("Date of Birth", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("empDateOfBirth", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Joining Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("empJoiningDate", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Job Type", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("job_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Designation ", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("desg_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Branch", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("branch_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                                @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("Dept_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Desk", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("desk_name", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+
+                                @Html.Label("Due Date of Confirmation", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("DueDateofConfirmation", new { htmlAttributes = new { @class = "form-control", @disabled = true } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Image", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <img id="thumbnil" style="width:100px; height:100px;" src="~/Images/blank-headshot.jpg" alt="Image" class="img-responsive" />
+                                </div>
+                                @Html.Label("Sign", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <img id="thumbnil2" style="width:100px; height:100px;" src="~/Images/signature.png" alt="Image" class="img-responsive" />
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Transfer</legend> 
+                        <div style="text-align:right">
+                            <div class="row form-group">
+                                @Html.Label("Office Order No", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtOfficeOrderNo", new { htmlAttributes = new { @class = "form-control" } })
+                                </div>
+                                @Html.Label("Office Order Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtOfficeOrderDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Transfer Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtTransferDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                                </div>
+                                @Html.Label("Transfer To", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlBranchTolist">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var b in branchList)
+                                        {
+                                            <option value="@b.Id">@b.BranchName</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                @Html.Label("Joining Date", htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    @Html.Editor("txtJoiningDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="control-label col-md-5">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

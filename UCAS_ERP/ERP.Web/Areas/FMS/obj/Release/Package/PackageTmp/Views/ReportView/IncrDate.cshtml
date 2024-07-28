@@ -1,0 +1,72 @@
+﻿@*@{
+        ViewBag.Title = "EmployeelistReport";
+        Layout = "~/Views/Shared/_LayoutUHRMS.cshtml";
+    }*@
+
+@*@model Hrms.HRMViewModel.EmployeeReportViewModel*@
+@{
+    ViewBag.Title = "EmployeelistReport";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        loadDropDown('/Common/getEMPDepartment', {}, 'Post', '#DepartmentId', "", false);
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+            var DepartmentId = $("#DepartmentId").val() == "" ? "0" : $("#DepartmentId").val();
+            var EmpCode = "";
+
+            var data = "rptslnx=1&EmployeeCode=" + EmpCode + "&DepartmentId=" + DepartmentId + "&ReportType=" + $("#cmbReportType").val();
+            ShowReport('/Hrms/ReportView/ShowEmployeeIncrementDate', data);
+
+        });
+    });
+</script>
+
+<div role="main">
+    <div class="">
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp; Employee Increment Date</h3>
+            </div>
+        </div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <div class="row form-group">
+                       @* @Html.LabelFor(model => model.DepartmentId, new { @class = "control-label col-md-2" })*@
+                        @Html.Label("Department", new { @class = "control-label col-md-2" })
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <select id="DepartmentId" name="DepartmentId" class="input-sm form-control bordercss"></select>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        @Html.Label("Report Type", new { @class = "control-label col-md-2" })
+                        <div class="col-sm-4">
+                            <select class="input-sm form-control bordercss" id="cmbReportType">
+                                <option value="Pdf" selected="selected">Pdf</option>
+                                <option value="ExcelBook">Microsoft Excel</option>
+                                <option value="Excel">Microsoft Excel (97-2003)</option>
+                                <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                <option value="Word">Microsoft Word (97-2003)</option>
+                                <option value="XML">XML</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4"></div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-success" id="btnShow">Show</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

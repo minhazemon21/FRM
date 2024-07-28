@@ -1,0 +1,366 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var employeeList = (List<SalaryIncrementController.SalaryIncrement>)ViewBag.EmployeeList;
+    var branchList = (List<SalaryController.SalaryAllowance>)ViewBag.BranchList;
+    var departmentList = (List<SalaryController.SalaryAllowance>)ViewBag.DepartmentList;
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+
+    #tblAllowanceList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblAllowanceList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblAllowanceList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblAllowanceList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblAllowanceList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+</style>
+
+<script type="text/javascript">
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        var cdata = @ViewData["CompanyId"];
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if ((CompanyList != "0" || CompanyList != 0) && CompanyList == cdata) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function SaveEmployeewiseProposedSalaryIncrement() {
+        var allEmployeeCodes = "";
+        var EffectiveDate = $("#txtEffectiveDate").val();
+        var IncrementPercent = $("#IncrementPercent").val();
+        var detailsData = "";
+        var loanData = "";
+
+        $(".clEmpIds").each(function () {
+            var empCode = $(this).val();
+            if ($("#chk-" + empCode).is(":checked") == true) {
+                // U030~No~32600~31100~test|U028~Yes~16000~14500~test2
+
+                allEmployeeCodes = allEmployeeCodes + "|" + empCode;
+
+                //var all_Id = $("#AttenAllowanceId").val();
+                //var all_Id_ins = $("#IncentiveId").val();
+                //var all_Id_over = $("#OverTimeId").val();
+
+                //var absnt = parseFloat($("#abAmt-" + empCode).val() == "" ? "0" : $("#abAmt-" + empCode).val());
+                //var incentiveAmt = parseFloat($("#addAmt-" + empCode).val() == "" ? "0" : $("#addAmt-" + empCode).val());
+                //var overAmt = parseFloat($("#addovertime-" + empCode).html() == "" ? "0" : $("#addovertime-" + empCode).html()); 
+            }
+        });
+        if (EffectiveDate == "" || EffectiveDate == "0") {
+            $.alert.open("error", "Please insert effective date.");
+            return false;
+        }
+        else if (IncrementPercent == "0") {
+            $.alert.open("error", "Please Increment Percent.");
+            return false;
+        }
+        else {
+            $("#AjaxLoader").show();
+            $.ajax({
+                type: 'POST',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveEmployeewiseProposedSalaryIncrement", "SalaryIncrement", "http")',
+                data: JSON.stringify({
+                                          allEmployeeCodes: allEmployeeCodes
+                                        , EffectiveDate: EffectiveDate
+                                        , IncrementPercent: IncrementPercent
+                                        , IsReprocess : 0
+                }),
+                dataType: 'json',
+                async: true,
+                success: function (data) {
+                    $("#AjaxLoader").hide();
+                    if (data.Status == true) {
+                        $("#ddlCompanyList").val("0");
+                        $("#ddldepartmentList").val("0");
+                        $("#IncrementPercent").val("0");
+                        $("#txtEffectiveDate").val("");
+                        $("#txtExceptEmpCode").val("");
+                        $.alert.open(data.Result, data.Message, function () {
+                            window.location = "@Url.Action("Index", "SalaryIncrement")";
+                        });
+                    }
+                    else {
+                        $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                    }
+                },
+                error: function (request, status, error) {
+                    $("#AjaxLoader").hide();
+                    alert(request.statusText + "/" + request.statusText + "/" + error);
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+
+        $("#all_chk").on("click", function () {
+            $(".chksig").prop("checked", $(this).is(":checked"));
+        });
+        $("#ddlCompanyList").val(@ViewData["CompanyId"]);
+        $("#ddlCompanyList").change(function () {
+            GetDepartmentList(0);
+        });
+        GetDepartmentList(0);
+
+        $("#btnSearch").on("click", function () {
+            var CompanyId = $("#ddlCompanyList").val() == "" ? "0" : $("#ddlCompanyList").val();
+            var EffectiveDate = $("#txtEffectiveDate").val();
+            var exceptEmpCode = $("#txtExceptEmpCode").val();
+            var inExCode = $("#chkExceptEmpCode").is(":checked") == true ? "E" : "I";
+            var IncrementPercent = $("#IncrementPercent").val();
+            var departmentId = $("#ddldepartmentList").val();
+            if (IncrementPercent != 0 && EffectiveDate != '' && CompanyId !=0) {
+                window.location = "@Url.Action("Index", "SalaryIncrement")?EffectiveDate=" + EffectiveDate + '&IncrementPercent=' + IncrementPercent + '&CompanyId=' + CompanyId + '&DepartmentId=' + departmentId + '&ExceptEmpCode=' + exceptEmpCode + '&inExCode=' + inExCode;
+            }
+            else {
+                $.alert.open("error", "Please insert required field");
+            }
+        });
+
+        $("#btnReset").on("click", function () {
+            window.location = "@Url.Action("Index", "SalaryIncrement")";
+        });
+
+        $("#btnSave").on("click", function () {
+            SaveEmployeewiseProposedSalaryIncrement();
+        });
+
+
+        if ($("#txtinExCode").val() == "E") {
+            $("#chkExceptEmpCode").prop("checked", true);
+            $("#lblEmpCode").html("Exclude Employee Code");
+        }
+        else {
+            $("#chkExceptEmpCode").prop("checked", false);
+            $("#lblEmpCode").html("Employee Code");
+        }
+
+        $("#chkExceptEmpCode").on("click", function () {
+            if ($("#chkExceptEmpCode").is(":checked") == true) {
+                $("#lblEmpCode").html("Exclude Employee Code");
+            }
+            else {
+                $("#lblEmpCode").html("Employee Code");
+            }
+        });
+
+    });
+
+</script>
+
+<div role="main">
+    <div class="">
+        <div class="page-title">
+            <div class="title_left PageHeader" style="width:90%;">
+                <h3 style="color: white;padding:2px">&nbsp;&nbsp; Save Proposed Salay Increment</h3>
+            </div>
+        </div>
+        <div id="AjaxLoader" class="ajaxLoader"></div>
+        <div class="col-md-12 col-sm-6 col-xs-12">
+            <div class="x_panel">
+                <div class="x_content">
+                    <fieldset style="text-align:right">
+                        <div class="row form-group">
+                            @Html.Label("Effective Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtEffectiveDate" class="form-control DateInput check-date" value="@ViewData["effectivedate"]" />
+                            </div>
+                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                <select id="ddlCompanyList" class="form-control bordercss">
+                                    <option value="0">Please select</option>
+                                    @foreach (var dt in sl)
+                                    {
+                                        <option value="@dt.Id">@dt.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2", @id = "lblEmpCode" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" value="@ViewData["exceptempcode"]" />
+                            </div>
+                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <select class="form-control" id="ddldepartmentList">
+                                    <option value="0">Please select</option>
+                                    @*@foreach (var d in departmentList)
+                                        {
+                                            <option value="@d.Id">@d.DepartmentName</option>
+                                        }*@
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Increment (%)", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4">
+                                <input type="number" id="IncrementPercent" class="form-control" value="@ViewData["incrementpercent"]" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-offset-2 col-md-4">
+                                <button type="submit" class="btn btn-info" id="btnSearch">Search</button>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary" id="btnReset">Reset</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <br />
+                </div>
+                <div class="row form-group">
+                    <table id="tblAllowanceList">
+                        <tr>
+                            <th>&nbsp; Sl</th>
+                            @*<th>Code</th>*@
+                            <th>Employee Name</th>
+                            <th style="width:5%">Desg</th>
+                            <th>Previous Gross Salary</th>
+                            <th style="width:10%">Increment Amount</th>
+                            <th>New Gross Salary</th>
+                            <th>New Basic</th>
+                            <th>New House Rent</th>
+                            <th>New Medical Allowance</th>
+                            <th>New Conveyance</th>
+                            <th style="width:10%">New PF</th>
+                            @*<th style="width:8%">Remarks</th>*@
+                            <th><input type="checkbox" id="all_chk" checked="checked" /></th>
+                        </tr>
+                        @foreach (var r in employeeList)
+                        {
+                            <tr>
+                                <td>@r.RowSl<input type="text" value="@r.emp_id" class="clemp_id" style="display:none" /></td>
+                                @*<td>@r.emp_office_code</td>*@
+                                <td>@r.emp_office_code-@r.emp_name<input type="text" value="@r.emp_office_code" class="clEmpIds" style="display:none" /></td>
+                                <td>@r.DesignationShortName</td>
+                                <td>@Math.Round(r.PreGrossSalary, 0)<input type="text" value="@r.PreGrossSalary" id="PreGrossSalary-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.PreGrossSalary</td>*@
+                                <td>@Math.Round(r.ProposedIncrementAmt, 0)<input type="text" value="@r.ProposedIncrementAmt" id="ProposedIncrementAmt-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedIncrementAmt</td>*@
+                                <td>@Math.Round(r.ProposedGrossSalary, 0)<input type="text" value="@r.ProposedGrossSalary" id="ProposedGrossSalary-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedGrossSalary</td>*@
+                                <td>@Math.Round(r.ProposedBasic, 0)<input type="text" value="@r.ProposedBasic" id="ProposedBasic-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedBasic</td>*@
+                                <td>@Math.Round(r.ProposedHouseRent, 0)<input type="text" value="@r.ProposedHouseRent" id="ProposedHouseRent-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedHouseRent</td>*@
+                                <td>@Math.Round(r.ProposedMedicalAllowance, 0)<input type="text" value="@r.ProposedMedicalAllowance" id="ProposedMedicalAllowance-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedMedicalAllowance</td>*@
+                                <td>@Math.Round(r.ProposedConveyance, 0)<input type="text" value="@r.ProposedConveyance" id="ProposedConveyance-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedConveyance</td>*@
+                                <td>@Math.Round(r.ProposedPFDeduct, 0)<input type="text" value="@r.ProposedPFDeduct" id="ProposedPFDeduct-@r.emp_office_code" style="display:none" /></td>
+                                @*<td>@r.ProposedPFDeduct</td>*@
+                                <td>
+                                    <input id="chk-@r.emp_office_code" type="checkbox" checked class="chksig" />
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+                <div class="row form-group">
+                    <div class="col-md-offset-5 col-md-4">
+                        <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                    </div>
+                    <input id="txt-effectivedate" type="text" value="@ViewData["effectivedate"]" style="display:none" />
+                    <input id="txt-ExceptEmpCode" type="text" value="@ViewData["ExceptEmpCode"]" style="display:none" />
+                    <input id="DepartmentId" type="number" value="@ViewData["DepartmentId"]" style="display:none" />
+                    <input id="CompanyId" type="number" value="@ViewData["CompanyId"]" style="display:none" />
+                    <input id="incrementpercent" type="number" value="@ViewData["incrementpercent"]" style="display:none" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

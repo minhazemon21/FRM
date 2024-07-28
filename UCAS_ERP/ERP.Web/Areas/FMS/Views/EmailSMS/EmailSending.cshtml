@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "EmailSending";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+<style>
+    .panel-success {
+        border-color: #1ABB9C !important;
+    }
+    .panel-heading {
+        padding: 6px 10px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        color: white !important;
+        background-color: #1ABB9C !important;
+        border-color: #1ABB9C !important;
+    }
+    .panel-footer {
+        padding: 10px 0px;
+    }
+</style>
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-success">
+            <div class="panel-heading">Send Email</div>
+            <div class="panel-body">
+                <div class="row form-group">
+                    <label for="txtEmail" class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Email Address</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <input type="text" class="form-control" id="txtEmail" placeholder="Email">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label for="cctxtEmail" class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">CC Email Address</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <input type="text" class="form-control" id="cctxtEmail" placeholder="CC Email Address">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label for="txtSubject" class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Subject</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <input type="text" class="form-control" id="txtSubject" placeholder="subject">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label for="btnFile" class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Email Attachment</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <input type="file" class="file" id="btnFile" multiple="multiple">
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label for="txtMessage" class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Message</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <textarea class="form-control" id="txtMessage" placeholder="Write message here" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row form-group">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:center;">
+                        <input type="button" value="Send Email" id="btnSend" class="btn btn-success">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $("#btnSend").on("click", function () {
+        $.alert.open('confirm', 'Are you sure you want to send email?', function (button) {
+            if (button == 'yes') {
+                sendingEmail();
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+        return true;
+    });
+    function sendingEmail(isLoad) {
+        var email = $("#txtEmail").val().trim();
+        var ccemail = $("#cctxtEmail").val().trim();
+        var message = $("#txtMessage").val().trim();
+        var subject = $("#txtSubject").val().trim();
+        
+        if (email == "") {
+            $.alert.open("error","error", "Please enter email address.");
+            return false;
+        }
+        if (subject == "") {
+            $.alert.open("error","error", "Please enter email subject.");
+            return false;
+        }
+        if (message == "") {
+            $.alert.open("error","error", "Please enter message body.");
+            return false;
+        }
+        $('#AjaxLoader').show();
+        var formdata = new FormData();
+        var fileInput = document.getElementById('btnFile');
+        for (var i = 0; i < fileInput.files.length; i++) {
+            formdata.append("emailAttachment", fileInput.files[i]);
+        }
+        formdata.append("email", email);
+        formdata.append("ccemail", ccemail);
+        formdata.append("message", message);
+        formdata.append("subject", subject);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', "@Url.Action("SendingEmail", "EmailSMS")");
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+        xhr.send(formdata);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var data = JSON.parse(xhr.responseText);
+                if (data.Status == true) {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("success", "success", data.Message, function () {
+                        window.location.reload();
+                    });
+                } else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("error","error",data.Message);
+                }
+            }
+        }
+    }
+</script>

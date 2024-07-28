@@ -1,0 +1,378 @@
+﻿@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+
+    var AllowanceList = ((DataTable)ViewBag.AllowanceList).AsEnumerable()
+                .Select(row => new
+                {
+                    Id = row.Field<int>("Id"),
+                    AllowanceName = row.Field<string>("AllowanceName"),
+                    AllowanceShortName = row.Field<string>("AllowanceShortName")
+                }).ToList();
+}
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+    hr {
+        width:100%; 
+        height: 1px;
+        background-color: gray;
+    }
+    #tblBonusRule {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    #tblBonusRule td, #customers th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #tblBonusRule tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    #tblBonusRule tr:hover {
+        background-color: #ddd;
+    }
+
+    #tblBonusRule thead tr {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        text-align: left;
+        background-color: #4CAF50;
+        color: white;
+    }
+    .k-grouping-header {
+        background-color: #337ab7;
+    }
+    .k-grid .k-grouping-header {
+        color: white;
+    }
+    .panel-footer {
+        padding: 10px 5px;
+    }
+    .tblBonusRule th:nth-child(3) {
+        width: 5%;
+    }
+    .tblBonusRule th:nth-child(5) {
+        width: 5%;
+    }
+    .k-grid td:last-child {
+        text-align: center;
+    }
+</style>
+<script type="text/javascript">
+    function GetBonusRulesList() {
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: '@Url.Action("GetBonusRulesList", "BonusRules", "http")',
+                    dataType: "json",
+                    data: {}
+                }
+            },
+            pageSize: 20,
+        });
+        $("#grid").kendoGrid({
+            dataSource: dataSource,
+            height: 500,
+            groupable: true,
+            reorderable: false,
+            filterable: false,
+            sortable: false,
+            resizable: false,
+            columnMenu: false,
+            pageable: {
+                refresh: true,
+                pageSizes: true,
+                buttonCount: 5
+            },
+            columns: [{
+                field: "Id",
+                hidden: true,
+                filterable: false
+            },
+           {
+               field: "RowSl",
+               title: "SL",
+               width: "7%"
+           },
+            {
+                field: "AllowanceName",
+                title: "Bonus Name ",
+                width: "25%"
+            },
+            {
+                field: "Description",//
+                title: "Description",
+                width: "25%"
+            },
+            {
+                field: "JobDurationDayFrom",
+                title: "JDDF",
+                width: "10%"
+            },
+            {
+                field: "JobDurationDayTo",
+                title: "JDDT",
+                width: "10%"
+            },
+            {
+                field: "CalculationBasisOnName",
+                title: "CBO",
+                width: "10%"
+            },
+            {
+                field: "Percentage",
+                title: "%",
+                width: "7%"
+            },
+            {
+                title: "Status",
+                width: "8%",
+                template: function (dataItem) {
+                    return '<input type="checkbox" value="' + dataItem.IsActive + '" id="chk-' + dataItem.Id + '" class="" onchange="ActiveInactiveRule(' + dataItem.Id + ')" ' + (dataItem.IsActive == true ? "checked=checked" : "") + ' />';
+                     }
+            },
+             {
+                 title: "Action",
+                 width: "8%",
+                 template: function (dataItem) {
+                     return '<a href="#" title="Edit" onclick=" LoadEditData(' + dataItem.Id + ')" class="btn btn-info btn-xs"><i class="fa fa-pencil"></i></a>';
+                 }
+             },
+            ]
+        });
+    }
+    function ClearAll() {
+        $("#dllAllowanceId").attr("data-ruleid", 0);
+        $("#dllAllowanceId").val(0);
+        $("#txtRuleDescription").val('');
+        $("#numJobDurationDayFrom").val('');
+        $("#txtJobDurationDayTo").val('');
+        $("#dllCalculationBasisOn").val(0);
+        $("#numPercentage").val('');
+    }
+    function ActiveInactiveRule(Id) {
+        var checkStatus = $("#chk-" + Id).is(":checked");
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("SaveRuleActiveInActiveStatus", "BonusRules", "http")',
+            type: "POST",
+            dataType: 'json',
+            async: true,
+            data: JSON.stringify({ Id: Id, RuleStaus: checkStatus }),
+            success: function (data) {
+                if (data.Staus == true) {
+                    $.alert.open("success", data.message, function () {
+                        //window.location.reload();
+                    });
+                }
+                else {
+                    $.alert.open("error", data.message, function () {
+                        window.location.reload();
+                    });
+                }
+            },
+            error: function () {
+                $.alert.open("error", data.message, function () { window.location.reload(); });
+            }
+        });
+    }
+    function LoadEditData(Id) {
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetBonusRuleById", "BonusRules", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: { id: Id},
+            success: function (data) {
+                if (data.Staus == true) {
+                    $("#dllAllowanceId").attr("data-ruleid",data.data.Id);
+                    $("#dllAllowanceId").val(data.data.SalaryAllowanceId);
+                    $("#txtRuleDescription").val(data.data.Description);
+                    $("#numJobDurationDayFrom").val(data.data.JobDurationDayFrom);
+                    $("#txtJobDurationDayTo").val(data.data.JobDurationDayTo);
+                    $("#dllCalculationBasisOn").val(data.data.CalculationBasisOn);
+                    $("#numPercentage").val(data.data.Percentage);
+                    $("#dllAllowanceId").focus();
+                    $("#btnSave").text("Update");
+                }
+                else {
+                    $.alert.open("error", "Failed to load data.");
+                }
+            },
+            error: function () {
+                $.alert.open("error", data.message, function () { window.location.reload(); });
+            }
+        });
+    }
+    $(document).ready(function () {
+        GetBonusRulesList();
+
+
+        $("#StartDate").on("change", function () {
+            var fromDate = $("#StartDate").val();
+            $("#EndDate").datepicker('option', { minDate: fromDate });
+        });
+        $("#EndDate").on("change", function () {
+            var toDate = $("#EndDate").val();
+            $("#TotalDays").val(0);
+            $("#StartDate").datepicker('option', { maxDate: toDate });
+        });
+
+        $("#btnSave").on("click", function () {
+        var AllowanceId = parseInt($("#dllAllowanceId").val());
+        var RuleDescription = $("#txtRuleDescription").val();
+        var JobDurationDayFrom = parseInt($("#numJobDurationDayFrom").val());
+        var JobDurationDayTo = parseInt($("#txtJobDurationDayTo").val());
+        var CalculationBasisOn = $("#dllCalculationBasisOn").val();
+        var Id = parseInt($("#dllAllowanceId").attr("data-ruleid"));
+
+        var Percentage = $("#numPercentage").val();
+        if (AllowanceId == "0" || AllowanceId == null || AllowanceId == undefined) {
+            $.alert.open("error", "Select Bonus Type.");
+            return false;
+        }
+        else if (RuleDescription == "" || RuleDescription == null || RuleDescription == undefined) {
+            $.alert.open("error", "Insert Rule Description.");
+            return false;
+        }
+        else if (JobDurationDayFrom <= 0 || JobDurationDayFrom == null || JobDurationDayFrom == undefined) {
+            $.alert.open("error", "Insert Job Duration Day From.");
+            return false;
+        }
+        else if (JobDurationDayTo <= 0 || JobDurationDayTo == null || JobDurationDayTo == undefined) {
+            $.alert.open("error", "Insert Job Duration Day To.");
+            return false;
+        }
+        else if (CalculationBasisOn == "0" || CalculationBasisOn == null || CalculationBasisOn == undefined) {
+            $.alert.open("error", "Select Calculation Basis On.");
+            return false;
+        }
+        else if (Percentage < 0 || CalculationBasisOn == null || CalculationBasisOn == undefined) {
+            $.alert.open("error", "Insert Percentage.");
+            return false;
+        } else if (JobDurationDayFrom > JobDurationDayTo) {
+            $.alert.open("error", "Job Duration Day From can't' greater than Job Duration Day To.");
+            return false;
+        }
+        else {
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("SaveBonusRule", "BonusRules", "http")',
+                type: "POST",
+                dataType: 'json',
+                async: true,
+                data: JSON.stringify({ AllowanceId: AllowanceId, RuleDescription: RuleDescription, JobDurationDayFrom: JobDurationDayFrom, JobDurationDayTo: JobDurationDayTo, CalculationBasisOn: CalculationBasisOn, Percentage: Percentage,Id:Id }),
+                success: function (data) {
+                    if (data.Staus == true) {
+                        $.alert.open("success", data.message, function () {
+                            window.location.reload();
+                        });
+                    }
+                    else {
+                        $.alert.open("error", data.message, function () {
+                            //window.location.reload();
+                        });
+                    }
+                },
+                error: function () {
+                    $.alert.open("error", data.message, function () {
+                        //window.location.reload();
+                    });
+                }
+            });
+        }
+        });
+        $("#btnReset").on("click", function () {
+            ClearAll();
+            $("#btnSave").text("Save");
+        });
+    });
+</script>
+
+    @Html.AntiForgeryToken()
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Bonus Rules Setup</div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="row form-group">
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblBonusList">Bonus List</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <select class="form-control bordercss" id="dllAllowanceId" data-ruleid="0">
+                                    <option value="0">Please Select</option>
+                                    @foreach (var dt in AllowanceList)
+                                    {
+                                        <option value="@dt.Id">@dt.AllowanceName</option>
+                                    }
+                                </select>
+                            </div>
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblRuleDescription">Rule Description</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <input type="text" class="form-control bordercss" id="txtRuleDescription" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblJobDurationDayFrom">Job Duration Day From</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <input type="number" class="form-control bordercss" id="numJobDurationDayFrom" />
+                            </div>
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblJobDurationDayTo">Job Duration Day To</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <input type="number" class="form-control bordercss" id="txtJobDurationDayTo" />
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblCalculationBasisOn">Calculation Basis On</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <select class="form-control bordercss" id="dllCalculationBasisOn">
+                                    <option value="0">Please Select</option>
+                                    <option value="G">Gross Salary</option>
+                                    <option value="B">Basic Salary</option>
+                                </select>
+                            </div>
+                            <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required" id="lblPercentage">Percentage</label>
+                            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                                <input type="number" class="form-control bordercss" id="numPercentage" />
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row form-group">
+                            <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-4 col-xs-offset-2 col-md-4">
+                                <button type="button" class="btn btn-success" id="btnSave">Save</button>
+                                <button type="button" class="btn btn-info" id="btnReset">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel-footer">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div id="grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

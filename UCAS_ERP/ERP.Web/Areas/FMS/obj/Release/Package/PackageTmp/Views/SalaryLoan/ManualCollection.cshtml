@@ -1,0 +1,220 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Loan";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var loanList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanList;
+}
+
+<script type="text/javascript">
+
+      
+
+    function CollectionAmtCheck()
+    {
+        var coll = parseFloat($("#txtCollectionAmount").val() == "" ? "0" : $("#txtCollectionAmount").val());
+        var due = parseFloat($("#txtCollectionDue").val() == "" ? "0" : $("#txtCollectionDue").val());
+
+        if (coll > due)
+        {
+            $("#txtCollectionAmount").val(0);
+            $.alert.open("error", "Collection amount is greater than due");
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    $(document).ready(function () {
+
+
+        $("#btnSave").on("click", function () {
+            var loanDisbuseId = $("#hdnLoanDisbuseId").val();
+            var collectionDate = $("#txtCollectionDate").val().trim();
+            var collectionAmount = $("#txtCollectionAmount").val().trim();
+            var remarks = $("#txtRemarks").val();
+
+           
+            if (collectionAmount == "0" || collectionAmount == "") {
+                $.alert.open("error", "Please insert collection amount.");
+                return false;
+            }
+            else if (collectionDate == "") {
+                $.alert.open("error", "Please insert collection date.");
+                return false;
+            }
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Loan_Manual_Collection", "SalaryLoan", "http")',
+                    data: JSON.stringify({
+                        LoanDisbuseId: loanDisbuseId,
+                        CollectionDate: collectionDate,
+                        CollectionAmount: collectionAmount,
+                        Remarks: remarks
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $("#hdnLoanDisbuseId").val(0);
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("LoanInfo", "SalaryLoan")" });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <input type="hidden" id="hdnEmployeeId" value="0" />
+    <input type="hidden" id="hdnLoanId" value="0" />
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Manual Loan Collection</h3>
+                        </div>
+                        @Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })
+                    </div>
+                </div>
+                <div class="x_content">
+                    @foreach (var r in loanList)
+                    {
+                         <fieldset>
+                       
+                        <legend>Basic Information</legend>
+
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Employee Id</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtEmpCode" value="@r.emp_office_code" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Name</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtEmpName" value="@r.emp_name" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Joining Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtJoiningDate" value="@r.JoiningDateMsg" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Designation</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtDesignation" value="@r.DesignationName" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Department</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtDepartment" value="@r.DepartmentName" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Branch</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtBranch" value="@r.BranchName" readonly="readonly" />
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Loan Collection</legend>
+                        <div style="text-align:right">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Loan Item</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control"  value="@r.LoanName" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Interest Calc Type</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control"  value="@r.InterestTypeName" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Disbuse Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.LoanDisburseDate" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Loan Amount</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.LoanDisburseAmount" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Interest rate</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.InterestRate" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Loan Duration (Month)</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.LoanDurationMonth" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2"> Installment</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.InstallmentAmount" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Total Collection</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.TotalCollection" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Collection Due</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" id="txtCollectionDue" class="form-control" value="@r.CollectionDue" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2">Paid Installment</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" value="@r.PaidInstallment" readonly="readonly" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Collection Amount</label> 
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="number" id="txtCollectionAmount" class="form-control" onkeyup="CollectionAmtCheck();"/> 
+                                    <input type="hidden" id="hdnLoanDisbuseId" value="@r.Id" />
+                                </div>
+                                <label class="control-label col-md-2 required">Collection Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" id="txtCollectionDate" class="form-control DateInput check-date" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2"> Remarks</label>
+                                <div class="col-md-10 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtRemarks" />
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <div class="control-label col-md-5">
+                                    <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

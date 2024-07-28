@@ -1,0 +1,209 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers
+@{
+    ViewBag.Title = "ConveyanceReport";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var reports = (List<ReportInformation>)ViewBag.Reports;
+    //var loanItemList = (List<SalaryLoanController.LoanModel>)ViewBag.LoanItemList;
+}
+<style>
+    .ui-autocomplete {
+        cursor: pointer;
+        height: 400px;
+        width: 300px;
+        overflow-y: scroll;
+        background-color: white;
+        color: rgb(0,188,212);
+        /*outline-style:outset;*/
+    }
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+        .bordercss:focus {
+            box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+            border: 2px solid rgba(81, 203, 238, 1);
+        }
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .k-grouping-header {
+        background-color: #1ABB9C;
+    }
+    #tblLoanList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+        #tblLoanList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        #tblLoanList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        #tblLoanList tr:hover {
+            background-color: #ddd;
+        }
+        #tblLoanList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+    .childTbl th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: red;
+        color: white;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var AllEmployeeList = [];
+    function GetEmployeeList() {
+        $('#txtExceptEmpCode').attr("placeholder", "Loading . .. ... ....")
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("EmployeeInfoListForAutoComplete", "Employee", "http")',
+            type: "GET",
+            dataType: "json",
+            async: true,
+            data: {},
+            success: function (List_EmployeeInfo) {
+                $.each(List_EmployeeInfo, function (id, option) {
+                    var obj2 = new Object();
+                    obj2.key = option.emp_id;
+                    obj2.value = option.EmployeeName;
+                    obj2.empCpde = option.emp_office_code;
+
+                    AllEmployeeList[AllEmployeeList.length] = obj2;
+                });
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+            },
+            failure: function () {
+                $('#txtExceptEmpCode').removeAttr("placeholder")
+                $.alert.open("error", "Failed!");
+            }
+        });
+        $('#txtExceptEmpCode').autocomplete({
+            source: AllEmployeeList,
+            select: function (event, ui) {
+
+                $("#txtExceptEmpCode").val(ui.item.value); // display the selected text
+                // $("#EmployeeId").val(ui.item.key);// save selected id to hidden input
+                 //$("#EmpOfficeCode").val(ui.item.empCpde);
+            }
+        });
+    }
+    $(document).ready(function () {
+        GetEmployeeList();
+        $("#btnView").on("click", function () {
+            var reportNo = parseInt($("input[type=radio][name=fileType]:checked").val());
+            var employeeCode = $('#txtExceptEmpCode').val().split("-")[0].trim();
+          //  var loanStatus = $("#ddlLoanStutas").val();
+            //var loanItem = $("#ddlLoanItem").val();
+            var startDate = $("#txtStartDate").val();
+            var endDate = $("#txtEndDate").val();
+            var reportType = $("#cmbReportType").val();
+            var InvoiceNo = $("#txtVNo").val()
+            //var InvoiceNo = $("#txtVNo").val() == "" ? 0 : $("#txtVNo").val();
+            if (startDate !== '') {
+                var param = 'ReportNo=' + reportNo + '&EmployeeCode=' + employeeCode + '&InvoiceNo=' + InvoiceNo + '&StartDate=' + startDate + '&EndDate=' + endDate + '&ReportType=' + reportType;
+                var url = '/ReportView/ShowConveyanceReport?' + param;
+                window.open(url);
+            }
+            else 
+                {
+                    $.alert.open("error", "Insert date");
+               }
+        });
+    });
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Conveyance Report</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <div class="row">
+                        <div class="col-sm-2 label-container" style="text-align:right">
+                            @Html.Label("Report Name ", new { @class = "control-label" })
+                        </div>
+                        <div class="col-sm-10 radio-container">
+                            <div class="row">
+                                @for (var r = 0; r < reports.Count; r++)
+                                {
+                                    <label class="col-sm-4 @(r==0?"active":"")">
+                                        <input type="radio" class="radio radio-inline" @(r == 0 ? "checked='checked'" : "") name="fileType" value="@reports[r].SerialNo" /> <span class="radio-text">@reports[r].ReportName</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <fieldset style="text-align:right">
+                        
+                        <div class="row form-group">
+                            @Html.Label("Start date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("txtStartDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                            @Html.Label("End Date", htmlAttributes: new { @class = "control-label col-md-2 required" })
+                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                @Html.Editor("txtEndDate", new { htmlAttributes = new { @class = "form-control DateInput check-date" } })
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            @Html.Label("Employee Code", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtExceptEmpCode" class="form-control" />
+                            </div>
+                            @Html.Label("Conveyance No", htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                <input type="text" id="txtVNo" class="form-control" />
+                            </div>
+                            <div class="col-sm-2 label-container">
+                                @Html.Label("Report Type :", new { @class = "control-label" })
+                            </div>
+                            <div class="col-sm-4">
+                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                    <option value="Pdf" selected="selected">Pdf</option>
+                                    <option value="ExcelBook">Microsoft Excel</option>
+                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                    <option value="XML">XML</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row form-group">
+                            <div class="control-label col-md-5">
+                                <button type="submit" class="btn btn-info" id="btnView">View</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

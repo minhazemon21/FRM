@@ -1,0 +1,251 @@
+﻿@model Hrms.HRMViewModel.EmployeeReportViewModel
+@using System.Data;
+@{
+    ViewBag.Title = "MonthlyAttenSumRpt";
+    Layout = "~/Views/Shared/_LayoutUcasPortfolio.cshtml";
+    var sl = ((DataTable)ViewBag.CompanyList).AsEnumerable().Select(r => new
+    {
+        Id = r.Field<int>("Id"),
+        Name = r.Field<string>("Name")
+    });
+}
+
+<script src="~/Content/CommonJs/CommonJs.js"></script>
+<style>
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+    .timeline .block {
+        margin: 0;
+        border-left: 3px solid #e8e8e8;
+        overflow: visible;
+        padding: 10px 5px;
+        margin-left: 0px;
+    }
+    .x_panel{
+        padding:10px 0px!important;
+    }
+</style>
+<script type="text/javascript">
+    function GetDepartmentList(emp_dept_id) {
+        var CompanyList = $("#ddlCompanyList").val();
+        var DepartmentList = $("#ddldepartmentList");
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("DepartmentListForDropdown", "Employee", "http")',
+            data: { CompanyId: CompanyList },
+            dataType: 'json',
+            async: true,
+            success: function (Department) {
+                // $('#AjaxLoader').hide();
+                DepartmentList.html('');
+                DepartmentList.append($('<option></option>').val("0").html("Please select"));
+                $.each(Department, function (id, option) {
+                    DepartmentList.append($('<option></option>').val(option.Id).html(option.DepartmentName));
+                });
+                if (emp_dept_id != 0) {
+                    $("#ddldepartmentList").val(emp_dept_id);
+                } else if (CompanyList != "0" || CompanyList != 0) {
+                    $("#ddldepartmentList").val(@ViewData["DepartmentId"]);
+                } else {
+                    $("#ddldepartmentList").val(0);
+                }
+            },
+            error: function (request, status, error) {
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+
+        loadDropDown('/Common/getEMPBranchList', {}, 'Post', '#BranchId', "", false);
+        //loadDropDown('/Common/getEMPDepartment', {}, 'Post', '#DepartmentId', "", false);
+        $("#ddlCompanyList").change(function () {
+            GetDepartmentList(0);
+        });
+        GetDepartmentList(0);
+     
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+
+            var ReportName = $("#ReportName").val();
+            var BranchId = $("#BranchId").val() == "" || null ? "0" : $("#BranchId").val();
+            var DepartmentId = $("#ddldepartmentList").val() == "" || null ? "0" : $("#ddldepartmentList").val();
+            var StartDate = $("#StartDate").val();
+            var EndDate = $("#EndDate").val();
+            var ReportType = $("#cmbReportType").val();
+            var ManagementStatus = $("#chkManagement").is(":checked") == true ? 1 : 0;
+            var OnlyForces = $("#chkOnlyForces").is(":checked") == true ? 1 : 0;
+            var CompanyList = $("#ddlCompanyList").val();
+
+            if (StartDate != "" && EndDate != "") {
+                var data = "rptslnx=1&ReportName=" + ReportName + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&BranchId=" + BranchId + "&DepartmentId=" + DepartmentId + "&ReportType=" + ReportType + "&ManagementStatus=" + ManagementStatus + "&onlyForces=" + OnlyForces + "&CompanyId=" + CompanyList;
+                ShowReport('/Hrms/ReportView/ShowMonthlyAttendanceSummaryRpt', data);
+            }
+            else {
+                $.alert.open("error", "Select start date and end date.");
+            }
+
+
+        });
+
+        $("#btnSave").click(function (e) {
+            e.preventDefault();
+            $.alert.open('confirm', 'Are you sure you want to save data?', function (button) {
+                if (button == 'yes') {
+                    var BranchId = 0;
+                    var DepartmentId = 0;
+                    var StartDate = $("#StartDate").val();
+                    var EndDate = $("#EndDate").val();
+                    $('#AjaxLoader').show();
+                    if (StartDate != "" && EndDate != "") {
+                        $.ajax({
+                            type: 'GET',
+                            contentType: "application/json; charset=utf-8",
+                            url: '@Url.Action("SaveRptMonthlyAttendanceData", "Attendance", "http")',
+                            data: { StartDate: StartDate, EndDate: EndDate, BranchId: BranchId, DepartmentId: DepartmentId },
+                            dataType: 'json',
+                            async: true,
+                            success: function (data) {
+                                $('#AjaxLoader').hide();
+                                if (data.Result == true) {
+                                    $.alert.open("success", data.Message);
+                                }
+                            },
+                            error: function (request, status, error) {
+                                $('#AjaxLoader').hide();
+                                $.alert.open("error", request.statusText + "/" + request.statusText + "/" + error);
+                            }
+                        });
+                    }
+                    else {
+                        $.alert.open("error", "Select start date and end date.");
+                    }
+
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            });
+        });
+
+        $("#StartDate").on("change", function () {
+            var fromDate = $("#StartDate").val();
+            $("#EndDate").datepicker('option', { minDate: fromDate });
+        });
+        $("#EndDate").on("change", function () {
+            var toDate = $("#EndDate").val();
+            $("#TotalDays").val(0);
+            $("#StartDate").datepicker('option', { maxDate: toDate });
+        });
+
+
+
+    });
+</script>
+
+
+<form name="frmEmployeeReport" class="form-horizontal form-label-left" id="frmEmployeeReport" method="post">
+    @Html.AntiForgeryToken()
+
+    <div role="main">
+
+        <div class="">
+            <div id="AjaxLoader" class="ajaxLoader"></div>
+            <div class="page-title">
+                <div class="title_left PageHeader" style="width:90%;">
+                    <h3 style="color: white;padding:2px">&nbsp; Monthly Attendance Summary Report</h3>
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-6 col-xs-12">
+                <div class="x_panel">
+                    <div class="x_content">
+                        <ul class="list-unstyled timeline">
+                            <li>
+                                <div class="block">
+                                    <div class="block_content">
+                                        <div class="row form-group">
+                                            @Html.Label("Company List", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                <select id="ddlCompanyList" class="form-control bordercss">
+                                                    <option value="0">Please select</option>
+                                                    @foreach (var dt in sl)
+                                                    {
+                                                        <option value="@dt.Id">@dt.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            @Html.Label("Department", htmlAttributes: new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4">
+                                                <select class="form-control" id="ddldepartmentList">
+                                                    <option value="0">Please select</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+                                            @Html.LabelFor(model => model.StartDate, new { @class = "control-label col-md-2 required" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.TextBoxFor(model => model.StartDate, new { @class = "form-control DateInput check-date" })
+                                            </div>
+                                            @Html.LabelFor(model => model.EndDate, new { @class = "control-label col-md-2 required" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                @Html.TextBoxFor(model => model.EndDate, new { @class = "form-control DateInput check-date" })
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+                                            @Html.Label("Only Forces", new { @class = "control-label col-md-2" })
+                                            <div class="col-md-1 col-sm-6 col-xs-12">
+                                                <input type="checkbox" id="chkOnlyForces" class="form-control" />
+                                            </div>
+                                            <div class="col-md-3"></div>
+                                            @Html.Label("Without Management", new { @class = "control-label col-md-2" })
+                                            <div class="col-md-1 col-sm-6 col-xs-12">
+                                                <input type="checkbox" checked id="chkManagement" class="form-control" />
+                                            </div>
+                                        </div>
+                                        <div class="row form-group">
+                                            @Html.Label("Report Type", new { @class = "control-label col-md-2 required" })
+                                            <div class="col-sm-4">
+                                                <select class="input-sm form-control bordercss" id="cmbReportType">
+                                                    <option value="Pdf" selected="selected">Pdf</option>
+                                                    <option value="ExcelBook">Microsoft Excel</option>
+                                                    <option value="Excel">Microsoft Excel (97-2003)</option>
+                                                    <option value="ExcelData">Microsoft Excel (97-2003) Data-Only</option>
+                                                    <option value="Word">Microsoft Word (97-2003)</option>
+                                                    <option value="XML">XML</option>
+                                                </select>
+                                            </div>
+                                            @Html.Label("Brach", new { @class = "control-label col-md-2" })
+                                            <div class="col-md-4 col-sm-6 col-xs-12">
+                                                <select id="BranchId" name="BranchId" class="input-sm form-control bordercss"></select>
+                                            </div>
+                                        </div>
+                                        <br />
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="form-group">
+                            <div class="col-md-4"></div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-success" id="btnShow">Show</button>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-info" id="btnSave">Save Report Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

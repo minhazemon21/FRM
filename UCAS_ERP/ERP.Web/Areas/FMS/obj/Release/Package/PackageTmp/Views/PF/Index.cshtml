@@ -1,0 +1,568 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Investment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var investmentTypeList = (List<PFController.PFModel>)ViewBag.InvestmentTypeList;
+}
+
+<style>
+   
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    #tblEmpList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblEmpList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblEmpList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblEmpList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblEmpList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+<script type="text/javascript">
+
+
+
+    function CollectionAmtCheck() {
+        var coll = parseFloat($("#txtCollectionAmount").val() == "" ? "0" : $("#txtCollectionAmount").val());
+        var due = parseFloat($("#txtCollectionDue").val() == "" ? "0" : $("#txtCollectionDue").val());
+
+        if (coll > due) {
+            $("#txtCollectionAmount").val(0);
+            $.alert.open("error", "Collection amount is greater than due");
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    function InvestmentCompanyAndShareDeclaration() {
+        var investmentType = $("#ddlInvestmentType").val();
+        var company = $("#ddlCompanyId");
+        company.html('');
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("InvestmentCompanyAndShareDeclaration", "PF", "http")',
+            data: { InvestmentType: investmentType },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                if (data.Status == true) {
+                    company.append($('<option></option>').val("0").html("Please select"));
+                    $.each(data.Result, function (id, e) {
+                        company.append($('<option data-appdate="' + e.ApplyDate + '" data-inv="' + e.InvestmentName + '" data-costprice="' + e.EligibleCostPrice + '" data-interest="' + e.InterestRate + '" data-duration="' + e.DurationMonth + '" data-appid="' + e.ApplicationId + '" ></option>').val(e.Id).html(e.CompanyName));
+                    });
+                }
+                else {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+
+    function Get_Employee_PF_Balance() {
+
+        var processDate = $("#txtInvestmentDate").val().trim();
+        $("#AjaxLoader").show();
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_Employee_PF_Balance", "PF", "http")',
+            type: "GET",
+            dataType: 'json',
+            async: true,
+            data: {
+                ProcessDate: processDate
+            },
+            success: function (data) {
+                if (data.Status == true) {
+                    $("#tblEmpList").find('tbody').empty();
+                    var TotalPFBlc = 0;
+                    $.each(data.Result, function (id, r) {
+                        TotalPFBlc = r.TotalPF_Balance;
+                            $("#tblEmpList").find('tbody').append(
+                            '<tr>'+
+                            '<td>'+r.RowSl+'</td>'+
+                            '<td>'+r.EmployeeCode+'</td>'+
+                            '<td>'+r.EmployeeName+'</td>'+
+                            '<td>'+r.DesignationShortName+'</td>'+
+                            '<td><span id="empBlc-' + r.EmployeeCode + '">' + r.PFBalanceWithoutPFLoan + '</span> </td>' +
+                            '<td><span id="rt-'+r.EmployeeCode+'">'+r.PF_Ratio+'</span></td>'+
+                            '<td><span class="clInvest" id="' + r.EmployeeCode + '"  data-pfblc="' + r.PFBalanceWithoutPFLoan + '"></span></td>' +
+                            '</tr>'
+
+                        );
+
+                            $("#lblTotalPFBlc").html(TotalPFBlc);
+                         //if (cnt == r.Total_Employee)
+                         //   {
+                         //    $("#tblEmpList").find('tbody').append(
+                         //    '<tr>'+
+                         //       '<td colspan="3"></td><td>Total</td> <td><span id="spnTotalPF">'+r.TotalPF_Balance+'</span></td><td></td><td></td>'+
+                         //   '</tr>'
+                         //   );
+                         //}
+                    });
+                    CalcInvestment();
+                    $("#AjaxLoader").hide();
+                }
+                else {
+                    $("#AjaxLoader").hide();
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (error) {
+                $("#AjaxLoader").hide();
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+    }
+
+    function CalcInvestment()
+    {
+        var invType = $("#ddlInvestmentType").val();
+        var amt = parseFloat(invType == "S" || invType == "SS" ? ($("#txtAmount").val() == "" ? "0" : $("#txtAmount").val()) : ($("#txtAmountOther").val() == "" ? "0" : $("#txtAmountOther").val()));
+        var totalPFBlc = parseFloat($("#lblTotalPFBlc").html() == "" ? "0" : $("#lblTotalPFBlc").html());
+        var totInv = 0;
+
+        if (amt != 0) {
+            $(".clInvest").each(function () {
+
+                var empCode = $(this).attr("id");
+                //  alert(empCode);
+                // var empRatio = parseFloat($("#rt-" + empCode).html());
+                var empbl = parseFloat($("#empBlc-" + empCode).html() == "" ? "0" : $("#empBlc-" + empCode).html());
+
+               
+
+                var newInv = (empbl * amt) / totalPFBlc;
+                $("#" + empCode).html(newInv);
+
+                totInv = totInv + newInv;
+            });
+            $("#lblgrandTotal").html(totInv);
+        }
+        else {
+            $(".clInvest").html("");
+        }
+    }
+
+    function GenerateInvestmentName()
+    {
+       // var companyName = $("#ddlCompanyId option:selected").text();
+        var invName = $("#ddlCompanyId option:selected").attr("data-inv");
+        var investType = $("#ddlInvestmentType option:selected").text();
+        var investTypeShortname = $("#ddlInvestmentType").val();
+        var accNo = investTypeShortname == "SV" ? $("#txtAccountNoSavings").val() : $("#txtAccountNo").val();
+
+        /// Add Investment name with Number ======= 9/11/2021
+        var companyId = $("#ddlCompanyId").val();
+        var investmentTypeId = $("#ddlInvestmentType option:selected").attr("data-id");;
+        var companyName = $("#ddlCompanyId option:selected").text();
+        $.ajax({
+            type: "GET",
+            contentType: "application/json;charset=UTF-8",
+            url: '@Url.Action("GetInvestmentNameWithHightRowNumber", "PF", "http")',
+            data: { 'InvestmentTypeId': investmentTypeId, 'CompanyId': companyId },
+            dataType: "json",
+            success: function (res) {
+                //console.log(res.Result[0].investmentNameCount);
+                var investmentNumber = res.Result[0].investmentNameCount;
+                if (investTypeShortname == "S" || investTypeShortname == "SS")  //Share
+                {
+                    //$("#txtInvestmentName").val(invName);
+                    $("#txtInvestmentName").val(companyName + " (" + investType + investmentNumber + ")");
+                }
+                else {
+                    //$("#txtInvestmentName").val(companyName + " (" + investType + ", Account No.- " + accNo + ")");
+                    $("#txtInvestmentName").val(invName + " (" + investType + ", Account No.- " + accNo + ")");
+                }
+            },
+            error: function (error) {
+                $.alert.open("error", "An error occurred. Please contact to the vendor.");
+            }
+        });
+
+        //if (investTypeShortname == "S" || investTypeShortname == "SS")  //Share
+        //{
+        //    $("#txtInvestmentName").val(invName);        
+        //}
+        //else
+        //{
+        //    //$("#txtInvestmentName").val(companyName + " (" + investType + ", Account No.- " + accNo + ")");
+        //    $("#txtInvestmentName").val(invName + " (" + investType + ", Account No.- " + accNo + ")");
+        //}
+       
+
+    }
+
+    $(document).ready(function () {
+        //  InvestmentCompanyAndShareDeclaration();
+
+        $(".OtherInvest").hide();
+        $(".Savings").hide();
+
+        $("#ddlInvestmentType").on("change", function () {
+            $("#txtInvestmentName").val("");
+            $("#txtInvestmentDate").val("");
+            $("#txtInvestmentDate").prop("readonly", false);
+            $("#lblInvDate").html("Investment Date");
+
+
+            var invType = $("#ddlInvestmentType").val();
+
+            if (invType == "S" || invType== "SS")
+            {
+                $(".OtherInvest").hide();
+                $(".share").show();
+                $(".Savings").hide();
+
+                InvestmentCompanyAndShareDeclaration();
+
+                if ($("#ddlInvestmentType").val() == "S") {
+                    $("#txtInvestmentDate").prop("readonly", true);
+                   
+                };
+              
+            }
+            else if (invType == "SV")
+            {
+                $(".OtherInvest").hide();
+                $(".share").hide();
+                $(".Savings").show();
+                InvestmentCompanyAndShareDeclaration();
+            }
+            else
+            {
+                $(".OtherInvest").show();
+                $(".share").hide();
+                $(".Savings").hide();
+                InvestmentCompanyAndShareDeclaration();
+            }
+        });
+
+        $("#txtAccountNo,#txtAccountNoSavings").on("change", function () { GenerateInvestmentName(); });
+
+
+        $("#ddlCompanyId").on("change", function () {
+            $("#txtInvestmentDate").val("");
+            if ($("#ddlCompanyId").val() != "0")
+            {
+              //  var invName = $("#ddlCompanyId option:selected").attr("data-inv");
+
+                //$("#txtInvestmentName").val(invName);
+                $("#txtDuration").val($("#ddlCompanyId option:selected").attr("data-duration"));
+                $("#txtInterestRate").val($("#ddlCompanyId option:selected").attr("data-interest"));
+                $("#txtUnSharePrice").val($("#ddlCompanyId option:selected").attr("data-costprice"));
+                $("#txtInvestmentDate").val($("#ddlCompanyId option:selected").attr("data-appdate"));
+                
+                if ($("#ddlInvestmentType").val() == "S") { Get_Employee_PF_Balance(); };
+               
+                GenerateInvestmentName();
+               // $("#txtAccountNo").val($("#ddlCompanyId option:selected").attr("data-acc"));
+            }
+            else
+            {
+                $("#txtInvestmentName").val("");
+            }
+           
+        });
+
+        $("#txtAmount,#txtAmountOther").on("keyup", function () {
+            CalcInvestment();
+        });
+
+        $("#txtInvestmentDate").on("change", function () {
+            if ($("#ddlInvestmentType").val() != "SV") { Get_Employee_PF_Balance(); };
+        });
+
+        $("#btnSave").on("click", function () {
+
+
+            var investmentType = $("#ddlInvestmentType").val();
+
+            var companyId = $("#ddlCompanyId").val();//data-appid
+            var appId = $("#ddlCompanyId option:selected").attr("data-appid");
+            var investmentTypeId = $("#ddlInvestmentType option:selected").attr("data-id");
+            var accountNo = investmentType == "SV" ? $("#txtAccountNoSavings").val().trim() : $("#txtAccountNo").val().trim();
+            var interestRate = $("#txtInterestRate").val() == "" ? 0 : $("#txtInterestRate").val();
+            var duration = $("#txtDuration").val() == "" ? 0 : $("#txtDuration").val().trim();
+            var investmentName = $("#txtInvestmentName").val();
+            var investmentDate = $("#txtInvestmentDate").val().trim();
+            var amount = investmentType == "S" || investmentType == "SS" ? ($("#txtAmount").val() == "" ? "0" : $("#txtAmount").val()) : investmentType == "S" ? "0" : ($("#txtAmountOther").val() == "" ? "0" : $("#txtAmountOther").val());
+            var unSharePrice = investmentType == "S" || investmentType == "SS" ? ($("#txtUnSharePrice").val() == "" ? "0" : $("#txtUnSharePrice").val()) : "0";
+            var allotedShareQuantity = investmentType == "S" || investmentType == "SS" ? ($("#txtAllotedShareQuantity").val() == "" ? "0" : $("#txtAllotedShareQuantity").val()) : "0";
+            var payorderCharge = investmentType == "S" || investmentType == "SS" ? ($("#txtPayorderCharge").val() == "" ? "0" : $("#txtPayorderCharge").val()) : "0";
+            var dseApplyCharge = investmentType == "S" || investmentType == "SS" ? ($("#txtDseApplyCharge").val() == "" ? "0" : $("#txtDseApplyCharge").val()) : "0";
+
+            var empInvest = "";
+
+            if (investmentType != "SV")
+            {
+                $(".clInvest").each(function () {
+
+                    var empCode = $(this).attr("id");
+                    var invAmt = $(this).html() == "" ? "0" : $(this).html();
+                    var pfblc = $(this).attr("data-pfblc") == "" ? "0" : $(this).attr("data-pfblc");
+
+                    empInvest = empInvest + "|" + empCode + "~" + invAmt + "~" + pfblc;
+                });
+            }
+
+            if (investmentTypeId == "0") {
+                $.alert.open("error", "Please select investment type.");
+                return false;
+            }
+           else if (companyId == "0") {
+                $.alert.open("error", "Please select company.");
+                return false;
+            }
+            else if (investmentDate == "") {
+                $.alert.open("error", "Please insert investment date.");
+                return false;
+            }
+            else if (amount == "0" && investmentType != "SV") {
+                $.alert.open("error", "Please insert investment amount.");
+                return false;
+            }
+            else if ((investmentType == "S" || investmentType == "SS") && unSharePrice == "0") {
+                $.alert.open("error", "Please insert unit price.");
+                return false;
+            }
+            else if ((investmentType == "S" || investmentType == "SS") && allotedShareQuantity == "0") {
+                $.alert.open("error", "Please insert share quantity.");
+                return false;
+            }
+
+            else {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_PF_Investment_Info", "PF", "http")',
+                    data: JSON.stringify({
+                        InvestmentType: investmentType,
+                        InvestmentTypeId:investmentTypeId,
+                        CompanyId: companyId,
+                        appId:appId,
+                        AccountNo:accountNo,
+                        InterestRate: interestRate,
+                        Duration:duration,
+                        InvestmentName: investmentName,
+                        InvestmentDate: investmentDate,
+                        Amount: amount,
+                        UnSharePrice: unSharePrice,
+                        AllotedShareQuantity: allotedShareQuantity,
+                        PayorderCharge: payorderCharge,
+                        DseApplyCharge:dseApplyCharge,
+                        EmpInvest: empInvest,
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $.alert.open(data.Result, data.Message, function () { window.location = "@Url.Action("Index", "PF")"; });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+        });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;PF Investment</h3>
+                        </div>
+                        @*@Html.ActionLink("Back To List", "LoanInfo", null, new { @class = "btn btn-primary btn-sm pull-right" })*@
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Investment Type</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlInvestmentType">
+                                        <option value="0">Please Select</option>
+                                        @foreach (var r in investmentTypeList)
+                                        {
+                                            <option value="@r.InvestmentTypeShortName" data-id="@r.Id">@r.InvestmentTypeName</option>
+                                        }
+                                    </select>
+                                </div>
+                                <label class="control-label col-md-2  required">Company Name</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <select class="form-control" id="ddlCompanyId"></select>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Investment Name</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtInvestmentName" readonly="readonly" />
+                                </div>
+                                <label class="control-label col-md-2 required" id="lblInvDate">Investment Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtInvestmentDate"  />
+                                </div>
+                            </div>
+                            <div class="share">
+                                <div class="row form-group">
+                                    <label class="control-label col-md-2 required">Amount</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtAmount" />
+                                    </div>
+                                    <label class="control-label col-md-2 required">Alloted Share Quantity</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtAllotedShareQuantity" />
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <label class="control-label col-md-2 required ">Per Unit Share Cost Price</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtUnSharePrice" />
+                                    </div>
+                                </div>
+                                <div class="row form-group" style="display:none">
+                                    <label class="control-label col-md-2">Payorder Charge</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtPayorderCharge" />
+                                    </div>
+                                    <label class="control-label col-md-2 ">DSE Apply Charge</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtDseApplyCharge" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="OtherInvest">
+                                <div class="row form-group">
+                                    <label class="control-label col-md-2 required">Amount</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtAmountOther" />
+                                    </div>
+                                    <label class="control-label col-md-2 required">Account No</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="text" class="form-control" id="txtAccountNo" />
+                                    </div>
+                                </div>
+                                <div class="row form-group">
+                                    <label class="control-label col-md-2">Interest Rate</label>
+                                    <div class="col-md-4 col-sm-6 col-xs-12">
+                                        <input type="number" class="form-control" id="txtInterestRate" />
+                                    </div>
+                                        <label class="control-label col-md-2">Duration (Month)</label>
+                                        <div class="col-md-4 col-sm-6 col-xs-12">
+                                            <input type="number" class="form-control" id="txtDuration" />
+                                        </div>
+                                </div>
+                            </div>
+                           <div class="Savings"> 
+                               <div class="row form-group">
+                                   <label class="control-label col-md-2 required">Account No</label>
+                                   <div class="col-md-4 col-sm-6 col-xs-12">
+                                       <input type="text" class="form-control" id="txtAccountNoSavings" />
+                                   </div>
+                               </div>
+                           </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblEmpList">
+                                <thead>
+                                    <tr>
+                                        <th>&nbsp; Sl</th>
+                                        <th>Code</th>
+                                        <th>Employee Name</th>
+                                        <th>Desg</th>
+                                        <th>PF Balance</th>
+                                        <th>Ratio</th>
+                                        <th>New Invest</th>
+                                    </tr>
+                                </thead>
+                              <tbody></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3"></td>
+                                        <td>Total</td>
+                                        <td><label id="lblTotalPFBlc"></label></td>
+                                        <td></td>
+                                        <td><label id="lblgrandTotal"></label></td>
+                                    </tr>
+                                </tfoot>
+                                @*@{
+                                    var cnt = 0;
+                                    foreach (var r in employeeList)
+                                    {
+                                        cnt = cnt + 1;
+                                        <tr>
+                                            <td>@r.RowSl</td>
+                                            <td>@r.EmployeeCode</td>
+                                            <td>@r.EmployeeName</td>
+                                            <td>@r.DesignationShortName</td>
+                                            <td>@r.PFBalanceWithoutPFLoan</td>
+                                            <td><span id="rt-@r.EmployeeCode">@r.PF_Ratio</span></td>
+                                            <td><span class="clInvest" id="@r.EmployeeCode"></span></td>
+                                        </tr>
+                                        if (cnt == r.Total_Employee)
+                                        {
+                                            <tr>
+                                               <td colspan="3"></td><td>Total</td> <td><span id="spnTotalPF">@r.TotalPF_Balance</span></td><td></td><td></td>
+                                            </tr>
+                                        }
+                                    }
+                                }*@
+                            </table>
+                        </div>
+                    </fieldset>
+                    <div class="row form-group">
+                        <div class="col-md-offset-4 col-md-4">
+                            <button type="submit" class="btn btn-success" id="btnSave">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

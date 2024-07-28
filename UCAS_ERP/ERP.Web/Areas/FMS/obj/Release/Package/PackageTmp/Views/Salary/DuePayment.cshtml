@@ -1,0 +1,218 @@
+﻿@using Hrms.Controllers
+@{
+    ViewBag.Title = "Due Payment";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+    var salaryDueList = (List<SalaryController.SalaryAllowance>)ViewBag.SalaryDueList;
+}
+
+
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+
+
+    #tblSalaryDueList {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+        #tblSalaryDueList td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #tblSalaryDueList tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #tblSalaryDueList tr:hover {
+            background-color: #ddd;
+        }
+
+        #tblSalaryDueList th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>
+
+
+<script type="text/javascript">
+
+    function CheckPaymentAmount(Id)
+    {
+       
+        var due = parseFloat($("#hdnDue-"+Id).val());
+        var pay = parseFloat($("#due-"+Id).val());
+
+        if(pay > due)
+        {
+            $("#due-"+Id).val(0);
+            $("#due-"+Id).focus();
+            $.alert.open("error","Payment is greater than due.");
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+        
+    }
+
+
+    function Save_Due_Collection()
+    {
+        var dueinfo = "";
+        $(".cldueIds").each(function () {
+
+            var id = $(this).attr("data-duid");
+            var payAmt = $("#due-" + id).val() == "" ? "0" : $("#due-" + id).val();
+            //var date = $("#txtdate-" + id).val();
+            var rem = $("#txtRemarks-" + id).val();
+            if (payAmt != "0")
+            {
+                dueinfo = dueinfo + "|" + id + "~" + payAmt + "~" + rem;
+            }
+        });
+
+        var paymentDate = $("#txtPaymentDate").val();
+
+      
+        if (dueinfo != "")
+        {
+            if (paymentDate == "")
+            {
+                $.alert.open("error", "Please insert payment date.");
+                return false;
+            }
+            else
+            {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'POST',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("Insert_Due_Salary_Payment", "Salary", "http")',
+                    data: JSON.stringify({
+                        dueinfo: dueinfo,
+                        PaymentDate: paymentDate
+                    }),
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if (data.Status == true) {
+                            $.alert.open(data.Result, data.Message, function () { window.location.reload(); });
+                        }
+                        else {
+                            $.alert.open(data.Result, data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+            }
+           
+        }
+    }
+
+
+    $(document).ready(function () {
+
+
+        $("#btnSearch").on("click", function () {
+
+            window.location = "@Url.Action("DuePayment", "Salary")?EmployeeCode=" + $("#txtEmpCode").val().trim() + "&PaymentDate=" + $("#PaymentDate").val();
+
+        });
+        $("#btnSave").on("click", function () { Save_Due_Collection(); });
+    });
+
+</script>
+
+<div class="">
+    <div id="AjaxLoader" class="ajaxLoader"></div>
+    <div class="clearfix"></div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="x_panel">
+                <div class="x_title">
+                    <div class="page-title">
+                        <div class="title_left PageHeader" style="width:90%;">
+                            <h3 style="color: white;padding:2px">&nbsp;Due Payment</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <fieldset>
+                        <form class="form-horizontal form-label-left">
+                            <div class="row form-group">
+                                <label class="control-label col-md-2">Employee Id</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control" id="txtEmpCode" value="@ViewData["employeecode"]" />
+                                </div>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <button type="button" class="btn btn-info" id="btnSearch">Search</button>
+                                </div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="control-label col-md-2 required">Payment Date</label>
+                                <div class="col-md-4 col-sm-6 col-xs-12">
+                                    <input type="text" class="form-control DateInput check-date" id="txtPaymentDate" value="@ViewData["PaymentDate"]" />
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                    <fieldset>
+                        <div class="row form-group">
+                            <table id="tblSalaryDueList">
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Code</th>
+                                    <th>Employee Name</th>
+                                    <th>Desg</th>
+                                    <th>Salary Month & Year</th>
+                                    <th>Due Amount</th>
+                                    <th>Paid</th>
+                                    @*<th>Paid Date</th>*@
+                                    <th>Remarks</th>
+                                </tr>
+                                @foreach (var r in salaryDueList)
+                                {
+                                    <tr>
+                                        <td>@r.RowSl</td>
+                                        <td>@r.emp_office_code</td>
+                                        <td>@r.emp_name</td>
+                                        <td>@r.DesignationShortName</td>
+                                        <td>@r.SalMonthYear</td>
+                                        <td>@r.DueAtNow<input type="hidden" value="@r.DueAtNow" id="hdnDue-@r.Id" class="cldueIds" data-duid="@r.Id" data-amt="@r.DueAtNow" /></td>
+                                        <td><input type="number" id="due-@r.Id" value="@r.DueAtNow" onkeyup="CheckPaymentAmount(@r.Id);" /></td>
+                                        @*<td><input type="text" id="txtdate-@r.Id" class="DateInput check-date" /></td>*@
+                                        <td><input type="text" id="txtRemarks-@r.Id" /></td>
+                                    </tr>
+                                }
+                            </table>
+                        </div>
+                        <div class="row form-group">
+                            <div class="col-md-4 col-md-offset-6">
+                                <button type="button" class="btn btn-success" id="btnSave">Save</button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

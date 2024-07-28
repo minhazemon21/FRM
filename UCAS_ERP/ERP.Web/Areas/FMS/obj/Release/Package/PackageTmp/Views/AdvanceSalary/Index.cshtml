@@ -1,0 +1,547 @@
+﻿@using Common.Data.CommonDataModel
+@using Hrms.Controllers;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutUcasportfolio.cshtml";
+}
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    .bordercss {
+        border: 3px double #CCCCCC;
+        color: black;
+    }
+    .bordercss:focus {
+        box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+        border: 2px solid rgba(81, 203, 238, 1);
+    }
+
+    .panel-heading {
+        padding: 6px 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+    }
+    .section-heading {
+        color: #fff;
+        background-color: #337ab7;
+        border-color: #337ab7;
+        border-radius:5px;
+    }
+    h5 {
+        margin-top: 7px;
+        margin-bottom: 7px;
+        font-weight:bold;
+    }
+    #tblAdvanceSalary th {
+        background-color: #2A3F54;
+        color: white;
+        border-radius:5px;
+    }
+    .panel-body{
+        padding:5px 15px;
+    }
+    .form-group {
+        margin-bottom: 5px;
+    }
+    .btn-sm {
+        padding: 3px 8px;
+        font-size: 10px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+    .table > tbody > tr > td:last-child {
+        padding: 2px 8px;
+        line-height: 1.42857143;
+        vertical-align: top;
+        border-top: 1px solid #ddd;
+        text-align: center;
+    }
+    #tblAdvanceSalary th:last-child {
+        text-align: center;
+    }
+</style>
+
+<div id="AjaxLoader" class="ajaxLoader"></div>
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Employee Advance Salary</div>
+            <div class="panel-body">
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Employee Basic</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Employee Id</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" data-empid="0" id="EmployeeCode" class="form-control" autofocus />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Employee Name</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="EmployeeName" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Job Type</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="job_name" class="form-control" readonly="readonly" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Joining Date</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="empJoiningDate" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Designation</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="desg_name" class="form-control" readonly="readonly" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Department</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="Dept_name" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Branch</label>
+                    <div class="col-md-4 col-sm-6 col-xs-12">
+                        <input type="text" id="branch_name" class="form-control" readonly="readonly" />
+                    </div>
+                </div>
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Disburse Salary</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Salary Month</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlSalMonth" data-id="0">
+                            <option value="0">Please select month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Salary Year</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <select class="form-control bordercss" id="ddlSalYear">
+                            @{
+                                <option value="0">Select year</option>
+                                for (var i = DateTime.Now.Year; i < DateTime.Now.Year + 6; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Disburse Date</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="text" id="txtDisburseDate" class="form-control DateInput check-date" />
+                    </div>
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12 required">Disburse Amount</label>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+                        <input type="number" data-preamount="0" id="txtDisburseAmount" class="form-control" />
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <label class="control-label col-lg-2 col-md-2 col-sm-2 col-xs-12">Remarks</label>
+                    <div class="col-lg-10 col-md-10 col-sm-10 col-xs-12">
+                        <textarea type="text" id="txtRemarks" class="form-control bordercss"></textarea>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="col-lg-offset-6 col-md-offset-6 col-sm-offset-6 col-xs-offset-6 col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                        <button type="submit" class="btn btn-info" id="btnSave">Save</button>
+                        <button type="submit" class="btn btn-default" id="btnRest">Reset</button>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-footer">
+                <div class="row form-group">
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Month</label>
+                    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
+                        <select class="form-control bordercss" id="SrcddlSalMonth" data-id="0">
+                            <option value="0">Please select month</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Year</label>
+                    <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
+                        <select class="form-control bordercss" id="SrcddlSalYear">
+                            @{
+                                <option value="0">Select year</option>
+                                for (var i = 2023; i < DateTime.Now.Year + 6; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <label class="control-label col-lg-1 col-md-1 col-sm-1 col-xs-12">Emp. Id</label>
+                    <div class="col-lg-2 col-md-2 col-sm-2 col-xs-12">
+                        <input type="text" id="SrcEmployeeCode" class="form-control" />
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-1 col-xs-12 text-right">
+                        <button type="submit" class="btn btn-primary" id="btnSearch"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="row form-group section-heading">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                        <h5>Disbursed Advance Salary List</h5>
+                    </div>
+                </div>
+                <div class="row form-group">
+                    <div class="table-responsive">
+                        <table class="table" id="tblAdvanceSalary">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp; Sl</th>
+                                    <th>Emp. ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Desg</th>
+                                    <th>Dept</th>
+                                    <th>Month</th>
+                                    <th>Year</th>
+                                    <th>Disbusement Date</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function Clear() {
+        $("#EmployeeCode").attr("data-empid", 0);
+        $("#EmployeeName").val("");
+        $("#desg_name").val("");
+        $("#empJoiningDate").val("");
+        $("#Dept_name").val("");
+        $("#branch_name").val("");
+        $("#job_name").val("");
+    }
+    function Get_EmployeeInfo_Details_By_Code(code = 0) {
+        var EmployeeCode = "";
+        if (code == 0) {
+            var EmployeeCode = $("#EmployeeCode").val();
+        } else {
+            EmployeeCode = code;
+        }
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("Get_EmployeeInfo_Details_By_Code", "Employee", "http")',
+            data: { EmployeeCode: EmployeeCode },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                Clear();
+                if (data.Result == "Success") {
+                    $.each(data.EmployeeInfo, function (id, E) {
+                        $("#EmployeeCode").val(E.emp_office_code);
+                        $("#EmployeeCode").attr("data-empid", E.emp_id);
+                        $("#EmployeeName").val(E.emp_name);
+                       // $("#empDateOfBirth").val(E.emp_datetimeof_birth);
+
+                        $("#empJoiningDate").val(E.emp_joining_datetime);
+                        $("#desg_name").val(E.desg_name);
+                        $("#Dept_name").val(E.Dept_name);
+                        $("#job_name").val(E.job_name);
+                        $("#branch_name").val(E.branch_name);
+                      //  $("#desk_name").val(E.desk_name);
+                        //$("#DueDateofConfirmation").val(E.emp_confirmation_datetime);
+
+
+                        $('#AjaxLoader').hide();
+                        $("#thumbnil2").attr("src", "/Hrms/Employee/RetrieveSign/" + E.emp_id + "");
+                        $("#thumbnil").attr("src", "/Hrms/Employee/RetrieveImage/" + E.emp_id + "");
+                    });
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function LoanAdvanceSalary(month,year,code)
+    {
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetEmployeeAdvanceSalaryInfo", "AdvanceSalary", "http")',
+            data: { EmployeeCode: code , SalaryMonth: month  , SalaryYear: year  },
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                if(data.Status == true)
+                {
+                    var html = "";
+                    $('#tblAdvanceSalary tbody').html("");
+                        $.each(data.Result, function (id, r) {
+                            if (r.IsEditDeleteAble == true) {
+                                html += '<tr>';
+                                html += '<td>' + (id + 1) + '</td>';
+                                html += '<td>' + r.emp_office_code + '</td>';
+                                html += '<td>' + r.emp_name + '</td>';
+                                html += '<td>' + r.Dept_name + '</td>';
+                                html += '<td>' + r.desg_name + '</td>';
+                                html += '<td>' + r.SalaryMonthName + '</td>';
+                                html += '<td>' + r.SalaryYear + '</td>';;
+                                html += '<td>' + r.DisburseDate + '</td>';
+                                html += '<td>' + r.Amount + '</td>'
+                                html += '<td><a class="btn btn-danger btn-sm" href="javascript:void(0);" title="Delete" onclick="DeleteAdvanceSalary(' + r.id + ')"><i class="fa fa-trash-o"></i></a><a class="btn btn-default btn-sm" href="javascript:void(0);" title="Edit" onclick="EditAdvanceSalary(' + r.id + ',' + "'" + r.emp_office_code + "'" + ')"><i class="fa fa-pencil"></i></a></td>';
+                                html += '</tr>';
+                            } else {
+                                html += '<tr>';
+                                html += '<td>' + (id + 1) + '</td>';
+                                html += '<td>' + r.emp_office_code + '</td>';
+                                html += '<td>' + r.emp_name + '</td>';
+                                html += '<td>' + r.Dept_name + '</td>';
+                                html += '<td>' + r.desg_name + '</td>';
+                                html += '<td>' + r.SalaryMonthName + '</td>';
+                                html += '<td>' + r.SalaryYear + '</td>';;
+                                html += '<td>' + r.DisburseDate + '</td>';
+                                html += '<td>' + r.Amount + '</td>'
+                                html += '<td><a class="btn btn-success btn-sm" href="javascript:void(0);" title="This month salary disbursement was completed.So it can not be edit/deleted." ><i class="fa fa-check-square-o"></i></a></td>';
+                                html += '</tr>';
+                            }
+                        });
+                    $('#tblAdvanceSalary tbody').html(html);
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $('#tblAdvanceSalary tbody').html("");
+                    $.alert.open("Error", data.Message, function () {
+                        var dt = `<tr><td colspan="10" class="text-center" style="color:red;">No Data Found.</td></tr>`
+                        $('#tblAdvanceSalary tbody').html(dt);
+                    });
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+
+    }
+    function EditAdvanceSalary(id, empOfficeCode) {
+        Get_EmployeeInfo_Details_By_Code(code = empOfficeCode);
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'GET',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("GetEmployeeAdvanceSalaryInfoById", "AdvanceSalary", "http")',
+            data: {Id: id},
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                if(data.Status == true)
+                {
+                    $("#ddlSalMonth").val(data.Result.SalaryMonth);
+                    $("#ddlSalYear").val(data.Result.SalaryYear);
+                    $("#txtDisburseDate").val(data.Result.DisburseDate);
+                    $("#txtDisburseAmount").val(data.Result.Amount);
+                    $("#txtDisburseAmount").attr("data-preamount",data.Result.Amount);
+                    $("#txtRemarks").val(data.Result.Remarks);
+                    $("#EmployeeCode").attr("data-empid", data.Result.emp_id);
+                    $("#EmployeeCode").val(data.Result.emp_office_code);
+                    $("#ddlSalMonth").attr("data-id", data.Result.id);
+                    $("#EmployeeCode").attr("readonly", "readonly");
+                    $("#btnSave").html("Update");
+                    $("#EmployeeName").focus();
+                }
+                else {
+                    $('#AjaxLoader').hide();
+                    $.alert.open("Error", data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    function DeleteAdvanceSalary(id) {
+         $.alert.open('confirm', 'Are you sure you want to delete this record?', function (button) {
+            if (button == 'yes') {
+                $('#AjaxLoader').show();
+                $.ajax({
+                    type: 'GET',
+                    contentType: "application/json; charset=utf-8",
+                    url: '@Url.Action("DeleteAdvanceSalary", "AdvanceSalary", "http")',
+                    data: {Id: id},
+                    dataType: 'json',
+                    async: true,
+                    success: function (data) {
+                        $('#AjaxLoader').hide();
+                        if(data.Status == true)
+                        {
+                            $.alert.open(data.Result, data.Message, function () {
+                                window.location.reload();
+                            });
+                        }
+                        else {
+                            $('#AjaxLoader').hide();
+                            $.alert.open("Error", data.Message);
+                        }
+                    },
+                    error: function (request, status, error) {
+                        $('#AjaxLoader').hide();
+                        alert(request.statusText + "/" + request.statusText + "/" + error);
+                    }
+                });
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
+    }
+    $(document).ready(function () {
+        LoanAdvanceSalary(month=0, year=0, code='');
+        $("#EmployeeCode").blur(function () {
+            if ($("#EmployeeCode").val() != "") {
+                Get_EmployeeInfo_Details_By_Code(code = 0);
+            }
+        });
+    });
+    $(document).on("click", "#btnSave", function () {
+    var SalaryMonth = parseInt($("#ddlSalMonth").val());
+    var SalaryYear = parseInt($("#ddlSalYear").val());
+    var disbuseDate = $("#txtDisburseDate").val().trim();
+    var amount = $("#txtDisburseAmount").val();
+    var remarks = $("#txtRemarks").val();
+    var employeeId = parseInt($("#EmployeeCode").attr("data-empid"));
+    var employeeCode = $("#EmployeeCode").val().trim();
+    var Id = parseInt($("#ddlSalMonth").attr("data-id"));
+    var preAmount = Number($("#txtDisburseAmount").attr("data-preamount"));
+
+    if (employeeId == 0 || employeeCode == "")
+    {
+        $.alert.open("error", "Please Insert Employee ID.");
+        return false;
+    }
+    else if (SalaryMonth == "0" || SalaryMonth == "" || SalaryMonth == undefined)
+    {
+        $.alert.open("error", "Please Select Salary Month.");
+        return false;
+    }
+    else if (SalaryYear == "0" || SalaryYear == "" || SalaryYear == undefined) {
+        $.alert.open("error", "Please select Salary Year.");
+        return false;
+    }
+    else if (disbuseDate == "")
+    {
+        $.alert.open("error", "Please Insert Disbuse Date.");
+        return false;
+    }
+    else if (amount == "0" || amount =="") {
+        $.alert.open("error", "Please Insert Amount.");
+        return false;
+    }
+    else
+    {
+        $('#AjaxLoader').show();
+        $.ajax({
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            url: '@Url.Action("SaveAdvanceSalary", "AdvanceSalary", "http")',
+            data: JSON.stringify({
+                Id:Id,
+                EmployeeId: employeeId,
+                EmployeeCode: employeeCode,
+                SalaryMonth: SalaryMonth,
+                SalaryYear: SalaryYear,
+                DisbuseDate: disbuseDate,
+                Amount: amount,
+                Remarks: remarks,
+                PreAmount: preAmount
+            }),
+            dataType: 'json',
+            async: true,
+            success: function (data) {
+                $('#AjaxLoader').hide();
+                if(data.Status == true)
+                {
+                    $.alert.open(data.Result, data.Message, function ()
+                    {
+                        $("#EmployeeCode").removeAttr("readonly");
+                        window.location.reload();
+                    });
+                }
+                else
+                {
+                    $.alert.open(data.Result, data.Message);
+                }
+            },
+            error: function (request, status, error) {
+                $('#AjaxLoader').hide();
+                alert(request.statusText + "/" + request.statusText + "/" + error);
+            }
+        });
+    }
+    });
+    $(document).on("click", "#btnRest", function () {
+        Clear();
+        $("#ddlSalMonth").val(0);
+        $("#ddlSalYear").val(0);
+        $("#txtDisburseDate").val('');
+        $("#txtDisburseAmount").val('');
+        $("#txtRemarks").val('');
+        $("#EmployeeCode").attr("data-empid", 0);
+        $("#EmployeeCode").val('');
+        $("#ddlSalMonth").attr("data-id", 0);
+        $("#EmployeeCode").removeAttr("readonly");
+        $("#btnSave").html("Save");
+        $("#txtDisburseAmount").attr("data-preamount",0);
+    });
+    $(document).on("click", "#btnSearch", function () {
+        var SrcMonth = parseInt($("#SrcddlSalMonth").val());
+        var SrcYear = parseInt($("#SrcddlSalYear").val());
+        var SrcEmployeeCode = $("#SrcEmployeeCode").val();
+        LoanAdvanceSalary(month = SrcMonth, year = SrcYear, code = SrcEmployeeCode);
+    });
+</script>
