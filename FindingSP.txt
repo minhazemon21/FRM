@@ -7,3 +7,20 @@ INNER JOIN
     sys.sql_modules m ON p.object_id = m.object_id
 WHERE 
     m.definition LIKE '%UCAS_ERP_EBSL_DLR..BrokerDe%';
+
+
+
+
+BEGIN TRANSACTION
+
+
+
+
+IF @@ERROR<>0
+		BEGIN
+			ROLLBACK TRANSACTION
+			RETURN
+		END
+
+
+COMMIT TRANSACTION
