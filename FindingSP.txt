@@ -8,7 +8,9 @@ INNER JOIN
 WHERE 
     m.definition LIKE '%UCAS_ERP_EBSL_DLR..BrokerDe%';
 
-
+select * from INFORMATION_SCHEMA.COLUMNS b
+where b.COLUMN_NAME like '%agent%'
+and b.TABLE_NAME not in (select b.TABLE_NAME from INFORMATION_SCHEMA.COLUMNS b where b.TABLE_NAME like '%agent%')
 
 
 BEGIN TRANSACTION
